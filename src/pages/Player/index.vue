@@ -10,7 +10,8 @@
 
 <script lang="ts" setup>
 import { onMounted, ref } from 'vue';
-import { getPlaylistHighquality, getPlaylistTrack, getMusicSrcWithCloudId, mediaSrc } from '../../assets/api';
+import { mediaSrc } from '../../assets/api';
+import { getCloudPlaylistHighquality, getMusicSrcWithCloudId } from '../../assets/cloudApi';
 
 let audioUrl = ref(mediaSrc(`/music/${Math.floor(Math.random() * 53) + 1}`))
 let media = ref<HTMLAudioElement>()
@@ -29,37 +30,18 @@ let page = ref(1)
 
 onMounted(() => {
 
-    getPlaylistHighquality()
-    .then(res => {
-        const {code, playlist} = res.data
-        if (code !== 1) return;
-        console.log(playlist)
-        getPlaylistTrack({id: playlist[0].id})
-        .then(res => {
-            console.log(res)
-        })
-    })
 
-    getMusicSrcWithCloudId(1987604310)
-    .then(res => {
-        const { code, src } = res.data;
-        if (code === 1) {
-            audioUrl.value = src;
-        }
-    })
-
-
-    // searchCloudMusic('花玲', page.value)
-    // .then(res => {
-    //     console.log(res)
-    // })
-
+    getMusicSrc()
+    test()
     
     if (media.value) {
-        media.value.addEventListener('canplay', () => {
+        let audio = media.value;
+        audio.volume = 0.2
+        audio.addEventListener('canplay', () => {
             console.log('canplay')
+            audio.play();
         })
-        media.value.addEventListener('ended', () => {
+        audio.addEventListener('ended', () => {
             console.log('随机换')
             audioUrl.value = mediaSrc(`/music/${Math.floor(Math.random() * 53) + 1}`)
         })
@@ -68,7 +50,32 @@ onMounted(() => {
     
 })
 
+async function test() {
+    let [err, result] = await getCloudPlaylistHighquality()
+    if (err) {
+        console.log(err)
+        return;
+    }
+    if (result) {
+        const { code, data } = result.data;
+        console.log(data)
+    }
+}
 
+
+async function getMusicSrc() {
+    let [err, result] = await getMusicSrcWithCloudId(1987604310);
+    if (err) {
+        console.log(err)
+        return;
+    }
+    if (result) {
+        const { code, data } = result.data;
+        if (code === 1) {
+            audioUrl.value = data.src
+        }
+    }
+}
 
 </script>
 

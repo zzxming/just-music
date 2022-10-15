@@ -19,9 +19,13 @@
 body {
   margin: 0;
   display: flex;
-  place-items: center;
+  align-items: flex-start;
   justify-content: center;
   min-height: 100vh;
+}
+#app {
+  position: relative;
+  width: 100%;
 }
 
 @media (prefers-color-scheme: light) {

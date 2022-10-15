@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "await-to-js": "^3.0.0",
     "axios": "^1.1.2",
     "element-plus": "^2.2.18",
     "less": "^4.1.3",

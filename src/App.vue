@@ -8,10 +8,19 @@
 		</template>
 
 		<template #fallback>
-        	<span>Loading...</span>
+        	<div class="loading">Loading...</div>
         </template>
     </Suspense>
 </template>
 
-<style scoped>
+<style lang="less" scoped>
+.loading {
+	position: fixed;
+	inset: 0;
+	margin: auto;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 30px;
+}
 </style>
