@@ -1,5 +1,3 @@
-<script setup lang="ts">
-</script>
 
 <template>
 	<Suspense>
@@ -11,6 +9,8 @@
         	<div class="loading">Loading...</div>
         </template>
     </Suspense>
+	<PlayerControlBar></PlayerControlBar>
+	<AudioDom></AudioDom>
 </template>
 
 <style lang="less" scoped>
@@ -24,3 +24,14 @@
 	font-size: 30px;
 }
 </style>
+
+
+<script setup lang="ts">
+import PlayerControlBar from './components/PlayerControlBar/index.vue'
+import AudioDom from './components/AudioDom/index.vue';
+import { onMounted } from 'vue';
+
+onMounted(() => {
+})
+
+</script>

@@ -1,7 +1,8 @@
 <template>
     <div class="content">
-        <div class="content_title">
+        <div class="content_title" @click="linkTo">
             <span class="content_title_text">{{ title }}</span>
+            <el-icon class="content_title_icon"><ArrowRightBold /></el-icon>
         </div>
         <div class="content_content">
             <slot></slot>
@@ -12,22 +13,31 @@
 <style lang="less" scoped>
 .content {
     position: relative;
-    width: 100%;
+    box-sizing: border-box;
+    width: 100vw;
+    max-width: 1280px;
+    margin: 0 auto;
     padding: 40px;
+    background-color: var(--el-fill-color-blank);
+    border: 1px solid var(--el-border-color);
     &_title {
+        display: flex;
+        align-items: center;
         width: 100%;
         height: 48px;
-        line-height: 48px;
         font-size: 24px;
         font-weight: 700;
+        color: var(--el-text-color-regular);
+        cursor: pointer;
+        &:hover {
+            color: var(--el-color-black);
+        }
         &_text {
             display: inline-block;
-            &::after {
-                content: '>';
-                display: inline-block;
-                margin-left: 6px;
-                font-weight: 400;
-            }
+        }
+        &_icon {
+            display: inline-block;
+            margin-left: 6px;
         }
     }
 }
@@ -35,39 +45,17 @@
 </style>
 
 <script lang="ts" setup>
-import { ref, reactive, onMounted } from 'vue';
-import { getCloudPlaylistHighquality, playlistVal } from '../../assets/cloudApi';
-import { CloudPlaylist } from '../../interface'
-import { ElMessage } from 'element-plus';
+import { useRouter } from 'vue-router';
 
 
-defineProps({
-    title: String
-});
+const props = defineProps<{
+    title: string
+    href: string
+}>();
+const router = useRouter()
 
-let loading = ref(false);
-let lasttime = ref(0);
-let cat = ref(playlistVal.All);
-let playlist = reactive<CloudPlaylist[]>([]);
-
-
-const getCloudPlaylistHighqualityData = async () => {
-    loading.value = true;
-    let [err, result] = await getCloudPlaylistHighquality(lasttime.value)
-    loading.value = false;
-    if (result) {
-        const { code, data } = result.data;
-        playlist = data.playlist;
-        lasttime.value = data.lasttime;
-    }
-    if (err) {
-        console.log(err)
-        ElMessage({
-            type: 'error',
-            message: err.name
-        })
-        return;
-    }
+const linkTo = () => {
+    router.push(props.href);
 }
 
 </script>

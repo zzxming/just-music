@@ -2,14 +2,14 @@
 import to from 'await-to-js';
 import { AxiosError } from "axios"
 import { CloudMusic, CloudPlaylist, CloudSong } from "../interface";
-import { axios, AxiosResult, jointQuery } from './api';
+import { axios, AxiosResult, AxiosResultError, jointQuery } from './api';
 
 /** 通过网易云歌曲 id 获取歌曲播放路径 */
-export const getMusicSrcWithCloudId = async (id: number) => await to<AxiosResult<{src: string}>, AxiosError>(
+export const getMusicSrcWithCloudId = async (id: number) => await to<AxiosResult<{src: string}>, AxiosResultError>(
     axios.get(`/music/cloud/${id}`)
 )
 /** 网易云歌单全部类型 */
-export enum playlistVal {
+export enum PlaylistVal {
     All = '全部',
     Chinese = '华语',
     Western = '欧美',
@@ -41,9 +41,9 @@ interface HighqualityPlaylistResponse {
 /** 获取网易云精选歌单 */
 export const getCloudPlaylistHighquality = async (
     before: number = 0, 
-    cat: playlistVal = playlistVal.All, 
+    cat: PlaylistVal = PlaylistVal.All, 
     limit: number = 10
-) => await to<AxiosResult<HighqualityPlaylistResponse>, AxiosError>(
+) => await to<AxiosResult<HighqualityPlaylistResponse>, AxiosResultError>(
     axios.get(
         jointQuery(
             `/music/cloud/playlist/highquality`, 
@@ -57,22 +57,24 @@ export const getCloudPlaylistHighquality = async (
 )
 /** 搜索网易云音乐资源 */
 // t: 1: 单曲, 10: 专辑, 100: 歌手, 1000: 歌单, 1002: 用户, 1004: MV, 1006: 歌词, 1009: 电台, 1014: 视频
-export const searchCloudMusic = async (kw: string, limit: number = 1, t: number = 1) => await to<AxiosResult<CloudMusic[]>, AxiosError>(
-    axios.get(
-        jointQuery(
-            '/music/search/cloud', 
-            {
-                kw, limit, t
-            }
+export const searchCloudMusic = async (kw: string, limit: number = 1, t: number = 1) => 
+    await to<AxiosResult<CloudMusic[]>, AxiosResultError>(
+        axios.get(
+            jointQuery(
+                '/music/search/cloud', 
+                {
+                    kw, limit, t
+                }
+            )
         )
     )
-)
+// https://music.163.com/playlist?id=5396146672
 /** 获取网易云歌单中的歌曲信息 */
 export const getCloudPlaylistTrack = async (
     query: {
         id: number
     }
-) => await to<AxiosResult<CloudSong>, AxiosError>(
+) => await to<AxiosResult<CloudSong>, AxiosResultError>(
     axios.get(
         jointQuery(
             `/music/cloud/playlist/track`, 
@@ -86,7 +88,7 @@ export const getCloudPlaylistDetail = async (
         id: number
     }
 ) => await to(
-    axios.get<AxiosResult<CloudPlaylist>, AxiosError>(
+    axios.get<AxiosResult<CloudPlaylist>, AxiosResultError>(
         jointQuery(
             '/music/cloud/playlist/detail', 
             query
