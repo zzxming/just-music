@@ -13,7 +13,7 @@
                                 <el-icon class="playlist_list_item-icon allow-right"><CaretRight /></el-icon>
                                 {{formatPlayCount(item.playCount)}}
                             </span>
-                            <img class="playlist_list_item-img" :src="item.coverImgUrl" />
+                            <img class="playlist_list_item-img" :src="item.coverImgUrl"  @error="onErrorImg" />
                         </div>
                         <div class="playlist_list_item-title">
                             {{item.name}}
@@ -182,6 +182,9 @@ import { getCloudPlaylistHighquality, PlaylistVal } from '../../assets/cloudApi'
 import { CloudPlaylist } from '../../interface'
 import { ElMessage } from 'element-plus';
 
+
+const musicImg = ref('/api/imgs/music.jpg');
+
 let loading = ref(false);
 let loadingError = ref(false);
 let lasttime = ref(0);
@@ -197,7 +200,7 @@ let playlist = ref<CloudPlaylist[]>([
 onMounted(() => {
     getCloudPlaylistHighqualityData();
 })
-
+/** 获取精选歌单 */
 const getCloudPlaylistHighqualityData = async () => {
     loading.value = true;
     loadingError.value = false;
@@ -209,7 +212,8 @@ const getCloudPlaylistHighqualityData = async () => {
         lasttime.value = data.lasttime;
     }
     if (err) {
-        loadingError.value = false;
+        console.log(err)
+        loadingError.value = true;
         return;
     }
 }
@@ -223,6 +227,9 @@ const formatPlayCount = (num: number) => {
     }
     return `${num}`
 }
-
+/** 图片加载失败 */
+function onErrorImg(e: Event) {
+    (e.target as HTMLImageElement).src = musicImg.value
+}
 
 </script>

@@ -1,9 +1,15 @@
+export enum AudioInfoType {
+    local = 'local',
+    cloud = 'cloud',
+}
 /** 本地歌曲信息 */
 export interface LocalMusic {
     music_id: number
     music_name: string
     music_url: string
+    music_cover: string
     singers: LocalSinger[]
+    duration: number
 }
 /** 本地歌手信息 */
 export interface LocalSinger {

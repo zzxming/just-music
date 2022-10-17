@@ -5,6 +5,7 @@ export const axios = OriginAxios.create({
     baseURL: process.env.NODE_ENV === 'development' ? '/api' : '/'
 });
 
+
 axios.interceptors.response.use((response) => {
     console.log(response)
     if (response.data.code !== 1) {

@@ -1,13 +1,19 @@
 import { defineStore } from "pinia"
 import { reactive, ref } from "vue"
-import { LocalMusic, CloudMusic } from "../interface"
+import { AudioInfoType, LocalMusic, CloudMusic } from "../interface"
 
+interface LocalAudioInfo extends LocalMusic {
+    type: AudioInfoType.local
+}
+interface CloudAudioInfo extends CloudMusic {
+    type: AudioInfoType.cloud
+}
 
 export const usePlayerStore = defineStore('player', () => {
     const audio = ref<HTMLAudioElement>();
-    const audioSrc = ref(`/music/${Math.floor(Math.random() * 53) + 1}`);
+    const audioSrc = ref(``);
     const showPlayerControl = ref(true);
-    const audioInfo = ref<LocalMusic | CloudMusic>();
+    const audioInfo = ref<LocalAudioInfo | CloudAudioInfo>();
 
     function setAudio(media: HTMLAudioElement) {
         if (audio) {
@@ -20,7 +26,7 @@ export const usePlayerStore = defineStore('player', () => {
     function changePlayerControlState(visible: boolean) {
         showPlayerControl.value = visible;
     }
-    function setAudioInfo(info: LocalMusic | CloudMusic) {
+    function setAudioInfo(info: LocalAudioInfo | CloudAudioInfo) {
         audioInfo.value = info;
     }
 
