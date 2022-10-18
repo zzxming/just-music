@@ -5,9 +5,10 @@ import { CloudMusic, CloudPlaylist, CloudSong } from "../interface";
 import { axios, AxiosResult, AxiosResultError, jointQuery } from './api';
 
 /** 通过网易云歌曲 id 获取歌曲播放路径 */
-export const getMusicSrcWithCloudId = async (id: number) => await to<AxiosResult<{src: string}>, AxiosResultError>(
-    axios.get(`/music/cloud/${id}`)
-)
+export const getMusicSrcWithCloudId = async (id: number) => 
+    await to<AxiosResult<{src: string}>, AxiosResultError>(
+        axios.get(`/music/cloud/${id}`)
+    )
 /** 网易云歌单全部类型 */
 export enum PlaylistVal {
     All = '全部',
@@ -87,8 +88,8 @@ export const getCloudPlaylistDetail = async (
     query: {
         id: number
     }
-) => await to(
-    axios.get<AxiosResult<CloudPlaylist>, AxiosResultError>(
+) => await to<AxiosResult<CloudPlaylist>, AxiosResultError>(
+    axios.get(
         jointQuery(
             '/music/cloud/playlist/detail', 
             query
@@ -100,6 +101,6 @@ export const getCloudMusicInfoWithId = async (
     query: {
         ids: number
     }
-) => await to(
+) => await to<AxiosResult<CloudMusic>, AxiosResultError>(
     axios.get(jointQuery(`/music/cloud/info`, query))
 )

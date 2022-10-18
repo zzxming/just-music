@@ -2,6 +2,29 @@ export enum AudioInfoType {
     local = 'local',
     cloud = 'cloud',
 }
+/** 整合后的歌曲信息 */
+export interface MusicInfo {
+    type: AudioInfoType
+    id: number
+    title: string
+    cover: string
+    singers: Singer[]
+    duration: number
+    src: string
+} 
+/** 整合后的歌手信息 */
+export interface Singer {
+    id: number
+    name: string
+}
+/** 携带type的本地歌曲信息 */
+export interface LocalAudioInfo extends LocalMusic {
+    type: AudioInfoType.local
+}
+/** 携带type的网易云歌曲信息 */
+export interface CloudAudioInfo extends CloudMusic {
+    type: AudioInfoType.cloud
+}
 /** 本地歌曲信息 */
 export interface LocalMusic {
     music_id: number

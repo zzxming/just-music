@@ -420,6 +420,9 @@ function bindAudioEvent() {
             console.log('play', this.paused)
             audioIsPaused.value = this.paused;
         })
+        audioDom.addEventListener('ended', function() {
+            console.log('end')
+        })
     }
 }
 function unbindAudioEvent() {

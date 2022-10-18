@@ -1,6 +1,8 @@
 import { createRouter, createWebHashHistory, RouteRecordRaw } from "vue-router"
 import Home from "../pages/Home/index.vue"
 import Player from "../pages/Player/index.vue"
+import Playlist from "../pages/Playlist/index.vue"
+import Song from "../pages/Song/index.vue"
 
 const routes: readonly RouteRecordRaw[] = [
     {
@@ -12,6 +14,17 @@ const routes: readonly RouteRecordRaw[] = [
     }, {
         path: '/player',
         component: Player
+    }, {
+        path: '/playlist',
+        component: Playlist
+    }, {
+        path: '/song',
+        component: Song,
+        props(route) {
+            return {
+                ...route.query
+            }
+        }
     }
 ];
 

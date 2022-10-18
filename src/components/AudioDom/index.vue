@@ -10,7 +10,6 @@ import { usePlayerStore } from '../../store/Player'
 import { storeToRefs } from 'pinia'
 import { getLocalMusicInfoWithId } from '../../assets/localApi';
 import { getCloudMusicInfoWithId } from '../../assets/cloudApi';
-import { random } from 'lodash';
 import { AudioInfoType } from '../../interface';
 
 const audioMedia = ref<HTMLAudioElement>();
@@ -22,11 +21,6 @@ const { setAudio, setAudioInfo } = playerStore;
 watch(audioMedia, (val, preVal) => {
     if (val) {
         setAudio(val)
-
-
-        val.addEventListener('ended', () => {
-            getMusicInfoWithId(random(54,55), AudioInfoType.local);
-        })
     }
 });
 // 更换 src 时需要 load audio
