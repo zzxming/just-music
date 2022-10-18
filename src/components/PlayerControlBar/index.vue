@@ -11,38 +11,46 @@
         </div>
         <div class="botcontrol_info">
             <div class="botcontrol_info_cover">
-                <img class="botcontrol_info_cover-img" :src="realAudioInfo.cover" @error="onErrorImg" />
+                <img class="botcontrol_info_cover-img" :src="audioInfo.cover" @error="onErrorImg" />
             </div>
             <div class="botcontrol_info_mid">
                 <div class="botcontrol_info_title">
-                    <span class="botcontrol_info_song">{{realAudioInfo.title}}</span>
-                    <span class="botcontrol_info_singer">
-                        <template v-for="(singer, index) in realAudioInfo.singers">
+                    <span class="botcontrol_info_song" :title="audioInfo.title">{{audioInfo.title}}</span>
+                    <span class="botcontrol_info_singer" :title="audioInfo.singers.map(s => s.name).join(' / ')">
+                        <template v-for="(singer, index) in audioInfo.singers">
                             <span class="botcontrol_info_singer-name">{{singer.name}}</span>
-                            {{ index === realAudioInfo.singers.length - 1 ? '' : ' / ' }}
+                            {{ index === audioInfo.singers.length - 1 ? '' : ' / ' }}
                         </template>
-                        <!-- <span class="botcontrol_info_singer-name">LCwwww</span> -->
                     </span>
                 </div>
                 <div class="botcontrol_info_bar-time">
-                    <div class="botcontrol_info_bar">
-                        <div class="botcontrol_info_bg"></div>
-                        <div class="botcontrol_info_progress">
-                            <div class="botcontrol_info_dot"></div>
+                    <div ref="audioTimeBar" class="botcontrol_time_bar" @click="seekAudio">
+                        <div class="botcontrol_time_bar_bg" :style="{width: `${bufferedWidth}%`}"></div>
+                        <div class="botcontrol_time_bar_progress" :style="{width: `${currentdWidth}%`}">
+                            <div class="botcontrol_time_bar_dot">
+                                <el-icon v-show="audioLoading"><Loading /></el-icon>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
             <div class="botcontrol_info_time">
-                <span class="botcontrol_info_time-current">{{audioCurrentTime}}</span>
+                <span class="botcontrol_info_time-current">{{audioCurrentTimeStr}}</span>
                 <span class="botcontrol_info_time-duration"> / {{audioDuration}}</span>
             </div>
         </div>
         <div class="botcontrol_left">
             <el-icon class="botcontrol_btn-icon play" v-show="audio.paused"><Play /></el-icon>
             <el-icon class="botcontrol_btn-icon pause" v-show="!audio.paused"><Pause /></el-icon>
-            <el-icon class="botcontrol_btn-icon volume" v-show="!audio.muted"><Volume /></el-icon>
-            <el-icon class="botcontrol_btn-icon mute" v-show="audio.muted"><Volume_mute /></el-icon>
+            <div class="botcontrol_btn_volume">
+                <el-icon class="botcontrol_btn-icon volume" v-show="!audio.muted"><Volume /></el-icon>
+                <el-icon class="botcontrol_btn-icon mute" v-show="audio.muted"><Volume_mute /></el-icon>
+                <div class="botcontrol_volume_bar">
+                    <div ref="audioVolumeBar" class="botcontrol_volume_bar_inner" @click="seekVolume">
+                        <div class="botcontrol_volume_bar_progress" :style="{height: `${volumeHeight}%`}"></div>
+                    </div>
+                </div>
+            </div>
             <el-icon class="botcontrol_btn-icon list"><List /></el-icon>
         </div>
     </div>
@@ -84,6 +92,26 @@
             width: 60px;
             height: 50px;
         }
+        &_volume {
+            position: relative;
+            width: 40px;
+            height: 30px;
+            &:hover {
+                .botcontrol_volume_bar {
+                    display: flex;
+                }
+            }
+            // 使用伪元素让图标移动到音量条之间的缝隙填满,使hover可以移动过去
+            &::after {
+                content: '';
+                display: block;
+                position: absolute;
+                left: 0;
+                top: -6px;
+                width: 100%;
+                height: 10px;
+            }
+        }
         &-icon {
             cursor: pointer;
             font-size: 30px;
@@ -95,6 +123,71 @@
             &.play,
             &.pause {
                 font-size: 50px;
+            }
+        }
+    }
+    .progressBar(@color) {
+        border-radius: 6px;
+        background-color: @color;
+    }
+    &_time {
+        &_bar {
+            cursor: pointer;
+            position: relative;
+            height: 100%;
+            .progressBar(var(--el-color-info-light-8));
+            z-index: 1;
+            &_progress {
+                position: absolute;
+                top: 0;
+                left: 0;
+                .progressBar(var(--el-color-danger-light-5));
+                height: 100%;
+                z-index: 3;
+                &::before {
+                    content: '';
+                    box-sizing: border-box;
+                    display: flex;
+                    position: absolute;
+                    top: -4px;
+                    right: -10px;
+                    width: 20px;
+                    height: 20px;
+                    border-radius: 50%;
+                    border: 2px solid var(--el-color-info);
+                    background-color: var(--el-color-info-light-9);
+                    z-index: 4;
+                    cursor: pointer;
+                    &:hover {
+                        border: 2px solid var(--el-color-info-dark-2);
+                    }
+                }
+            }
+            &_bg {
+                .progressBar(var(--el-color-info-light-3));
+                width: 0%;
+                height: 100%;
+                z-index: 2;
+            }
+            &_dot {
+                box-sizing: border-box;
+                display: flex;
+                position: absolute;
+                top: -4px;
+                right: -10px;
+                width: 20px;
+                height: 20px;
+                border-radius: 50%;
+                border: 2px solid var(--el-color-info);
+                background-color: var(--el-color-info-light-9);
+                z-index: 4;
+                cursor: pointer;
+                i {
+                    animation: rotate360 linear 2s infinite;
+                }
+                &:hover {
+                    border: 2px solid var(--el-color-info-dark-2);
+                }
             }
         }
     }
@@ -143,46 +236,10 @@
                 }
             }
         }
-        .progressBar(@color) {
-            height: 100%;
-            border-radius: 6px;
-            background-color: @color;
-        }
         &_bar {
-            cursor: pointer;
             &-time {
                 .progressBar(transparent);
                 height: 12px;
-            }
-            position: relative;
-            .progressBar(var(--el-color-info-light-8));
-            z-index: 1;
-        }
-        &_progress {
-            position: absolute;
-            top: 0;
-            left: 0;
-            .progressBar(var(--el-color-danger-light-5));
-            z-index: 3;
-        }
-        &_bg {
-            .progressBar(var(--el-color-info-light-3));
-            z-index: 2;
-        }
-        &_dot {
-            box-sizing: border-box;
-            position: absolute;
-            top: -4px;
-            right: -10px;
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            border: 2px solid var(--el-color-info);
-            background-color: var(--el-color-info-light-9);
-            z-index: 4;
-            cursor: pointer;
-            &:hover {
-                border: 2px solid var(--el-color-info-dark-2);
             }
         }
         &_time {
@@ -195,6 +252,62 @@
             &-duration {
             }
         }
+    }
+    &_volume {
+        &_bar {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            bottom: 140px;
+            width: 100%;
+            height: 100px;
+            .progressBar(var(--el-fill-color-blank));
+            box-shadow: var(--el-box-shadow-light);
+            z-index: 1;
+            &_inner {
+                position: relative;    
+                width: 8px;
+                height: 80%;
+                .progressBar(var(--el-color-info-light-8));
+                transform: rotateZ(180deg);
+                cursor: pointer;
+            }
+            &_progress {
+                position: relative;
+                width: 100%;
+                height: 0%;
+                .progressBar(var(--el-color-danger-light-5));
+                &::before {
+                    content: '';
+                    box-sizing: border-box;
+                    display: flex;
+                    position: absolute;
+                    bottom: -8px;
+                    right: -4px;
+                    width: 16px;
+                    height: 16px;
+                    border-radius: 50%;
+                    border: 2px solid var(--el-color-info);
+                    background-color: var(--el-color-info-light-9);
+                    z-index: 4;
+                    &:hover {
+                        border: 2px solid var(--el-color-info-dark-2);
+                    }
+                }
+            }
+        }
+    }
+}
+@keyframes rotate360 {
+    0% {
+        transform: rotateZ(0deg);
+    }
+    50% {
+        transform: rotateZ(180deg);
+    }
+    100% {
+        transform: rotateZ(360deg);
     }
 }
 @media screen and (max-width: 810px) {
@@ -245,64 +358,32 @@ import Skipforward from '../../assets/iconfont/skipforward.vue';
 import Volume_mute from '../../assets/iconfont/volume_mute.vue';
 import List from '../../assets/iconfont/list.vue';
 
-interface MusicInfo {
-    type: AudioInfoType
-    id: number
-    title: string
-    cover: string
-    singers: Singer[]
-    duration: number
-} 
-interface Singer {
-    id: number
-    name: string
-}
 
 const musicImg = ref('/api/imgs/music.jpg');
 
 const playerStore = usePlayerStore();
 const { audio, showPlayerControl, audioInfo } = storeToRefs(playerStore);
 const { changePlayerControlState } = playerStore;
-/** 整合后的音频信息 */
-const realAudioInfo = computed<MusicInfo>(() => {
-    // console.log(audioInfo)
-    if (!audioInfo.value) {
-        return {
-            type: AudioInfoType.local,
-            id: 0,
-            title: '',
-            cover: '',
-            singers: [] as Singer[],
-            duration: 0
-        } as MusicInfo
-    }
-    let id: number, title: string, cover: string, duration: number, singers: Singer[];
-    if (audioInfo.value.type === AudioInfoType.local) {
-        id = audioInfo.value.music_id;
-        title = audioInfo.value.music_name;
-        cover = audioInfo.value.music_cover;
-        singers = audioInfo.value.singers.map(item => ({id: item.singer_id, name: item.singer_name}));
-        duration = audioInfo.value.duration;
-    }
-    else {
-        id = audioInfo.value.id;
-        title = audioInfo.value.name;
-        cover = audioInfo.value.al.picUrl;
-        singers = audioInfo.value.ar;
-        duration = audioInfo.value.dt;
-    }
-    const result: MusicInfo = {
-        type: audioInfo.value.type, id, title, cover, duration, singers
-    };
-    return result;
-});
-const audioDuration = computed<string>(() => formatAudioTime(realAudioInfo.value.duration / 1000));
-const audioCurrentTime = ref('00:00');
+
+const audioTimeBar = ref<HTMLDivElement>();
+const audioVolumeBar = ref<HTMLDivElement>();
+
+const bufferedWidth = ref(0);
+const currentdWidth = ref(0);
+const volumeHeight = ref(0);
+
+const audioDuration = computed<string>(() => formatAudioTime(audioInfo.value.duration / 1000));
+const audioCurrentTimeStr = ref('00:00');
 const audioIsPaused = ref(true);
+const audioLoading = ref(false);
 
 watch(audio, (val, preVal) => {
     unbindAudioEvent();
     if (val) {
+        audioLoading.value = true;
+        volumeHeight.value = 70;
+        currentdWidth.value = 0;
+        val.volume = volumeHeight.value / 100;
         bindAudioEvent();
     }
 });
@@ -315,12 +396,29 @@ onMounted(() => {
 function bindAudioEvent() {
     let audioDom = audio.value;
     if (audioDom) {
-        audioDom.addEventListener('timeupdate', updateAudioCurrentTime)
+        // seek: load -> canplay -> playing
+        audioDom.addEventListener('timeupdate', updateAudioCurrentTime);
+        audioDom.addEventListener('seeking', updateAudioCurrentTime);
+        audioDom.addEventListener('canplay', function() {
+            console.log('canplay', this.paused)
+            audioLoading.value = false;
+        })
+        audioDom.addEventListener('waiting', function() {
+            console.log('load', this.paused)
+            audioLoading.value = true;
+        })
+        audioDom.addEventListener('playing', function() {
+            console.log('playing', this.paused)
+            audioLoading.value = false;
+            audioIsPaused.value = this.paused;
+        })
         audioDom.addEventListener('pause', function() {
-            audioIsPaused.value = true
+            console.log('pause', this.paused)
+            audioIsPaused.value = this.paused;
         })
         audioDom.addEventListener('play', function() {
-            audioIsPaused.value = false
+            console.log('play', this.paused)
+            audioIsPaused.value = this.paused;
         })
     }
 }
@@ -330,10 +428,44 @@ function unbindAudioEvent() {
         audioDom.removeEventListener('timeupdate', updateAudioCurrentTime)
     }
 }
+// path 属性是 chrome 独有的, composedPath 是官方标准
+/** 点击音频进度条跳转 */
+function seekAudio(e: MouseEvent) {
+    // console.log(e)
+    // 点到加载的dot, 判断offsetX会有问题
+    if (e.composedPath().length > 11) {
+        return;
+    }
+    if (audioTimeBar.value && audio.value) {
+        let clickX = e.offsetX;
+        let totalWidth = audioTimeBar.value.offsetWidth;
+        let pre = Math.round(clickX / totalWidth * 100);
+        currentdWidth.value = pre;
+        audio.value.currentTime = pre / 100 * (audioInfo.value.duration / 1000);
+        // console.log(clickX, totalWidth, Math.round(clickX / totalWidth * 100),audioInfo.value.duration)
+    }
+}
+/** 点击音量条调整音量 */
+function seekVolume(e: MouseEvent) {
+    // console.log(e)
+    if (audioVolumeBar.value && audio.value) {
+        let clickY = e.offsetY;
+        let totalHeight = audioVolumeBar.value.offsetHeight;
+        let pre = Math.round(clickY / totalHeight * 100);
+        volumeHeight.value = pre;
+        audio.value.volume = pre / 100;
+        console.log(clickY, totalHeight, pre / 100, audio.value.volume)
+    }
+
+}
 /** 更新当前播放时间 */
 function updateAudioCurrentTime() {
-    if (audio.value) {
-        audioCurrentTime.value = formatAudioTime(audio.value.currentTime);
+    if (audio.value && audioTimeBar.value) {
+        let currentTime = audio.value.currentTime
+        audioCurrentTimeStr.value = formatAudioTime(currentTime);
+
+        let duration = audioInfo.value.duration / 1000;
+        currentdWidth.value = Math.round(currentTime / duration * 100); 
     }
 }
 /** 格式化播放时间 */

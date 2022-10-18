@@ -1,6 +1,5 @@
 
 import to from 'await-to-js';
-import { AxiosError } from "axios"
 import { LocalMusic } from "../interface";
 import { axios, mediaSrc, jointQuery, AxiosResult, AxiosResultError } from './api';
 
@@ -25,7 +24,11 @@ export const searchLocalMusic = async (kw: string, limit: number = 1, t: number 
         )
     )
 /** 根据数据库 music_id 获取歌曲信息 */
-export const getMusicInfoWithId = async (id: number) => 
+export const getLocalMusicInfoWithId = async (
+    query: {
+        id: number
+    }
+) => 
     await to<AxiosResult<LocalMusic>, AxiosResultError>(
-        axios.get(`/music/info/${id}`)
+        axios.get(jointQuery(`/music/info`, query))
     )

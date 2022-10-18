@@ -74,7 +74,7 @@ export const getCloudPlaylistTrack = async (
     query: {
         id: number
     }
-) => await to<AxiosResult<CloudSong>, AxiosResultError>(
+) => await to<AxiosResult<CloudSong[]>, AxiosResultError>(
     axios.get(
         jointQuery(
             `/music/cloud/playlist/track`, 
@@ -94,4 +94,12 @@ export const getCloudPlaylistDetail = async (
             query
         )
     )
+);
+/** 根据id获取网易云音乐歌曲的信息 */
+export const getCloudMusicInfoWithId = async (
+    query: {
+        ids: number
+    }
+) => await to(
+    axios.get(jointQuery(`/music/cloud/info`, query))
 )
