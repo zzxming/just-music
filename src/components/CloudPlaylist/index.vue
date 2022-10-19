@@ -6,7 +6,7 @@
                     v-for="item in playlist" 
                     class="playlist_list_wrap"
                 >
-                    <div class="playlist_list_item">
+                    <div class="playlist_list_item" @click="gotoPlaylistDetail(item.id)">
                         <div class="playlist_list_item-cover">
                             <el-icon class="playlist_list_item-icon play"><VideoPlay /></el-icon>
                             <span class="playlist_list_item-playcount">
@@ -30,15 +30,11 @@
                 <span v-show="loadingMore">加载中...</span>
                 <span v-show="!loadingMore" class="load-btn">加载更多</span>
             </div>
-            <div v-show="!loadingMore && loadingError" class="error">
-                网络错误, 点击<span class="error_retry" @click="getCloudPlaylistHighqualityData">重试</span>
-            </div>
+            <LoadingErrorTip :isError="!loadingMore && loadingError" :requestFunc="getCloudPlaylistHighqualityData" />
         </template>
     </div>
 
-    <div v-if="fristLoad && !loading && loadingError" class="error">
-        网络错误, 点击<span class="error_retry" @click="getCloudPlaylistHighqualityData">重试</span>
-    </div>
+    <LoadingErrorTip :isError="fristLoad && !loading && loadingError" :requestFunc="getCloudPlaylistHighqualityData" />
 </template>
 
 <style lang="less" scoped>
@@ -141,16 +137,6 @@
         }
     }
 }
-.error {
-    text-align: center;
-    &_retry {
-        color: var(--el-color-primary);
-        cursor: pointer;
-        &:hover {
-            color: var(--el-color-primary-dark-2);
-        }
-    }
-}
 .load {
     &-more {
         margin: 20px 0 200px;
@@ -201,12 +187,14 @@
 
 
 <script lang="ts" setup>
-import { ref, reactive, onMounted, watch, nextTick } from 'vue';
-import { getCloudPlaylistHighquality, PlaylistVal } from '../../assets/cloudApi';
-import { CloudPlaylist } from '../../interface'
-import { ElMessage } from 'element-plus';
 import { throttle } from 'lodash';
+import { ref, reactive, onMounted, watch, nextTick } from 'vue';
+import { useRouter } from 'vue-router';
+import { CloudPlaylist } from '@/interface'
+import { getCloudPlaylistHighquality, PlaylistVal } from '@/assets/cloudApi';
+import LoadingErrorTip from '@/components/LoadingErrorTip/index.vue'
 
+const musicImg = ref('/api/imgs/music.jpg');
 
 const { isTopList } = defineProps({
     isTopList: {
@@ -215,8 +203,8 @@ const { isTopList } = defineProps({
         required: false
     }
 });
+const router = useRouter();
 
-const musicImg = ref('/api/imgs/music.jpg');
 const loadMore = ref<HTMLDivElement>();
 
 const loading = ref(false);
@@ -292,6 +280,10 @@ function formatPlayCount(num: number) {
 /** 图片加载失败 */
 function onErrorImg(e: Event) {
     (e.target as HTMLImageElement).src = musicImg.value
+}
+/** 跳转至歌单内歌曲列表 */
+function gotoPlaylistDetail(id: number) {
+    router.push(`/playlist/detail?id=${id}&t=cloud`)
 }
 
 </script>

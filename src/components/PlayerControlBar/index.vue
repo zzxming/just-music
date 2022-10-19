@@ -40,11 +40,13 @@
             </div>
         </div>
         <div class="botcontrol_left">
-            <el-icon class="botcontrol_btn-icon play" v-show="audio.paused"><Play /></el-icon>
-            <el-icon class="botcontrol_btn-icon pause" v-show="!audio.paused"><Pause /></el-icon>
+            <div class="botcontrol_btn_play" @click="playAudio">
+                <el-icon class="botcontrol_btn-icon play" v-show="audio.paused"><Play /></el-icon>
+                <el-icon class="botcontrol_btn-icon pause" v-show="!audio.paused"><Pause /></el-icon>    
+            </div>
             <div class="botcontrol_btn_volume">
-                <el-icon class="botcontrol_btn-icon volume" v-show="!audio.muted"><Volume /></el-icon>
-                <el-icon class="botcontrol_btn-icon mute" v-show="audio.muted"><Volume_mute /></el-icon>
+                <el-icon class="botcontrol_btn-icon volume" v-show="audio.volume !== 0" @click="mutedAudio"><Volume /></el-icon>
+                <el-icon class="botcontrol_btn-icon mute" v-show="audio.volume === 0" @click="mutedAudio"><Volume_mute /></el-icon>
                 <div class="botcontrol_volume_bar">
                     <div ref="audioVolumeBar" class="botcontrol_volume_bar_inner" @click="seekVolume">
                         <div class="botcontrol_volume_bar_progress" :style="{height: `${volumeHeight}%`}"></div>
@@ -82,9 +84,18 @@
     &_left {
         display: flex;
         align-items: center;
-        .play,
-        .pause {
+        .botcontrol_btn_play {
             display: none;
+            width: 30px;
+            height: 30px;
+            margin: 0 5px;
+            .botcontrol_btn-icon {
+                margin: 0;
+            }
+            .play,
+            .pause {
+                font-size: 30px;
+            }
         }
     }
     &_btn {
@@ -316,29 +327,28 @@
             display: none;
         }
         &_left {
-            .volume {
-                display: none;
-            }
             .mute:extend(.volume) {
 
             }
-            .play {
+            .botcontrol_btn_play {
                 display: block;
                 font-size: 30px;
             }
         }
         &_info {
+            margin-left: 14px;
+            &_cover {
+                width: 50px;
+                height: 50px;
+                min-width: 50px;
+            }
             &_time {
                 display: none;
             }
         }
-    }
-}
-@media screen and (max-width: 400px) {
-    .botcontrol {
-        &_info {
-            &_cover {
-                // display: none;
+        &_btn {
+            &_volume {
+                display: none;
             }
         }
     }
@@ -348,16 +358,15 @@
 <script lang="ts" setup>
 import { storeToRefs } from 'pinia';
 import { onMounted, computed, ref, watch } from 'vue';
-import { usePlayerStore } from '../../store/player';
-import { AudioInfoType } from '../../interface'
-import Volume from '../../assets/iconfont/volume.vue';
-import Pause from '../../assets/iconfont/pause.vue';
-import Play from '../../assets/iconfont/play.vue';
-import Skipback from '../../assets/iconfont/skipback.vue';
-import Skipforward from '../../assets/iconfont/skipforward.vue';
-import Volume_mute from '../../assets/iconfont/volume_mute.vue';
-import List from '../../assets/iconfont/list.vue';
-
+import { usePlayerStore } from '@/store/player';
+import { formatAudioTime } from '@/utils'
+import Volume from '@/assets/iconfont/volume.vue';
+import Pause from '@/assets/iconfont/pause.vue';
+import Play from '@/assets/iconfont/play.vue';
+import Skipback from '@/assets/iconfont/skipback.vue';
+import Skipforward from '@/assets/iconfont/skipforward.vue';
+import Volume_mute from '@/assets/iconfont/volume_mute.vue';
+import List from '@/assets/iconfont/list.vue';
 
 const musicImg = ref('/api/imgs/music.jpg');
 
@@ -376,6 +385,7 @@ const audioDuration = computed<string>(() => formatAudioTime(audioInfo.value.dur
 const audioCurrentTimeStr = ref('00:00');
 const audioIsPaused = ref(true);
 const audioLoading = ref(false);
+const audioVolume = ref(0.7);
 
 watch(audio, (val, preVal) => {
     unbindAudioEvent();
@@ -399,30 +409,46 @@ function bindAudioEvent() {
         // seek: load -> canplay -> playing
         audioDom.addEventListener('timeupdate', updateAudioCurrentTime);
         audioDom.addEventListener('seeking', updateAudioCurrentTime);
+        audioDom.addEventListener('loadeddata', function() {
+            console.log('loadeddata')
+            this.play()
+        })
+        audioDom.addEventListener('emptied', function() {
+            console.log('emptied')
+            audioLoading.value = true;
+        })
+        audioDom.addEventListener('durationchange', function() {
+            console.log('durationchange')
+        })
         audioDom.addEventListener('canplay', function() {
-            console.log('canplay', this.paused)
+            console.log('canplay')
             audioLoading.value = false;
         })
         audioDom.addEventListener('waiting', function() {
-            console.log('load', this.paused)
+            console.log('waiting')
             audioLoading.value = true;
         })
         audioDom.addEventListener('playing', function() {
-            console.log('playing', this.paused)
+            console.log('playing')
             audioLoading.value = false;
             audioIsPaused.value = this.paused;
         })
         audioDom.addEventListener('pause', function() {
-            console.log('pause', this.paused)
+            console.log('pause')
             audioIsPaused.value = this.paused;
         })
         audioDom.addEventListener('play', function() {
-            console.log('play', this.paused)
+            console.log('play')
             audioIsPaused.value = this.paused;
         })
         audioDom.addEventListener('ended', function() {
             console.log('end')
         })
+        audioDom.addEventListener('volumechange', function() {
+            if (audioVolumeBar.value && audio.value) {
+                volumeHeight.value = audio.value.volume * 100;
+            }
+        });
     }
 }
 function unbindAudioEvent() {
@@ -455,11 +481,22 @@ function seekVolume(e: MouseEvent) {
         let clickY = e.offsetY;
         let totalHeight = audioVolumeBar.value.offsetHeight;
         let pre = Math.round(clickY / totalHeight * 100);
-        volumeHeight.value = pre;
+        // volumeHeight.value = pre;
         audio.value.volume = pre / 100;
-        console.log(clickY, totalHeight, pre / 100, audio.value.volume)
+        // console.log(clickY, totalHeight, pre / 100, audio.value.volume)
     }
-
+}
+/** 静音或解除静音 */
+function mutedAudio() {
+    if (audio.value) {
+        if (audio.value.volume !== 0) {
+            audioVolume.value = audio.value.volume;
+            audio.value.volume = 0;
+        }
+        else {
+            audio.value.volume = audioVolume.value;
+        }
+    }
 }
 /** 更新当前播放时间 */
 function updateAudioCurrentTime() {
@@ -470,24 +507,6 @@ function updateAudioCurrentTime() {
         let duration = audioInfo.value.duration / 1000;
         currentdWidth.value = Math.round(currentTime / duration * 100); 
     }
-}
-/** 格式化播放时间 */
-function formatAudioTime(num: number) {
-    let duration = num;
-    let minutes = Math.floor(duration / 60);
-    let second = Math.floor(duration - minutes * 60);
-    if (minutes >= 60) {
-        let hour = Math.floor(minutes / 60);
-        return `${twoDigitStr(hour)}:${twoDigitStr(minutes)}:${twoDigitStr(second)}`
-    }
-    return `${twoDigitStr(minutes)}:${twoDigitStr(second)}`
-}
-/** 将一位的数字转成两位的字符串 */
-function twoDigitStr(num: number) {
-    if (num > 9) {
-        return `${num}`
-    }
-    return `0${num}`
 }
 /** 音频播放与暂停 */
 function playAudio() {
@@ -503,7 +522,8 @@ function playAudio() {
 }
 /** 图片加载失败 */
 function onErrorImg(e: Event) {
-    (e.target as HTMLImageElement).src = musicImg.value
+    (e.target as HTMLImageElement).src = musicImg.value;
+    console.log('img load')
 }
 
 

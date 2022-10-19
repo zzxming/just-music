@@ -27,11 +27,8 @@
 
 
 <script setup lang="ts">
-import PlayerControlBar from './components/PlayerControlBar/index.vue'
-import AudioDom from './components/AudioDom/index.vue';
-import { onMounted } from 'vue';
+import PlayerControlBar from '@/components/PlayerControlBar/index.vue'
+import AudioDom from '@/components/AudioDom/index.vue';
 
-onMounted(() => {
-})
 
 </script>

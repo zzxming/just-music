@@ -1,8 +1,7 @@
 
 import to from 'await-to-js';
-import { AxiosError } from "axios"
-import { CloudMusic, CloudPlaylist, CloudSong } from "../interface";
-import { axios, AxiosResult, AxiosResultError, jointQuery } from './api';
+import { CloudMusic, CloudPlaylist } from "@/interface";
+import { axios, AxiosResult, AxiosResultError, jointQuery } from '@/assets/api';
 
 /** 通过网易云歌曲 id 获取歌曲播放路径 */
 export const getMusicSrcWithCloudId = async (id: number) => 
@@ -75,7 +74,7 @@ export const getCloudPlaylistTrack = async (
     query: {
         id: number
     }
-) => await to<AxiosResult<CloudSong[]>, AxiosResultError>(
+) => await to<AxiosResult<CloudMusic[]>, AxiosResultError>(
     axios.get(
         jointQuery(
             `/music/cloud/playlist/track`, 

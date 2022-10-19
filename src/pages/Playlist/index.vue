@@ -21,13 +21,14 @@
     border: 1px solid var(--el-border-color);
     &_title {
         align-self: flex-start;
-        font-size: 30px;
+        line-height: 40px;
         margin-bottom: 10px;
+        font-size: 30px;
     }
 }
 </style>
 
 <script lang="ts" setup>
-import CloudPlaylist from '../../components/CloudPlaylist/index.vue';
+import CloudPlaylist from '@/components/CloudPlaylist/index.vue';
 </script>
 

@@ -1,3 +1,17 @@
+// musicinfo 没有专辑信息
+
+
+
+
+
+
+
+
+
+
+
+
+
 export enum AudioInfoType {
     local = 'local',
     cloud = 'cloud',
@@ -10,7 +24,8 @@ export interface MusicInfo {
     cover: string
     singers: Singer[]
     duration: number
-    src: string
+    /** 值为 1 时是vip歌曲, 只能播放部分 */
+    fee: number
 } 
 /** 整合后的歌手信息 */
 export interface Singer {
@@ -33,6 +48,7 @@ export interface LocalMusic {
     music_cover: string
     singers: LocalSinger[]
     duration: number
+    fee: number
 }
 /** 本地歌手信息 */
 export interface LocalSinger {
@@ -46,6 +62,8 @@ export interface CloudMusic {
     ar: CloudSingerShort[]
     al: CloudAlbumShort
     dt: number
+    /** 值为 1 时是vip歌曲, 只能播放部分 */
+    fee: number
 }
 /** 网易云音乐歌手部分信息 */
 export interface CloudSingerShort {
@@ -67,6 +85,7 @@ export interface CloudPlaylist {
     coverImgUrl: string
     description: string
     playCount: number
+    tracks: CloudMusic[]
     trackCount: number
     creator: {
         userId: number
@@ -74,21 +93,4 @@ export interface CloudPlaylist {
         avatarUrl: string
     }
     tags: string[]
-}
-/** 网易云音乐歌曲部分信息 */
-export interface CloudSong {
-    id: number
-    name: string
-    dt: number
-    al: {
-        id: number
-        name: string
-        picUrl: string
-    },
-    ar: [
-        {
-            id: number
-            name: string
-        }
-    ],
 }

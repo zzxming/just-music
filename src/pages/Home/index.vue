@@ -5,8 +5,8 @@
 </template>
 
 <script lang="ts" setup>
-import DataContent from "../../components/DataContent/index.vue";
-import CloudPlaylist from "../../components/CloudPlaylist/index.vue";
+import DataContent from "@/components/DataContent/index.vue";
+import CloudPlaylist from "@/components/CloudPlaylist/index.vue";
 
 
 </script>

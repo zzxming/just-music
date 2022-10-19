@@ -1,6 +1,6 @@
 
 import to from 'await-to-js';
-import { LocalMusic } from "../interface";
+import { LocalMusic } from "@/interface";
 import { axios, mediaSrc, jointQuery, AxiosResult, AxiosResultError } from './api';
 
 /** 根据数据库 music_id 获取歌曲的歌曲 */
