@@ -6,6 +6,9 @@
 
 <style lang="less" scoped>
 .error {
+    display: flex;
+    align-items: center;
+    justify-content: center;
     text-align: center;
     &_retry {
         color: var(--el-color-primary);

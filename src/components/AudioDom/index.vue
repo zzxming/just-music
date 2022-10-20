@@ -1,6 +1,6 @@
 <template>
     <div>
-        <audio v-if="audioSrc !== ''" ref="audioMedia" :src="audioSrc" @error="loadError"></audio>
+        <audio v-if="!!audioSrc" ref="audioMedia" :src="audioSrc" @error="loadError"></audio>
     </div>
 </template>
 
@@ -11,7 +11,6 @@ import { usePlayerStore } from '@/store/Player'
 import { getLocalMusicInfoWithId } from '@/assets/localApi';
 import { getCloudMusicInfoWithId } from '@/assets/cloudApi';
 import { AudioInfoType, LocalAudioInfo } from '@/interface';
-import { ElMessageBox } from 'element-plus';
 
 const audioMedia = ref<HTMLAudioElement>();
 const playerStore = usePlayerStore();
@@ -32,12 +31,12 @@ watch(audioInfo, () => {
     }
 });
 
-watch(audioSrc, (val) => {
-    console.log(val)
-    if (val === null) {
-        ElMessageBox.alert(`歌曲 ${audioInfo.value.title} 是无法试听的 vip 歌曲`)
-    }
-})
+// watch(audioSrc, (val) => {
+//     console.log(val)
+//     if (!val && audioInfo.value.fee === 1 && audioInfo.value.id !== 0) {
+//         ElMessageBox.alert(`歌曲 ${audioInfo.value.title} 是无法试听的 vip 歌曲`);
+//     }
+// })
 
 onMounted(() => {
     // getMusicInfoWithId(random(54,55), AudioInfoType.local);

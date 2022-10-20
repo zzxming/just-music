@@ -8,7 +8,7 @@ import { formatMusicInfo, isType } from "@/utils"
 
 export const usePlayerStore = defineStore('player', () => {
     const audio = ref<HTMLAudioElement>();
-    const audioSrc = ref(``);
+    const audioSrc = ref<string | null>(``);
     const showPlayerControl = ref(true);
     const audioInfo = ref<MusicInfo>({
         type: AudioInfoType.local,
@@ -17,6 +17,7 @@ export const usePlayerStore = defineStore('player', () => {
         title: '',
         duration: 0,
         singers: [],
+        album: '',
         fee: 0
     });
 
@@ -47,11 +48,12 @@ export const usePlayerStore = defineStore('player', () => {
             // 部分 vip 歌曲不让试听, 则获取的 src 为 null
             if (info.fee) {
                 let [err, result] = await getMusicSrcWithCloudId(info.id);
-                if (!err && result && result.data.data.src !== null) {
+                if (!err && result) {
                     src = result.data.data.src;
                 }
                 else {
-                    src = '';
+                    await setAudioInfo(info);
+                    return;
                 }
             }
             else {

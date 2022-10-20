@@ -1,5 +1,6 @@
 
 <template>
+	<HeaderBar></HeaderBar>
 	<Suspense>
 		<template #default>
 			<router-view></router-view>
@@ -29,6 +30,7 @@
 <script setup lang="ts">
 import PlayerControlBar from '@/components/PlayerControlBar/index.vue'
 import AudioDom from '@/components/AudioDom/index.vue';
+import HeaderBar from '@/components/HeaderBar/index.vue';
 
 
 </script>

@@ -1,7 +1,7 @@
 <template>
     <div class="playlist">
         <ul v-loading="loading" class="playlist_list">
-            <el-row :gutter="20" class="playlist_list_row">
+            <el-row :gutter="20" :class="`playlist_list_row ${isTopList ? 'toplist' : ''}`">
                 <el-col 
                     v-for="item in playlist" 
                     class="playlist_list_wrap"
@@ -22,9 +22,10 @@
                 </el-col>
             </el-row>
         </ul>
+        <LoadingErrorTip :isError="fristLoad && !loading && loadingError" :requestFunc="getCloudPlaylistHighqualityData" />
     </div>
     <div class="load-more" v-if="isTopList && !fristLoad" ref="loadMore">
-        <div v-if="!haveMore">以及没有更多了</div>
+        <div v-if="!haveMore">已经没有更多了</div>
         <template v-else>
             <div v-show="!loadingError">
                 <span v-show="loadingMore">加载中...</span>
@@ -33,14 +34,13 @@
             <LoadingErrorTip :isError="!loadingMore && loadingError" :requestFunc="getCloudPlaylistHighqualityData" />
         </template>
     </div>
-
-    <LoadingErrorTip :isError="fristLoad && !loading && loadingError" :requestFunc="getCloudPlaylistHighqualityData" />
 </template>
 
 <style lang="less" scoped>
 .playlist {
     width: 100%;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: flex-start;
     &_list {
@@ -48,8 +48,19 @@
         width: 100%;
         height: 100%;
         &_row {
+            justify-content: space-around;
             &::-webkit-scrollbar {
+                height: 6px;
+                border-radius: 6px;
+                overflow: hidden;
+                background-color: var(--el-bg-color-page);
+            }
+            &::-webkit-scrollbar-button {
                 display: none;
+            }
+            &::-webkit-scrollbar-thumb {
+                border-radius: 6px;
+                background-color: var(--el-color-danger-light-7);
             }
         }
         &_wrap {
@@ -149,6 +160,9 @@
         }
     }
 }
+.toplist {
+    flex-wrap: wrap !important;
+}
 @media screen and (max-width: 800px) {
     .playlist {
         &_list {
@@ -158,9 +172,36 @@
                 margin: 10px 0; 
             }
             &_row {
+                justify-content: flex-start;
                 flex-wrap: nowrap;
                 overflow-x: auto;
+                
             }
+        }
+    }
+    .toplist {
+        .playlist_list_wrap {
+            max-width: 33%;
+            flex: 0 0 33%;
+            margin: 10px 0; 
+        }
+    }
+}
+@media screen and (max-width: 550px) {
+    .playlist {
+        &_list {
+            &_row {
+                &::-webkit-scrollbar {
+                    // display: none;
+                }
+            }
+        }
+    }
+    .toplist {
+        .playlist_list_wrap {
+            max-width: 50%;
+            flex: 0 0 50%;
+            margin: 10px 0; 
         }
     }
 }
@@ -250,7 +291,11 @@ function observerLoad() {
 async function getCloudPlaylistHighqualityData() {
     fristLoad.value ? loading.value = true : loadingMore.value = true;
     loadingError.value = false;
-    let [err, result] = await getCloudPlaylistHighquality(lasttime.value, cat.value, isTopList ? 20 : 10)
+    let [err, result] = await getCloudPlaylistHighquality({
+        before: lasttime.value, 
+        cat: cat.value, 
+        limit: isTopList ? 20 : 10
+    })
 
     fristLoad.value ? loading.value = false : loadingMore.value = false;
     if (result) {

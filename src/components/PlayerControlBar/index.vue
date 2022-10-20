@@ -387,6 +387,7 @@ const audioIsPaused = ref(true);
 const audioLoading = ref(false);
 const audioVolume = ref(0.7);
 
+/** 初始值 */
 watch(audio, (val, preVal) => {
     unbindAudioEvent();
     if (val) {

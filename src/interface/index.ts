@@ -24,6 +24,7 @@ export interface MusicInfo {
     cover: string
     singers: Singer[]
     duration: number
+    album: string
     /** 值为 1 时是vip歌曲, 只能播放部分 */
     fee: number
 } 
@@ -47,6 +48,7 @@ export interface LocalMusic {
     music_url: string
     music_cover: string
     singers: LocalSinger[]
+    album: string
     duration: number
     fee: number
 }
@@ -93,4 +95,15 @@ export interface CloudPlaylist {
         avatarUrl: string
     }
     tags: string[]
+}
+/** bili 获取的音频信息 */
+export interface BiliMusic {
+    bvid: string
+    cid: number
+    cover: string
+    duration: number
+    singers: Singer[]
+    title: string
+    album: string
+    src: string
 }

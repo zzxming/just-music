@@ -13,7 +13,6 @@
     justify-content: flex-start;
     box-sizing: border-box;
     position: relative;
-    width: 100vw;
     min-height: 100vh;
     margin: 0 auto;
     padding: 40px;

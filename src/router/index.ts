@@ -3,6 +3,7 @@ import Home from "@/pages/Home/index.vue"
 import Player from "@/pages/Player/index.vue"
 import Playlist from "@/pages/Playlist/index.vue"
 import PlaylistDetail from "@/pages/PlaylistDetail/index.vue"
+import Search from "@/pages/Search/index.vue"
 import Page404 from "@/pages/Page404/index.vue"
 
 const routes: readonly RouteRecordRaw[] = [
@@ -17,10 +18,21 @@ const routes: readonly RouteRecordRaw[] = [
         component: Player
     }, {
         path: '/playlist',
-        component: Playlist
+        component: Playlist,
+        children: [
+            {
+                path: 'detail',
+                component: PlaylistDetail,
+                props(route) {
+                    return {
+                        ...route.query
+                    }
+                }
+            }
+        ]
     }, {
-        path: '/playlist/detail',
-        component: PlaylistDetail,
+        path: '/search',
+        component: Search,
         props(route) {
             return {
                 ...route.query

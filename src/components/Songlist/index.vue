@@ -71,6 +71,7 @@
     box-sizing: border-box;
     width: 100%;
     padding: 0 40px;
+    margin-bottom: 50px;
     cursor: default;
     .active {
         .songlist_title {
@@ -179,8 +180,9 @@ function calculateTable() {
 }
 
 /** 双击播放歌曲 */
-function playSong(row: MusicInfo, column: TableColumn<MusicInfo>, event: MouseEvent) {
+async function playSong(row: MusicInfo, column: TableColumn<MusicInfo>, event: MouseEvent) {
     // console.log(column)
+    // console.log(row)
     if (audioInfo.value.id !== row.id) {
         if (row.fee === 1) {
             ElMessageBox.alert(`正在试听 ${row.title} 歌曲片段`, '', {
@@ -189,7 +191,6 @@ function playSong(row: MusicInfo, column: TableColumn<MusicInfo>, event: MouseEv
         }
         setAudioInfo(row);
         activeId.value = row.id;
-        // console.log(row.id)
     }
 }
 /** 激活的歌曲行 */

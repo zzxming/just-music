@@ -1,4 +1,4 @@
-import OriginAxios, { AxiosError } from "axios"
+import OriginAxios, { AxiosError, AxiosResponse } from "axios"
 import { ElMessage } from "element-plus";
 
 export const axios = OriginAxios.create({
@@ -9,6 +9,10 @@ export const axios = OriginAxios.create({
 axios.interceptors.response.use((response) => {
     console.log(response)
     if (response.data.code !== 1) {
+        ElMessage({
+            type: 'error',
+            message: response.data.message ?? response.data.error.message
+        })
         return Promise.reject(response)
     }
     return Promise.resolve(response)
@@ -36,17 +40,18 @@ export const jointQuery = (url: string, query: {[key: string]: string | number})
     }
     return result;
 }
-export interface AxiosResult<T> {
-    data: {
-        code: number
-        data: T
-    }
+
+export interface AxiosResult<T> extends AxiosResultCode {
+    data: T
 }
 export interface AxiosResultError {
     data: {
         code: number,
         message: string
     }
+}
+export interface AxiosResultCode {
+    code: number
 }
 
 /** 静态资源路径 */

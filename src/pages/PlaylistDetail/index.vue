@@ -44,13 +44,14 @@
     </div>
 </template>
 
-<style lang="less" setup>
+<style lang="less" scoped>
 .playlist {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: flex-start;
-    width: 100vw;
+    // width: 100vw;
+    width: 100%;
     min-height: 100vh;
     &_wrapper {
         align-self: center;
@@ -135,17 +136,9 @@
     }
     &_song {
         box-sizing: border-box;
-        margin-bottom: 50px;
         width: 100%;
-        min-height: calc(100vh - 40px - 20px - 180px - 50px);
+        min-height: calc(100vh - 40px - 20px - 180px);
     }
-}
-.error {
-    position: fixed;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
 }
 
 @media screen and (max-width: 550px) {
@@ -193,6 +186,7 @@ import { usePlayerStore } from '@/store/player';
 import { formatMusicInfo } from '@/utils';
 import LoadingErrorTip from '@/components/LoadingErrorTip/index.vue';
 import Songlist from '@/components/Songlist/index.vue';
+import { isArray } from 'lodash';
 
 
 // 本地歌曲的歌单还没有做
@@ -224,9 +218,11 @@ onMounted(() => {
     // getCloudMusicInfoWithId({ids:569105662})
 });
 
-function requestPlaylistData() {
-    getPlaylistDetailWithId(props.id, props.t);
-    getPlaylistTrackWithId(props.id, props.t);
+/** 请求歌单信息 */
+async function requestPlaylistData() {
+    let continueLoad = await getPlaylistDetailWithId(props.id, props.t);
+    if (!continueLoad) return;
+    continueLoad = await getPlaylistTrackWithId(props.id, props.t);
 }
 /** 获取歌单信息 */
 async function getPlaylistDetailWithId(id: number, type: AudioInfoType) {
@@ -235,14 +231,16 @@ async function getPlaylistDetailWithId(id: number, type: AudioInfoType) {
     // // let [err, result] = type === AudioInfoType.local ? await ({id}) : await getCloudPlaylistDetail({id});
     let [err, result] = await getCloudPlaylistDetail({id});
     loading.value = false;
-        // loadingError.value = true;
+
     if (!err && result) {
         // console.log(result)
         let { code, data } = result.data;
         playlistInfo.value = data;
+        return true
     }
     else {
         loadingError.value = true;
+        return false;
     }
 }
 /** 获取歌单内歌曲 */
@@ -251,22 +249,19 @@ async function getPlaylistTrackWithId(id: number, type: AudioInfoType) {
     loadingSongError.value = false;
     let [err, result] = await getCloudPlaylistTrack({id});
     loadingSong.value = false;
-        // loadingSongError.value = true;
+
     if (!err && result) {
         // console.log(result)
         let { code, data } = result.data;
         
-        let audiolist = data.map(item => formatMusicInfo({
-            type: AudioInfoType.cloud,
-            ...item
-        }));
+        let audiolist = formatMusicInfo(data, type);
         // console.log(audiolist)
-        if (audiolist) {
-            songsInfo.value = audiolist;
-        }
+        songsInfo.value = audiolist;
+        return true;
     }
     else {
         loadingSongError.value = true;
+        return false;
     }
 }
 
