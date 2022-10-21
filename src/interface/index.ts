@@ -15,11 +15,12 @@
 export enum AudioInfoType {
     local = 'local',
     cloud = 'cloud',
+    bili = 'bili'
 }
 /** 整合后的歌曲信息 */
 export interface MusicInfo {
     type: AudioInfoType
-    id: number
+    id: number | string
     title: string
     cover: string
     singers: Singer[]

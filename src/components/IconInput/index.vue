@@ -3,7 +3,9 @@
         <span class="input_icon" @click="submitInput">
             <el-icon><Search /></el-icon>
         </span>
-        <el-input class="input_input" v-model="input" :placeholder="placeholder" 
+        <el-input class="input_input" 
+            v-model="input" 
+            :placeholder="placeholder" 
             @focus="focus"
             @blur="blur"
             @keydown.enter="submitInput"
@@ -53,20 +55,44 @@
 </style>
 
 <script lang="ts" setup>
-import { ref } from 'vue';
+import { ref, watch, toRefs } from 'vue';
 
 
-const { placeholder } = defineProps({
+const props = defineProps({
     placeholder: {
-        default: ''
+        type: String,
+        required: false,
+        default: '',
+        validator(value) {
+            return typeof value === 'string';
+        }
+    },
+    // input 初始值
+    inputTxt: {
+        type: String,
+        required: false,
+        default: () => '',
+        validator(value) {
+            return typeof value=== 'string';
+        }
     }
 });
 const emit = defineEmits<{
     (event: 'submit', input: string): void
 }>();
 
-const input = ref('');
+const { inputTxt, placeholder } = toRefs(props);
+const input = ref(inputTxt.value);
 const focusInput = ref(false);
+
+/** 通过 props 传递 input 初始值更新 */
+watch(inputTxt, (val) => {
+    // console.log(inputTxt.value)
+    input.value = val;
+}, {
+    deep: true
+});
+
 /** input获得焦点 */
 function focus() {
     focusInput.value = true;
@@ -77,6 +103,7 @@ function blur() {
 }
 /** input提交 */
 function submitInput() {
+    console.log('submit input', input.value)
     emit('submit', input.value);
 }
 

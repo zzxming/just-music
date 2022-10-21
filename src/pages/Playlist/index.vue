@@ -13,7 +13,7 @@
     justify-content: flex-start;
     box-sizing: border-box;
     position: relative;
-    min-height: 100vh;
+    min-height: calc(100vh - 64px);
     margin: 0 auto;
     padding: 40px;
     background-color: var(--el-fill-color-blank);

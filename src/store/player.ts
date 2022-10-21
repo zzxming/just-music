@@ -1,6 +1,6 @@
 import { defineStore } from "pinia"
 import { ref } from "vue"
-import { mediaSrc } from "@/assets/api";
+import { jointQuery, mediaSrc } from "@/assets/api";
 import { getMusicSrcWithCloudId } from "@/assets/cloudApi";
 import { AudioInfoType, LocalAudioInfo, CloudAudioInfo, MusicInfo } from "@/interface"
 import { formatMusicInfo, isType } from "@/utils"
@@ -41,13 +41,15 @@ export const usePlayerStore = defineStore('player', () => {
             let result = formatMusicInfo(info);
             audioInfo.value = result;
         }
+        
         let src: string;
-        if (info.type === AudioInfoType.cloud) {
+        let audioInfoCur = audioInfo.value;
+        if (audioInfoCur.type === AudioInfoType.cloud) {
             // https://music.163.com/song?id=476081899
             // 如果是vip歌曲需要获取歌曲的播放路径
             // 部分 vip 歌曲不让试听, 则获取的 src 为 null
-            if (info.fee) {
-                let [err, result] = await getMusicSrcWithCloudId(info.id);
+            if (audioInfoCur.fee) {
+                let [err, result] = await getMusicSrcWithCloudId(audioInfoCur.id as number);
                 if (!err && result) {
                     src = result.data.data.src;
                 }
@@ -57,17 +59,16 @@ export const usePlayerStore = defineStore('player', () => {
                 }
             }
             else {
-                src = `https://music.163.com/song/media/outer/url?id=${info.id}.mp3`
+                src = `https://music.163.com/song/media/outer/url?id=${audioInfoCur.id}.mp3`
             }
+        }
+        else if (audioInfoCur.type === AudioInfoType.bili) {
+            src = mediaSrc(jointQuery(`/bili/audio`, {bv: audioInfoCur.id}))
         }
         else {
-            if (isType<LocalAudioInfo>(info)) {
-                src = mediaSrc(info.music_url);
-            }
-            else {
-                src = mediaSrc(`/music/${info.id}`);
-            }
+            src = mediaSrc(`/music/${audioInfoCur.id}`)
         }
+        // console.log(src)
         setAudioSrc(src)
         // audioSrc.value = result.src
     }

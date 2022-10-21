@@ -323,6 +323,7 @@
 }
 @media screen and (max-width: 810px) {
     .botcontrol {
+        justify-content: center;
         &_right {
             display: none;
         }

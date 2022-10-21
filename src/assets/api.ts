@@ -20,7 +20,7 @@ axios.interceptors.response.use((response) => {
     console.log(error)
     ElMessage({
         type: 'error',
-        message: error.response?.statusText ?? error.message
+        message: (error.response && (error.response.data as any).message) ?? error.response?.statusText ?? error.message
     })
     return Promise.reject(error)
 })

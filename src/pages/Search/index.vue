@@ -1,71 +1,229 @@
 <template>
-    <!-- <div v-if="loading"> -->
-    <div>
-        <Songlist :songs="songsData" />
+    <div class="search">
+        <div class="search_type">
+            <el-tabs 
+                v-model="currentSearchType"
+                :stretch="true"
+                @tab-change="searchTypeChange"
+            >
+                <el-tab-pane 
+                    v-for="sType in AudioInfoType" 
+                    :label="SearchTypeTxt[sType]" 
+                    :name="sType"
+                >
+                    <template #label>
+                        <div class="search_type_item">{{SearchTypeTxt[sType]}}</div>
+                    </template>
+                </el-tab-pane>
+            </el-tabs>
+        </div>
+        <Songlist v-loading="loading" v-if="!loadingError || !fristLoading" class="search_result" :songs="songsData" empty-text="请输入正确的bv号" />
+        <LoadingErrorTip :isError="loadingError && fristLoading" :requestFunc="() => requestSearch(true)" />
+        <!-- <LoadingMore v-if="!fristLoading" ref="loadMore" :requestFunc="requestSearch" /> -->
+
+        <div class="load-more" v-if="!fristLoading" ref="loadMore">
+            <div v-if="!haveMore" class="load-nomore">已经没有更多了</div>
+            <template v-else>
+                <div v-show="!loadingError">
+                    <span v-show="loadingMore">加载中...</span>
+                    <span v-show="!loadingMore" class="load-btn" @click="() => requestSearch()">加载更多</span>
+                </div>
+                <LoadingErrorTip :isError="!loadingMore && loadingError" :requestFunc="() => requestSearch()" />
+            </template>
+        </div>
     </div>
 </template>
 
 
-<style lang="less" scoped></style>
+<!-- songlist 在添加数据的时候滚动体任然在最底部,  -->
+
+<style lang="less" scoped>
+.search {
+    padding: 0 40px;
+    &_type {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        overflow-x: auto;
+        &::-webkit-scrollbar {
+            display: none;
+        }
+        &_list {
+            display: flex;
+        }
+        &_item {
+            padding: 0 20px;
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--el-color-info);
+        }
+        .is-active &_item {
+            color: var(--el-color-danger-light-3);
+        }
+    }
+    &_result {
+        // min-height: calc(100vh - 64px - 54px);
+    }
+}
+.load {
+    &-more {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 20px 0 200px;
+    }
+    &-nomore {
+        color: var(--el-color-info);
+    }
+    &-btn {
+        color:var(--el-color-error-light-3);
+        cursor: pointer;
+        &:hover {
+            color:var(--el-color-danger);
+        }
+    }
+}
+:deep(.el-tabs__item) {
+    padding: 0;
+}
+:deep(.el-tabs__active-bar.is-top) {
+    height: 4px;
+    background-color: var(--el-color-danger-light-3);
+}
+:deep(.el-tabs__nav-wrap.is-top::after) {
+    height: 4px;
+}
+@media screen and (max-width: 550px) {
+    .search {
+        padding: 0;
+        &_type {
+        }
+        &_result {
+        }
+    }
+}
+</style>
 
 <script lang="ts" setup>
-import { onMounted, reactive, ref } from 'vue';
+import { nextTick, reactive, ref, watch } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import { AudioInfoType, MusicInfo, LocalMusic, CloudMusic } from '@/interface'
-import { searchCloudMusic } from '@/assets/cloudApi'
-import { formatMusicInfo } from '@/utils'
+import { formatMusicInfo, isType } from '@/utils'
+import { searchCloudMusic, SearchCloudResult } from '@/assets/cloudApi'
 import { searchLocalMusic, searchMusicInfoWIthBvid } from '@/assets/localApi'
+import { jointQuery } from '@/assets/api';
+import LoadingErrorTip from '@/components/LoadingErrorTip/index.vue';
 import Songlist from '@/components/Songlist/index.vue'
+import LoadingMore from '@/components/LoadingMore/index.vue';
 
-enum SearchType {
-    bili = 'bili',
-    local = 'local',
-    cloud = 'cloud'
+enum SearchTypeTxt {
+    bili = '哔哩哔哩',
+    local = 'just',
+    cloud = '网易云音乐'
 }
 
-const { kw, t } = defineProps<{
+const props = defineProps<{
     kw: string
     t: AudioInfoType
 }>();
-const searchType = ref<SearchType>(SearchType.cloud);
+const router = useRouter();
+const route = useRoute();
+const loadMore = ref();
+
+const currentSearchType = ref<AudioInfoType>(AudioInfoType[props.t]);
 const type = ref(1);
 const limit = ref(1);
 const loading = ref(true);
+const fristLoading = ref(true);
+const loadingMore = ref(false);
 const loadingError = ref(false);
 const songsData = reactive<MusicInfo[]>([]);
+const haveMore = ref(true);
 
-onMounted(() => {
-    console.log(kw, t);
-    requestSearch();
-})
+// 搜索类型变化更改 url
+watch(currentSearchType, (val) => {
+    // console.log(val, route.query)
+    if (route.query.kw === props.kw && route.query.t === val) return;
+    router.push(jointQuery(route.path, {kw: props.kw, t: val}));
+});
+// url 变化重新搜索
+watch(() => props, (val) => {
+    // console.log(val)
+    // 因为 Search 组件的 props 来自路由
+    // 所以改变 url 时先执行的是 props 发生改变
+    // 但当在 search 页面改变 url 时 currentSearchType 已经赋值
+    // 所以不会发生改变, 需要手动赋值一次
+    currentSearchType.value = AudioInfoType[val.t];
+    requestSearch(true);
+}, {
+    deep: true,
+    immediate: true
+});
+
+/** 滚动动态加载 */
+watch(fristLoading, (val) => {
+    if (!val) {
+        // 等 dom 挂载上再绑定事件
+        nextTick(() => observerLoad())
+    }
+}, { immediate: true });
+/** 监听动态加载歌单 */
+function observerLoad() {
+    // console.log(loadMore.value.loadMore)
+    if (!loadMore.value) return;
+    let loadIO = new IntersectionObserver(function (entries) {
+        // console.log(entries[0].isIntersecting)
+        // 距离视口还有200px
+        if (entries[0].isIntersecting) {
+            console.log('load')
+            requestSearch();
+        }
+    }, {
+        rootMargin: '0px 0px 200px 0px' // 监听视口距离向下多200px
+    })
+    // loadIO.observe(loadMore.value.loadMore)
+    loadIO.observe(loadMore.value)
+}
 
 
-/** 发起搜索请求 */
-async function requestSearch() {
-    loading.value = true;
+/** 搜索类型改变 */
+function searchTypeChange(tabName: AudioInfoType) {
+    currentSearchType.value = AudioInfoType[tabName];
+    haveMore.value = true;
+    limit.value = 1;
+    fristLoading.value = true;
+}
+/**
+ * 发起搜索请求
+ * @param loadMore 是否是第一次发起请
+ */
+async function requestSearch(loadMore: boolean = false) {
+    fristLoading.value ? loading.value = true : loadingMore.value = true;
     loadingError.value = false;
-    // 每次搜索清空数据
-    songsData.length = 0;
     let err, result;
-    /** 判断不太的请求方法 */
-    switch(searchType.value) {
-        case SearchType.bili: {
-            [err, result] = await searchMusicInfoWIthBvid(kw);
+    // console.log(currentSearchType.value)
+    /** 判断不同的请求方法 */
+    switch(currentSearchType.value) {
+        case AudioInfoType.bili: {
+            [err, result] = await searchMusicInfoWIthBvid(props.kw);
             break;
         }
-        case SearchType.local: {
+        case AudioInfoType.local: {
             [err, result] = await searchLocalMusic({
-                kw,
+                kw: props.kw,
                 limit: limit.value,
                 t: type.value
             });
+            limit.value += 1;
             break;
         }
-        case SearchType.cloud: {
+        case AudioInfoType.cloud: {
             [err, result] = await searchCloudMusic({
-                kw,
+                kw: props.kw,
                 limit: limit.value,
                 t: type.value
             });
+            limit.value += 1;
             break;
         }
         default: {
@@ -73,40 +231,25 @@ async function requestSearch() {
             result = undefined;
         }
     }
-    loading.value = false;
+    fristLoading.value ? loading.value = false : loadingMore.value = false;
+    // 添加时不清空已有数据
     if (!err && result) {
+        loadMore && (songsData.length = 0);
+        fristLoading.value = false;
         // console.log(result)
         // bv 号搜索返回是单个数据
-        let data = result.data.data;
-        songsData.push(...formatMusicInfo(data, t));
+        let data = result.data;
+        songsData.push(...formatMusicInfo(data.data, currentSearchType.value));
+        if (data.data.length < 1 || (isType<SearchCloudResult>(data) && songsData.length >= data.count)) {
+            haveMore.value = false;
+            return 0;
+        }
+        return data.data.length;
     }
     else {
         loadingError.value = true;
-        return false;
+        return -1;
     }
-}
-/** 网易云搜索 */
-async function searchCloud() {
-    let [err, result] = await searchCloudMusic({
-        kw,
-        limit: limit.value,
-        t: type.value
-    });
-    console.log('cloud', err, result)
-}
-/** 本地搜索 */
-async function searchLocal() {
-    let [err, result] = await searchLocalMusic({
-        kw,
-        limit: limit.value,
-        t: type.value
-    });
-    console.log('local', err, result)
-}
-/** bv号搜索 */
-async function searchbili() {
-    let [err, result] = await searchMusicInfoWIthBvid(kw);
-    console.log('bili', err, result)
 }
 
 </script>

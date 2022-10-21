@@ -22,14 +22,17 @@
                 </el-col>
             </el-row>
         </ul>
-        <LoadingErrorTip :isError="fristLoad && !loading && loadingError" :requestFunc="getCloudPlaylistHighqualityData" />
+        <LoadingErrorTip :isError="fristLoading && !loading && loadingError" :requestFunc="getCloudPlaylistHighqualityData" />
     </div>
-    <div class="load-more" v-if="isTopList && !fristLoad" ref="loadMore">
+    
+    <!-- <LoadingMore v-if="isTopList && !fristLoading" ref="loadMore" :requestFunc="getCloudPlaylistHighqualityData" /> -->
+
+    <div class="load-more" v-if="isTopList && !fristLoading" ref="loadMore">
         <div v-if="!haveMore">已经没有更多了</div>
         <template v-else>
             <div v-show="!loadingError">
                 <span v-show="loadingMore">加载中...</span>
-                <span v-show="!loadingMore" class="load-btn">加载更多</span>
+                <span v-show="!loadingMore" class="load-btn" @click="() => getCloudPlaylistHighqualityData()">加载更多</span>
             </div>
             <LoadingErrorTip :isError="!loadingMore && loadingError" :requestFunc="getCloudPlaylistHighqualityData" />
         </template>
@@ -234,6 +237,7 @@ import { useRouter } from 'vue-router';
 import { CloudPlaylist } from '@/interface'
 import { getCloudPlaylistHighquality, PlaylistVal } from '@/assets/cloudApi';
 import LoadingErrorTip from '@/components/LoadingErrorTip/index.vue'
+import LoadingMore from '@/components/LoadingMore/index.vue'
 
 const musicImg = ref('/api/imgs/music.jpg');
 
@@ -246,12 +250,12 @@ const { isTopList } = defineProps({
 });
 const router = useRouter();
 
-const loadMore = ref<HTMLDivElement>();
+const loadMore = ref();
 
 const loading = ref(false);
 const loadingMore = ref(false);
 const loadingError = ref(false);
-const fristLoad = ref(true);
+const fristLoading = ref(true);
 const haveMore = ref(true);
 const lasttime = ref(0);
 const cat = ref(PlaylistVal.All);
@@ -267,7 +271,7 @@ onMounted(() => {
     getCloudPlaylistHighqualityData();
 });
 // 等待第一次加载完成再进行滚动加载的监听
-watch(fristLoad, (val) => {
+watch(fristLoading, (val) => {
     if (!val) {
         // 等 dom 挂载上再绑定事件
         nextTick(() => observerLoad())
@@ -283,13 +287,14 @@ function observerLoad() {
             getCloudPlaylistHighqualityData();
         }
     }, {
-        rootMargin: '0px 0px 0px 200px' // 监听视口距离向下多200px
+        rootMargin: '0px 0px 200px 0px' // 监听视口距离向下多200px
     })
     loadIO.observe(loadMore.value)
+    // loadIO.observe(loadMore.value.loadMore)
 }
 /** 获取精选歌单 */
 async function getCloudPlaylistHighqualityData() {
-    fristLoad.value ? loading.value = true : loadingMore.value = true;
+    fristLoading.value ? loading.value = true : loadingMore.value = true;
     loadingError.value = false;
     let [err, result] = await getCloudPlaylistHighquality({
         before: lasttime.value, 
@@ -297,20 +302,22 @@ async function getCloudPlaylistHighqualityData() {
         limit: isTopList ? 20 : 10
     })
 
-    fristLoad.value ? loading.value = false : loadingMore.value = false;
-    if (result) {
+    fristLoading.value ? loading.value = false : loadingMore.value = false;
+    if (!err && result) {
         const { code, data } = result.data;
         playlist.push(...data.playlist);
         lasttime.value = data.lasttime;
         haveMore.value = data.more;
         // 第一次加载完成
-        fristLoad.value = false;
+        fristLoading.value = false;
+        return data.more ? data.playlist.length : 0 
     }
     if (err) {
         console.log(err)
         loadingError.value = true;
-        return;
+        return -1;
     }
+    return -1;
 }
 /** 格式化显示播放数 */
 function formatPlayCount(num: number) {

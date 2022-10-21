@@ -5,11 +5,12 @@
             :data="songs" 
             stripe 
             style="width: 100%" 
+            :empty-text="emptyText"
             :row-class-name="tableRowClass"
             :row-key="(row: MusicInfo) => row.id"
             @row-dblclick="playSong"
         >
-            <el-table-column prop="index" min-width="50px">
+            <el-table-column prop="index" :min-width="smallScreen ? '' : '50px'" :width="smallScreen ? '58px' : ''">
                 <template #default="scope">
                     <div class="songlist_column index">
                         <span class="songlist_index">{{ twoDigitStr(scope.$index + 1) }}</span>
@@ -56,7 +57,6 @@
                 </template>
             </el-table-column>
         </el-table>
-
     </div>
 </template>
 
@@ -70,12 +70,14 @@
 .songlist {
     box-sizing: border-box;
     width: 100%;
-    padding: 0 40px;
-    margin-bottom: 50px;
+    padding-bottom: 50px;
     cursor: default;
     .active {
+        .songlist_index {
+            color: var(--el-text-color-primary);
+        }
         .songlist_title {
-            color: var(--el-color-info-dark-2);
+            color: var(--el-text-color-primary);
         }
     }
     &_index {
@@ -126,7 +128,6 @@
 
 @media screen and (max-width: 550px) {
     .songlist {
-        padding: 0;
         &_column {
             &.title {
                 font-size: 18px;
@@ -156,12 +157,16 @@ import { MusicInfo, Singer } from '@/interface'
 import { usePlayerStore } from '@/store/player';
 import { formatAudioTime, twoDigitStr } from '@/utils';
 
+
 const playerStore = usePlayerStore();
 const { audioInfo }  = storeToRefs(playerStore);
 const { setAudioInfo } = playerStore;
-const { songs } = defineProps<{
+const { songs, emptyText } = withDefaults(defineProps<{
     songs: MusicInfo[]
-}>();
+    emptyText?: string
+}>(), {
+    emptyText: '这里什么都没有',
+});
 
 const activeId = ref(audioInfo.value.id);
 const smallScreen = ref(false);
@@ -172,23 +177,24 @@ onMounted(() => {
 });
 onUnmounted(() => {
     window.removeEventListener('resize', calculateTable)
+});
 
-})
 
+/** 计算视口宽度是否小屏 */
 function calculateTable() {
     smallScreen.value = window.innerWidth < 550;
 }
-
 /** 双击播放歌曲 */
 async function playSong(row: MusicInfo, column: TableColumn<MusicInfo>, event: MouseEvent) {
     // console.log(column)
-    // console.log(row)
+    console.log(row)
     if (audioInfo.value.id !== row.id) {
         if (row.fee === 1) {
             ElMessageBox.alert(`正在试听 ${row.title} 歌曲片段`, '', {
                 center: true
             })
         }
+        console.log(row)
         setAudioInfo(row);
         activeId.value = row.id;
     }

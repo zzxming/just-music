@@ -17,22 +17,31 @@ export const searchMusicInfoWIthBvid = async (bvid: string) =>
     await to<AxiosResponse<AxiosResult<MusicInfo[]>>, AxiosResultError>(
         axios.get(jointQuery('/bili/info', { bv: bvid }))
         .then((response: AxiosResponse<AxiosResult<BiliMusic>>) => {
-            // console.log(response)
             const info = response.data.data;
 
+            // 没有数据不会返回data, 防止报错设置空数组
+            if (response.data.code === 0) {
+                return {
+                    ...response,
+                    data: {
+                        ...response.data,
+                        data: []
+                    }
+                }
+            }
             return {
                 ...response,
                 data: {
                     ...response.data,
                     data: [
                         {
-                            type: AudioInfoType.local,
-                            id: info.cid,
-                            title: info.title,
-                            cover: info.cover,
-                            singers: info.singers,
-                            album: info.album,
-                            duration: info.duration,
+                            type: AudioInfoType.bili,
+                            id: info?.bvid,
+                            title: info?.title,
+                            cover: info?.cover,
+                            singers: info?.singers,
+                            album: info?.album,
+                            duration: info?.duration,
                             fee: 0
                         }
                     ]

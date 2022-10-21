@@ -5,17 +5,14 @@
 </template>
 
 <script lang="ts" setup>
-import {  onMounted, ref, watch } from 'vue'
+import { ref, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import { usePlayerStore } from '@/store/Player'
-import { getLocalMusicInfoWithId } from '@/assets/localApi';
-import { getCloudMusicInfoWithId } from '@/assets/cloudApi';
-import { AudioInfoType, LocalAudioInfo } from '@/interface';
 
 const audioMedia = ref<HTMLAudioElement>();
 const playerStore = usePlayerStore();
 const { audioInfo, audioSrc } = storeToRefs(playerStore);
-const { setAudio, setAudioInfo } = playerStore;
+const { setAudio } = playerStore;
 
 // audioMedia 最初可能不显示, 当显示时再进行绑定
 watch(audioMedia, (val, preVal) => {
@@ -31,32 +28,11 @@ watch(audioInfo, () => {
     }
 });
 
-// watch(audioSrc, (val) => {
-//     console.log(val)
-//     if (!val && audioInfo.value.fee === 1 && audioInfo.value.id !== 0) {
-//         ElMessageBox.alert(`歌曲 ${audioInfo.value.title} 是无法试听的 vip 歌曲`);
-//     }
-// })
-
-onMounted(() => {
-    // getMusicInfoWithId(random(54,55), AudioInfoType.local);
-    // getMusicInfoWithId(569105662, AudioInfoType.cloud);
-})
-/** 根据 id 获取本地的音频信息 */
-async function getMusicInfoWithId(id: number, type: AudioInfoType) {
-    
-    let [err, result] = type === AudioInfoType.local ? await getLocalMusicInfoWithId({id}) : await getCloudMusicInfoWithId({ids: id});
-    if (!err && result) {
-        // console.log(result)
-        let { code, data } = result.data;
-        // 因为不知道返回的是什么类型, 合并的数据类型会有问题
-        setAudioInfo({type, ...data} as LocalAudioInfo);
-        // setAudioSrc(`/music/${data.music_id}`)
-    }
-}
 /** 加载失败重试 */
 function loadError(e: Event) {
-    audioMedia.value && audioMedia.value.load();
+    setTimeout(() => {
+        audioMedia.value && audioMedia.value.load();
+    }, 3000)
 }
 
 </script>

@@ -56,7 +56,7 @@ export const getCloudPlaylistHighquality = async (
         axios.get(jointQuery(`/music/cloud/playlist/highquality`, query))
     )
 }
-interface SearchCloudResult extends AxiosResult<CloudMusic[]> {
+export interface SearchCloudResult extends AxiosResult<CloudMusic[]> {
     count: number
 }
 // t: 1: 单曲, 10: 专辑, 100: 歌手, 1000: 歌单, 1002: 用户, 1004: MV, 1006: 歌词, 1009: 电台, 1014: 视频

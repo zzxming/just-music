@@ -137,10 +137,10 @@
     &_song {
         box-sizing: border-box;
         width: 100%;
+        padding: 0 40px;
         min-height: calc(100vh - 40px - 20px - 180px);
     }
 }
-
 @media screen and (max-width: 550px) {
     .playlist {
         &_info {
@@ -170,6 +170,9 @@
             &_createTime {
                 display: none;
             }
+        }
+        &_song {
+            padding: 0;
         }
     }
 }

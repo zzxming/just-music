@@ -1,10 +1,4 @@
 import { createRouter, createWebHashHistory, RouteRecordRaw } from "vue-router"
-import Home from "@/pages/Home/index.vue"
-import Player from "@/pages/Player/index.vue"
-import Playlist from "@/pages/Playlist/index.vue"
-import PlaylistDetail from "@/pages/PlaylistDetail/index.vue"
-import Search from "@/pages/Search/index.vue"
-import Page404 from "@/pages/Page404/index.vue"
 
 const routes: readonly RouteRecordRaw[] = [
     {
@@ -12,27 +6,25 @@ const routes: readonly RouteRecordRaw[] = [
         redirect: '/home'
     }, {
         path: '/home',
-        component: Home
+        component: () => import("@/pages/Home/index.vue"),
     }, {
         path: '/player',
-        component: Player
+        component: () => import("@/pages/Player/index.vue"),
     }, {
         path: '/playlist',
-        component: Playlist,
-        children: [
-            {
-                path: 'detail',
-                component: PlaylistDetail,
-                props(route) {
-                    return {
-                        ...route.query
-                    }
-                }
+        component: () => import("@/pages/Playlist/index.vue"),
+    }, {
+        // 这不是存在与 playlist 页面下的子组件, 所以不写在 playlist 的子路由中
+        path: '/playlist/detail',
+        component: () => import("@/pages/PlaylistDetail/index.vue"),
+        props(route) {
+            return {
+                ...route.query
             }
-        ]
+        }
     }, {
         path: '/search',
-        component: Search,
+        component: () => import("@/pages/Search/index.vue"),
         props(route) {
             return {
                 ...route.query
@@ -40,7 +32,7 @@ const routes: readonly RouteRecordRaw[] = [
         }
     }, {
         path: '/404',
-        component: Page404
+        component: () => import("@/pages/Page404/index.vue"),
     }, {
         path: '/:pathMatch(.*)*',
         redirect: '/404'
