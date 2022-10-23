@@ -10,6 +10,7 @@
     align-items: center;
     justify-content: center;
     text-align: center;
+    margin: 40px 0;
     &_retry {
         color: var(--el-color-primary);
         cursor: pointer;

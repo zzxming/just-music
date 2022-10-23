@@ -14,6 +14,7 @@
                 <template #default="scope">
                     <div class="songlist_column index">
                         <span class="songlist_index">{{ twoDigitStr(scope.$index + 1) }}</span>
+                        <span class="el-icon songlist_playing"><Playing /></span>
                     </div>
                 </template>
             </el-table-column>
@@ -73,8 +74,14 @@
     padding-bottom: 50px;
     cursor: default;
     .active {
-        .songlist_index {
+        .songlist_column.index {
             color: var(--el-text-color-primary);
+        }
+        .songlist_index {
+            display: none;
+        }
+        .songlist_playing {
+            display: block;
         }
         .songlist_title {
             color: var(--el-text-color-primary);
@@ -82,6 +89,9 @@
     }
     &_index {
         color: var(--el-color-info-light-3);
+    }
+    &_playing {
+        display: none;
     }
     &_column:extend(.textOverflowEllipsis) {
         display: flex;
@@ -93,6 +103,9 @@
             .singer {
                 font-size: 12px;
             }
+        }
+        &.index {
+            color: var(--el-color-info-light-3);
         }
         &.title {
             
@@ -120,6 +133,11 @@
     }
     &_duration {
     }
+}
+
+
+:deep(.el-table--striped .el-table__body tr.el-table__row.active td.el-table__cell) {
+    background-color: var(--el-color-danger-light-7);
 }
 :deep(.el-table--enable-row-hover .el-table__body tr:hover>td.el-table__cell) {
     background: var(--el-color-danger-light-8);
@@ -150,17 +168,21 @@
 <script lang="ts" setup>
 import { TableColumn } from 'element-plus/es/components/table/src/table-column/defaults';
 import { storeToRefs } from 'pinia';
-import { onMounted, onUnmounted, ref } from 'vue'
-import { ElMessageBox } from 'element-plus'
+import { onMounted, onUnmounted, ref, watch } from 'vue'
 import Vip from '@/assets/iconfont/vip.vue'
+import Playing from '@/assets/iconfont/playing.vue';
 import { MusicInfo, Singer } from '@/interface'
 import { usePlayerStore } from '@/store/player';
+import { usePlaylistStore } from '@/store/playlist';
 import { formatAudioTime, twoDigitStr } from '@/utils';
 
 
 const playerStore = usePlayerStore();
+const playlistStore = usePlaylistStore();
 const { audioInfo }  = storeToRefs(playerStore);
 const { setAudioInfo } = playerStore;
+const { playinglistReplace } = playlistStore;
+
 const { songs, emptyText } = withDefaults(defineProps<{
     songs: MusicInfo[]
     emptyText?: string
@@ -170,7 +192,8 @@ const { songs, emptyText } = withDefaults(defineProps<{
 
 const activeId = ref(audioInfo.value.id);
 const smallScreen = ref(false);
-
+// 当前播放变化监听
+watch(audioInfo, () => activeId.value = audioInfo.value.id)
 onMounted(() => {
     calculateTable();
     window.addEventListener('resize', calculateTable)
@@ -187,16 +210,12 @@ function calculateTable() {
 /** 双击播放歌曲 */
 async function playSong(row: MusicInfo, column: TableColumn<MusicInfo>, event: MouseEvent) {
     // console.log(column)
-    console.log(row)
+    // console.log(row)
     if (audioInfo.value.id !== row.id) {
-        if (row.fee === 1) {
-            ElMessageBox.alert(`正在试听 ${row.title} 歌曲片段`, '', {
-                center: true
-            })
-        }
-        console.log(row)
+        // console.log(row)
         setAudioInfo(row);
         activeId.value = row.id;
+        playinglistReplace(songs);
     }
 }
 /** 激活的歌曲行 */

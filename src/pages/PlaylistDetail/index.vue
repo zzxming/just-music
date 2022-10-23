@@ -11,7 +11,7 @@
                 </div>
                 <div class="playlist_info_right">
                     <div class="playlist_info_right_line">
-                        <h3 class="playlist_info_title">{{playlistInfo.name}}</h3>
+                        <h3 class="playlist_info_title" :title="playlistInfo.name">{{playlistInfo.name}}</h3>
                     </div>
                     <div class="playlist_info_right_line">
                         <el-avatar class="playlist_info_avatar" :size="28" :icon="UserFilled" :src="playlistInfo.creator.avatarUrl" />
@@ -45,18 +45,20 @@
 </template>
 
 <style lang="less" scoped>
+@coverHeight: 180px;
+@infoPaddingTop: 40px;
+@infoPaddingBot: 20px;
 .playlist {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: flex-start;
-    // width: 100vw;
     width: 100%;
-    min-height: 100vh;
+    min-height: calc(100vh - 64px);
     &_wrapper {
         align-self: center;
         width: 100%;
-        min-height: 100vh;
+        min-height: calc(100vh - 64px - 104px);
     }
     &_info {
         box-sizing: border-box;
@@ -64,17 +66,17 @@
         align-items: flex-start;
         justify-content: flex-start;
         width: 100%;
-        padding: 40px 60px 20px;
+        padding: @infoPaddingTop 60px @infoPaddingBot;
         font-size: 14px;
         &_left {
             align-self: flex-start;
-            width: 180px;
+            width: @coverHeight;
         }
         &_right {
             display: flex;
             flex-direction: column;
             margin-left: 20px;
-            width: calc(100% - 180px - 20px);
+            width: calc(100% - @coverHeight - 20px);
             &_line {
                 display: flex;
                 align-content: center;
@@ -86,6 +88,7 @@
             display: flex;
             width: 100%;
             height: 100%;
+            min-height: @coverHeight;
             border-radius: 8px;
             overflow: hidden;
             img {
@@ -96,6 +99,12 @@
             font-size: 26px;
             margin: 0;
             line-height: 40px;
+            // word-break: break-all;
+            // text-overflow: ellipsis;
+            // display: -webkit-box;
+            // -webkit-box-orient: vertical;
+            // -webkit-line-clamp: 2;
+            // overflow: hidden;
         }
         &_nickname {
             margin-left: 6px;
@@ -138,21 +147,23 @@
         box-sizing: border-box;
         width: 100%;
         padding: 0 40px;
-        min-height: calc(100vh - 40px - 20px - 180px);
+        min-height: calc(100vh - 64px - @coverHeight - @infoPaddingTop - @infoPaddingBot);
+        margin-bottom: 200px;
     }
 }
 @media screen and (max-width: 550px) {
+    @coverHeight: 120px;
     .playlist {
         &_info {
             justify-content: space-between;
-            padding: 40px 20px 20px;
+            padding: @infoPaddingTop 20px @infoPaddingBot;
             line-height: 20px;
             font-size: 12px;
             &_left {
-                width: 120px;
+                width: @coverHeight;
             }
             &_right {
-                width: calc(100% - 120px - 20px);
+                width: calc(100% - @coverHeight - 20px);
                 margin-left: 8px;
                 &_line {
                     margin: 0;
@@ -162,6 +173,9 @@
                         align-self: center;
                     }
                 }
+            }
+            &_cover {
+                min-height: @coverHeight;
             }
             &_title {
                 line-height: 30px;
@@ -173,6 +187,7 @@
         }
         &_song {
             padding: 0;
+            min-height: calc(100vh - 64px - @coverHeight - @infoPaddingTop - @infoPaddingBot);
         }
     }
 }

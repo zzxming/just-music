@@ -108,3 +108,10 @@ export interface BiliMusic {
     album: string
     src: string
 }
+/** 播放模式 */
+export enum PlayMode {
+    sequential = 'sequential',
+    single = 'single',
+    random = 'random',
+    loop = 'loop'
+}

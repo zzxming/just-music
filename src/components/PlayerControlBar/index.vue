@@ -1,13 +1,13 @@
 
 <template>
     <div v-if="audio" v-show="showPlayerControl" class="botcontrol">
-        <div class="botcontrol_right">
-            <el-icon class="botcontrol_btn-icon skipback"><Skipback /></el-icon>
+        <div class="botcontrol_left">
+            <el-icon class="botcontrol_btn-icon skipback" @click="playPre"><Skipback /></el-icon>
             <div class="botcontrol_btn_play" @click="playAudio">
                 <el-icon class="botcontrol_btn-icon play" v-show="audioIsPaused"><Play /></el-icon>
                 <el-icon class="botcontrol_btn-icon pause" v-show="!audioIsPaused"><Pause /></el-icon>
             </div>
-            <el-icon class="botcontrol_btn-icon skipforward"><Skipforward /></el-icon>
+            <el-icon class="botcontrol_btn-icon skipforward" @click="() => playNext(false)"><Skipforward /></el-icon>
         </div>
         <div class="botcontrol_info">
             <div class="botcontrol_info_cover">
@@ -39,7 +39,8 @@
                 <span class="botcontrol_info_time-duration"> / {{audioDuration}}</span>
             </div>
         </div>
-        <div class="botcontrol_left">
+        <div class="botcontrol_right">
+            <AudioPlayType class="botcontrol_btn-icon" />
             <div class="botcontrol_btn_play" @click="playAudio">
                 <el-icon class="botcontrol_btn-icon play" v-show="audio.paused"><Play /></el-icon>
                 <el-icon class="botcontrol_btn-icon pause" v-show="!audio.paused"><Pause /></el-icon>    
@@ -53,9 +54,10 @@
                     </div>
                 </div>
             </div>
-            <el-icon class="botcontrol_btn-icon list"><List /></el-icon>
+            <el-icon class="botcontrol_btn-icon list" @click="activatePlayinglistState"><List /></el-icon>
         </div>
     </div>
+    <Playinglist :active="activePlayinglist" @close="deactivatePlayinglistState" />
 </template>
 
 <style lang="less" scoped>
@@ -77,11 +79,11 @@
     box-shadow: var(--el-box-shadow-dark);
     transition: bottom .3s linear;
     z-index: 10;
-    &_right {
+    &_left {
         display: flex;
         align-items: center;
     }
-    &_left {
+    &_right {
         display: flex;
         align-items: center;
         .botcontrol_btn_play {
@@ -221,6 +223,7 @@
             height: 72px;
             display: flex;
             align-items: center;
+            user-select: none;
             &-img {
                 width: 100%;
             }
@@ -257,6 +260,7 @@
             min-width: 100px;
             font-size: 14px;
             color: var(--el-color-info);
+            user-select: none;
             &-current {
                 color: var(--el-text-color-primary);
             }
@@ -324,10 +328,10 @@
 @media screen and (max-width: 810px) {
     .botcontrol {
         justify-content: center;
-        &_right {
+        &_left {
             display: none;
         }
-        &_left {
+        &_right {
             .mute:extend(.volume) {
 
             }
@@ -360,7 +364,9 @@
 import { storeToRefs } from 'pinia';
 import { onMounted, computed, ref, watch } from 'vue';
 import { usePlayerStore } from '@/store/player';
-import { formatAudioTime } from '@/utils'
+import { usePlaylistStore } from '@/store/playlist';
+import { formatAudioTime } from '@/utils';
+import { PlayMode } from '@/interface';
 import Volume from '@/assets/iconfont/volume.vue';
 import Pause from '@/assets/iconfont/pause.vue';
 import Play from '@/assets/iconfont/play.vue';
@@ -368,12 +374,17 @@ import Skipback from '@/assets/iconfont/skipback.vue';
 import Skipforward from '@/assets/iconfont/skipforward.vue';
 import Volume_mute from '@/assets/iconfont/volume_mute.vue';
 import List from '@/assets/iconfont/list.vue';
+import AudioPlayType from '@/components/AudioPlayType/index.vue';
+import Playinglist from '@/components/Playinglist/index.vue';
 
 const musicImg = ref('/api/imgs/music.jpg');
 
 const playerStore = usePlayerStore();
-const { audio, showPlayerControl, audioInfo } = storeToRefs(playerStore);
-const { changePlayerControlState } = playerStore;
+const playlistStore = usePlaylistStore();
+const { audio, audioSrc, showPlayerControl, audioInfo, curPlayMode } = storeToRefs(playerStore);
+const { setAudioInfo, resetAudioInfo } = playerStore;
+const { playinglist } = playlistStore;
+const { findPreMusic, findNextMusic } = playlistStore;
 
 const audioTimeBar = ref<HTMLDivElement>();
 const audioVolumeBar = ref<HTMLDivElement>();
@@ -387,12 +398,12 @@ const audioCurrentTimeStr = ref('00:00');
 const audioIsPaused = ref(true);
 const audioLoading = ref(false);
 const audioVolume = ref(0.7);
+const activePlayinglist = ref(false);
 
 /** 初始值 */
 watch(audio, (val, preVal) => {
     unbindAudioEvent();
     if (val) {
-        audioLoading.value = true;
         volumeHeight.value = 70;
         currentdWidth.value = 0;
         val.volume = volumeHeight.value / 100;
@@ -400,9 +411,6 @@ watch(audio, (val, preVal) => {
     }
 });
 
-onMounted(() => {
-    changePlayerControlState(true);
-});
 
 
 function bindAudioEvent() {
@@ -415,12 +423,20 @@ function bindAudioEvent() {
             console.log('loadeddata')
             this.play()
         })
+        audioDom.addEventListener('loadstart', function() {
+            console.log('loadstart')
+        })
+        audioDom.addEventListener('loadedmetadata', function() {
+            console.log('loadedmetadata')
+        })
         audioDom.addEventListener('emptied', function() {
             console.log('emptied')
-            audioLoading.value = true;
+            if (!!audioSrc) {
+                audioLoading.value = true;
+            }
         })
         audioDom.addEventListener('durationchange', function() {
-            console.log('durationchange')
+            console.log('durationchange', this.duration)
         })
         audioDom.addEventListener('canplay', function() {
             console.log('canplay')
@@ -445,6 +461,7 @@ function bindAudioEvent() {
         })
         audioDom.addEventListener('ended', function() {
             console.log('end')
+            playNext();
         })
         audioDom.addEventListener('volumechange', function() {
             if (audioVolumeBar.value && audio.value) {
@@ -515,19 +532,58 @@ function playAudio() {
     let audioDom = audio.value;
     if (audioDom) {
         if (audioDom.paused) {
-            audioDom.play()
+            // 当播放路径为空且播放列表有歌曲时, 播放第一首
+            if (!audioSrc.value && playinglist.length > 0) {
+                console.log('in', audioSrc.value)
+                setAudioInfo(playinglist[0]);
+            }
+            audioDom.play();
         }
         else{
             audioDom.pause()
         }
     }
 }
+/** 播放上一首歌曲 */
+function playPre() {
+    let pre = findPreMusic(audioInfo.value);
+    if (!pre) {
+        resetAudioInfo();
+        return;
+    }
+    setAudioInfo(pre);
+}
+/** 根据播放模式播放下一首歌曲 */
+function playNext(isAuto: boolean = true) {
+    let mode = curPlayMode.value;
+    // 手动切换时自动循环歌单
+    if (!isAuto) {
+        if (mode === PlayMode.single || mode === PlayMode.sequential) {
+            mode = PlayMode.loop;
+        }
+    }
+    let next = findNextMusic(audioInfo.value, mode);
+    if (!next) {
+        resetAudioInfo();
+        return;
+    }
+    if (next === audioInfo.value) {
+        audio.value && audio.value.load();
+    }
+    setAudioInfo(next);
+}
 /** 图片加载失败 */
 function onErrorImg(e: Event) {
     (e.target as HTMLImageElement).src = musicImg.value;
-    console.log('img load')
 }
-
+/** 显示播放列表 */
+function activatePlayinglistState() {
+    activePlayinglist.value = true;
+}
+/** 关闭播放列表 */
+function deactivatePlayinglistState() {
+    activePlayinglist.value = false;
+}
 
 </script>
 

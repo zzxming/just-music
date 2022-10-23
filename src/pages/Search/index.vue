@@ -17,20 +17,15 @@
                 </el-tab-pane>
             </el-tabs>
         </div>
-        <Songlist v-loading="loading" v-if="!loadingError || !fristLoading" class="search_result" :songs="songsData" empty-text="请输入正确的bv号" />
-        <LoadingErrorTip :isError="loadingError && fristLoading" :requestFunc="() => requestSearch(true)" />
-        <!-- <LoadingMore v-if="!fristLoading" ref="loadMore" :requestFunc="requestSearch" /> -->
-
-        <div class="load-more" v-if="!fristLoading" ref="loadMore">
-            <div v-if="!haveMore" class="load-nomore">已经没有更多了</div>
-            <template v-else>
-                <div v-show="!loadingError">
-                    <span v-show="loadingMore">加载中...</span>
-                    <span v-show="!loadingMore" class="load-btn" @click="() => requestSearch()">加载更多</span>
-                </div>
-                <LoadingErrorTip :isError="!loadingMore && loadingError" :requestFunc="() => requestSearch()" />
-            </template>
-        </div>
+        <Songlist 
+            v-loading="fristLoading && !loadingError" 
+            v-if="!fristLoading || !loadingError" 
+            class="search_result" 
+            :songs="songsData" 
+            :emptyText="currentSearchType === AudioInfoType.bili ? '请输入正确的bv号' : '没有搜索到相关歌曲'" 
+        />
+        <LoadingErrorTip :isError="fristLoading && loadingError" :requestFunc="() => requestSearch(true)" />
+        <LoadingMore v-show="!fristLoading" ref="loadMore" :requestFunc="requestSearch" />
     </div>
 </template>
 
@@ -114,7 +109,7 @@ import { searchLocalMusic, searchMusicInfoWIthBvid } from '@/assets/localApi'
 import { jointQuery } from '@/assets/api';
 import LoadingErrorTip from '@/components/LoadingErrorTip/index.vue';
 import Songlist from '@/components/Songlist/index.vue'
-import LoadingMore from '@/components/LoadingMore/index.vue';
+import LoadingMore, { ExposeVar } from '@/components/LoadingMore/index.vue';
 
 enum SearchTypeTxt {
     bili = '哔哩哔哩',
@@ -128,17 +123,15 @@ const props = defineProps<{
 }>();
 const router = useRouter();
 const route = useRoute();
-const loadMore = ref();
+const loadMore = ref<ExposeVar>();
 
 const currentSearchType = ref<AudioInfoType>(AudioInfoType[props.t]);
 const type = ref(1);
 const limit = ref(1);
-const loading = ref(true);
 const fristLoading = ref(true);
-const loadingMore = ref(false);
 const loadingError = ref(false);
 const songsData = reactive<MusicInfo[]>([]);
-const haveMore = ref(true);
+
 
 // 搜索类型变化更改 url
 watch(currentSearchType, (val) => {
@@ -159,37 +152,33 @@ watch(() => props, (val) => {
     deep: true,
     immediate: true
 });
-
 /** 滚动动态加载 */
 watch(fristLoading, (val) => {
     if (!val) {
         // 等 dom 挂载上再绑定事件
-        nextTick(() => observerLoad())
+        nextTick(() => observerLoad());
     }
 }, { immediate: true });
 /** 监听动态加载歌单 */
 function observerLoad() {
-    // console.log(loadMore.value.loadMore)
     if (!loadMore.value) return;
     let loadIO = new IntersectionObserver(function (entries) {
         // console.log(entries[0].isIntersecting)
         // 距离视口还有200px
-        if (entries[0].isIntersecting) {
-            console.log('load')
-            requestSearch();
+        if (entries[0].isIntersecting && loadMore.value) {
+            // console.log('load')
+            loadMore.value.loadFunc();
         }
     }, {
         rootMargin: '0px 0px 200px 0px' // 监听视口距离向下多200px
-    })
-    // loadIO.observe(loadMore.value.loadMore)
-    loadIO.observe(loadMore.value)
+    });
+    loadIO.observe(loadMore.value.loadMore);
 }
 
 
 /** 搜索类型改变 */
 function searchTypeChange(tabName: AudioInfoType) {
     currentSearchType.value = AudioInfoType[tabName];
-    haveMore.value = true;
     limit.value = 1;
     fristLoading.value = true;
 }
@@ -198,7 +187,6 @@ function searchTypeChange(tabName: AudioInfoType) {
  * @param loadMore 是否是第一次发起请
  */
 async function requestSearch(loadMore: boolean = false) {
-    fristLoading.value ? loading.value = true : loadingMore.value = true;
     loadingError.value = false;
     let err, result;
     // console.log(currentSearchType.value)
@@ -231,7 +219,6 @@ async function requestSearch(loadMore: boolean = false) {
             result = undefined;
         }
     }
-    fristLoading.value ? loading.value = false : loadingMore.value = false;
     // 添加时不清空已有数据
     if (!err && result) {
         loadMore && (songsData.length = 0);
@@ -241,12 +228,12 @@ async function requestSearch(loadMore: boolean = false) {
         let data = result.data;
         songsData.push(...formatMusicInfo(data.data, currentSearchType.value));
         if (data.data.length < 1 || (isType<SearchCloudResult>(data) && songsData.length >= data.count)) {
-            haveMore.value = false;
             return 0;
         }
         return data.data.length;
     }
     else {
+        // console.log(err)
         loadingError.value = true;
         return -1;
     }

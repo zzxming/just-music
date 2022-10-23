@@ -45,11 +45,9 @@
 }
 :deep(.el-input__wrapper:hover) {
     box-shadow: none;
-    // box-shadow: 0 0 0 1px var(--el-input-hover-border-color) inset;
 }
 .input :deep(.el-input__wrapper.is-focus) {
     box-shadow: none;
-    // box-shadow: 0 0 2px var(--el-color-danger) inset;
 }
 
 </style>

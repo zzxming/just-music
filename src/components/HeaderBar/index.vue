@@ -16,9 +16,11 @@
     align-items: center;
     width: 100%;
     height: 64px;
-    margin: 16px 40px 8px;
+    padding: 16px 40px 8px;
     z-index: 10;
     &_back {
+        position: absolute;
+        left: 40px;
         justify-self: flex-start;
     }
     &_input {
@@ -30,6 +32,9 @@
 @media screen and (max-width: 810px) {
     .header {
         justify-content: center;
+        &_back {
+            left: 5%;
+        }
         &_input {
             width: 300px;
         }
@@ -37,7 +42,8 @@
 }
 @media screen and (max-width: 550px) {
     .header {
-        padding: 0;
+        padding-left: 0;
+        padding-right: 0;
         justify-content: center;
         &_input {
             width: 80%;
@@ -49,10 +55,10 @@
 <script lang="ts" setup>
 import { watch, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import IconInput from '@/components/IconInput/index.vue'
-import BackRoute from '@/components/BackRoute/index.vue'
 import { jointQuery } from '@/assets/api';
 import { AudioInfoType } from '@/interface';
+import IconInput from '@/components/IconInput/index.vue'
+import BackRoute from '@/components/BackRoute/index.vue'
 
 const route = useRoute();
 const router = useRouter();

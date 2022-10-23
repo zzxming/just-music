@@ -1,37 +1,50 @@
 import { defineStore } from "pinia"
-import { ref } from "vue"
+import { computed, reactive, ref } from "vue"
 import { jointQuery, mediaSrc } from "@/assets/api";
 import { getMusicSrcWithCloudId } from "@/assets/cloudApi";
-import { AudioInfoType, LocalAudioInfo, CloudAudioInfo, MusicInfo } from "@/interface"
+import { AudioInfoType, LocalAudioInfo, CloudAudioInfo, MusicInfo, PlayMode } from "@/interface"
 import { formatMusicInfo, isType } from "@/utils"
+import { ElMessageBox } from "element-plus";
 
-
+const initAudioInfo = {
+    type: AudioInfoType.local,
+    id: 0,
+    cover: '',
+    title: '',
+    duration: 0,
+    singers: [],
+    album: '',
+    fee: 0
+};
 export const usePlayerStore = defineStore('player', () => {
     const audio = ref<HTMLAudioElement>();
-    const audioSrc = ref<string | null>(``);
-    const showPlayerControl = ref(true);
-    const audioInfo = ref<MusicInfo>({
-        type: AudioInfoType.local,
-        id: 0,
-        cover: '',
-        title: '',
-        duration: 0,
-        singers: [],
-        album: '',
-        fee: 0
-    });
+    const audioSrc = ref<string | null>(``);    // 部分网易云 vip 歌曲不让试听, 给的路径就是 null
+    const showPlayerControl = ref(false);
+    const audioInfo = ref<MusicInfo>(initAudioInfo);
+    const playMode = reactive<PlayMode[]>([PlayMode.loop, PlayMode.single, PlayMode.random, PlayMode.sequential]);
+    const playModeIndex = ref(0);
+    const curPlayMode = computed(() => playMode[playModeIndex.value]);
 
+    /** 设置 audio 元素 */
     function setAudio(media: HTMLAudioElement) {
         if (audio) {
             audio.value = media
         }
     }
+    /** 设置音频播放路径 */
     function setAudioSrc(src: string) {
         audioSrc.value = src;
     }
+    /** 改变全局音频显示状态 */
     function changePlayerControlState(visible: boolean) {
         showPlayerControl.value = visible;
     }
+    /** 设置当前没有播放歌曲 */
+    function resetAudioInfo() {
+        audioSrc.value = '';
+        audioInfo.value = initAudioInfo;
+    }
+    /** 设置当前音频显示信息 */
     async function setAudioInfo(info: LocalAudioInfo | CloudAudioInfo | MusicInfo) {
         // 因为 isType 是通过 ts 的 is 进行判断, 在执行过程中, ts 以及不存在, 所以需要额外的判断
         if (isType<MusicInfo>(info) && info.title) {
@@ -41,7 +54,14 @@ export const usePlayerStore = defineStore('player', () => {
             let result = formatMusicInfo(info);
             audioInfo.value = result;
         }
-        
+        showPlayerControl.value = true;
+        if (audioInfo.value.fee === 1) {
+            ElMessageBox.alert(`正在试听 ${audioInfo.value.title} 歌曲片段`, '', {
+                center: true
+            })
+        }
+
+
         let src: string;
         let audioInfoCur = audioInfo.value;
         if (audioInfoCur.type === AudioInfoType.cloud) {
@@ -72,16 +92,24 @@ export const usePlayerStore = defineStore('player', () => {
         setAudioSrc(src)
         // audioSrc.value = result.src
     }
+    /** 切换播放模式 */
+    function changePlayMode() {
+        let targetVal = playModeIndex.value + 1;
+        targetVal >= playMode.length ? playModeIndex.value = 0 : playModeIndex.value = targetVal;
+    }
 
     return {
         audio,
         audioSrc,
         showPlayerControl,
         audioInfo,
+        curPlayMode,
         setAudio,
         setAudioSrc,
         changePlayerControlState,
+        resetAudioInfo,
         setAudioInfo,
+        changePlayMode,
     }
 });
 

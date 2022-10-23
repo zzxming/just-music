@@ -32,11 +32,14 @@
 }
 </style>
 
-
-
 <script lang="ts" setup>
+import LoadingErrorTip from '@/components/LoadingErrorTip/index.vue'
 import { ref } from 'vue'
 
+export interface ExposeVar {
+    loadMore: HTMLDListElement
+    loadFunc: () => void
+} 
 const props = defineProps<{
     requestFunc: (...arg: any) => number | Promise<number>;
 }>();
@@ -45,7 +48,7 @@ const haveMore = ref(true);
 const loading = ref(false);
 const loadingError = ref(false);
 
-defineExpose({loadMore, haveMore});
+defineExpose({loadMore, loadFunc});
 
 /** 返回 0 表示没有更多数据, 返回 -1 表示报错, 返回其他为数据长度 */
 async function loadFunc() {
