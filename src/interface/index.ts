@@ -34,11 +34,11 @@ export interface Singer {
     id: number
     name: string
 }
-/** 携带type的本地歌曲信息 */
+/** 携带 type 的本地歌曲信息 */
 export interface LocalAudioInfo extends LocalMusic {
     type: AudioInfoType.local
 }
-/** 携带type的网易云歌曲信息 */
+/** 携带 type 的网易云歌曲信息 */
 export interface CloudAudioInfo extends CloudMusic {
     type: AudioInfoType.cloud
 }
@@ -79,24 +79,6 @@ export interface CloudAlbumShort {
     name: string
     picUrl: string
 }
-/** 网易云歌单信息 */
-export interface CloudPlaylist {
-    id: number
-    name: string
-    updateTime: number
-    createTime: number
-    coverImgUrl: string
-    description: string
-    playCount: number
-    tracks: CloudMusic[]
-    trackCount: number
-    creator: {
-        userId: number
-        nickname: string
-        avatarUrl: string
-    }
-    tags: string[]
-}
 /** bili 获取的音频信息 */
 export interface BiliMusic {
     bvid: string
@@ -107,6 +89,49 @@ export interface BiliMusic {
     title: string
     album: string
     src: string
+}
+
+
+
+/** 歌单信息 */
+export interface PlaylistInfo {
+    type: AudioInfoType
+    id: number
+    title: string
+    updateTime: number
+    createTime: number
+    cover: string
+    description: string
+    playCount: number
+    // tracks: MusicInfo[]
+    trackCount: number
+    creator: {
+        userId: number
+        name: string
+        avatarUrl: string
+    }
+}
+/** 携带 type 的网易云歌单信息 */
+export interface CloudPlaylistInfo extends CloudPlaylist {
+    type: AudioInfoType.cloud
+}
+/** 网易云歌单信息 */
+export interface CloudPlaylist {
+    id: number
+    name: string
+    updateTime: number
+    createTime: number
+    coverImgUrl: string
+    description: string
+    playCount: number
+    // tracks: CloudMusic[]
+    trackCount: number
+    creator: {
+        userId: number
+        nickname: string
+        avatarUrl: string
+    }
+    tags: string[]
 }
 /** 播放模式 */
 export enum PlayMode {

@@ -8,6 +8,7 @@
             :empty-text="emptyText"
             :row-class-name="tableRowClass"
             :row-key="(row: MusicInfo) => row.id"
+            @row-contextmenu="showPopbox"
             @row-dblclick="playSong"
         >
             <el-table-column prop="index" :min-width="smallScreen ? '' : '50px'" :width="smallScreen ? '58px' : ''">
@@ -59,6 +60,10 @@
             </el-table-column>
         </el-table>
     </div>
+    <Popout :show="popoutVisible" :position="popoutPosition" @close="closePopout">
+        <PopoutItem @click="play">播放</PopoutItem>
+        <PopoutItem @click="nextPlay">下一首播放</PopoutItem>
+    </Popout>
 </template>
 
 
@@ -135,7 +140,6 @@
     }
 }
 
-
 :deep(.el-table--striped .el-table__body tr.el-table__row.active td.el-table__cell) {
     background-color: var(--el-color-danger-light-7);
 }
@@ -143,6 +147,7 @@
     background: var(--el-color-danger-light-8);
     color: var(--el-color-info);
 }
+
 
 @media screen and (max-width: 550px) {
     .songlist {
@@ -168,20 +173,25 @@
 <script lang="ts" setup>
 import { TableColumn } from 'element-plus/es/components/table/src/table-column/defaults';
 import { storeToRefs } from 'pinia';
-import { onMounted, onUnmounted, ref, watch } from 'vue'
+import { ref, watch } from 'vue'
 import Vip from '@/assets/iconfont/vip.vue'
 import Playing from '@/assets/iconfont/playing.vue';
 import { MusicInfo, Singer } from '@/interface'
 import { usePlayerStore } from '@/store/player';
 import { usePlaylistStore } from '@/store/playlist';
 import { formatAudioTime, twoDigitStr } from '@/utils';
+import Popout, { PopoutPosition } from '@/components/Popout/index.vue';
+import PopoutItem from '@/components/PopoutItem/index.vue';
+import { ElMessage } from 'element-plus';
+import { useIsSmallScreen } from '@/hooks'
 
 
+const smallScreen = useIsSmallScreen();
 const playerStore = usePlayerStore();
 const playlistStore = usePlaylistStore();
 const { audioInfo }  = storeToRefs(playerStore);
 const { setAudioInfo } = playerStore;
-const { playinglistReplace } = playlistStore;
+const { playinglistReplace, addToPlaylist, addToNextPlay } = playlistStore;
 
 const { songs, emptyText } = withDefaults(defineProps<{
     songs: MusicInfo[]
@@ -191,29 +201,27 @@ const { songs, emptyText } = withDefaults(defineProps<{
 });
 
 const activeId = ref(audioInfo.value.id);
-const smallScreen = ref(false);
+const popoutVisible = ref(false);
+const popoutPosition = ref<PopoutPosition>({
+    left: 0,
+    top: 0
+});
+const popoutHoldData = ref<MusicInfo>();        // 弹出框相关的数据
+
 // 当前播放变化监听
 watch(audioInfo, () => activeId.value = audioInfo.value.id)
-onMounted(() => {
-    calculateTable();
-    window.addEventListener('resize', calculateTable)
-});
-onUnmounted(() => {
-    window.removeEventListener('resize', calculateTable)
-});
 
 
-/** 计算视口宽度是否小屏 */
-function calculateTable() {
-    smallScreen.value = window.innerWidth < 550;
-}
 /** 双击播放歌曲 */
 async function playSong(row: MusicInfo, column: TableColumn<MusicInfo>, event: MouseEvent) {
     // console.log(column)
     // console.log(row)
     if (audioInfo.value.id !== row.id) {
-        // console.log(row)
         setAudioInfo(row);
+        ElMessage({
+            type: 'success',
+            message: '已开始播放'
+        });
         activeId.value = row.id;
         playinglistReplace(songs);
     }
@@ -221,6 +229,58 @@ async function playSong(row: MusicInfo, column: TableColumn<MusicInfo>, event: M
 /** 激活的歌曲行 */
 function tableRowClass(data: {row: MusicInfo}) {
     return data.row.id === activeId.value ? 'songlist_item active' : 'songlist_item'
+}
+/** 展示弹出框 */
+function showPopbox(row: MusicInfo, column: TableColumn<MusicInfo>, event: MouseEvent) {
+    // console.log(event)
+    event.preventDefault();
+    popoutVisible.value = true;
+    popoutPosition.value = {
+        left: event.pageX,
+        top: event.pageY,
+    }
+    popoutHoldData.value = row;
+}
+/** 关闭弹出框 */
+function closePopout() {
+    popoutVisible.value = false;
+}
+/** 弹出框点击播放 */
+function play() {
+    if (popoutHoldData.value) {
+        let result = addToPlaylist(popoutHoldData.value);
+        if (result) {
+            setAudioInfo(popoutHoldData.value);
+            ElMessage({
+                type: 'success',
+                message: '已开始播放'
+            });
+        }
+        else {
+            ElMessage({
+                type: 'error',
+                message: '添加失败'
+            });
+        }
+    }
+}
+/** 弹出框点击下一首播放 */
+function nextPlay() {
+    if (popoutHoldData.value) {
+        let result = addToNextPlay(popoutHoldData.value);
+        if (result) {
+            ElMessage({
+                type: 'success',
+                message: '已添加到播放列表'
+            });
+        }
+        else {
+            ElMessage({
+                type: 'error',
+                message: '添加失败'
+            });
+        }
+    }
 }
 </script>
 

@@ -197,14 +197,13 @@
 import { onMounted, ref } from 'vue';
 import { storeToRefs } from 'pinia';
 import { UserFilled } from '@element-plus/icons-vue';
-import { getLocalMusicInfoWithId } from '@/assets/localApi';
+import {  } from '@/assets/localApi';
 import { getCloudPlaylistDetail, getCloudPlaylistTrack } from '@/assets/cloudApi';
-import { AudioInfoType, MusicInfo, CloudPlaylist } from '@/interface';
+import { AudioInfoType, MusicInfo, CloudPlaylistInfo } from '@/interface';
 import { usePlayerStore } from '@/store/player';
 import { formatMusicInfo } from '@/utils';
 import LoadingErrorTip from '@/components/LoadingErrorTip/index.vue';
 import Songlist from '@/components/Songlist/index.vue';
-import { isArray } from 'lodash';
 
 
 // 本地歌曲的歌单还没有做
@@ -224,7 +223,7 @@ const loadingSong = ref(false);
 const loadingError = ref(false);
 const loadingSongError = ref(false);
 const songsInfo = ref<MusicInfo[]>([]);
-const playlistInfo = ref<CloudPlaylist>();
+const playlistInfo = ref<CloudPlaylistInfo>();
 const descriptionOpen = ref(false);
 
 
@@ -238,9 +237,8 @@ onMounted(() => {
 
 /** 请求歌单信息 */
 async function requestPlaylistData() {
-    let continueLoad = await getPlaylistDetailWithId(props.id, props.t);
-    if (!continueLoad) return;
-    continueLoad = await getPlaylistTrackWithId(props.id, props.t);
+    getPlaylistDetailWithId(props.id, props.t);
+    getPlaylistTrackWithId(props.id, props.t);
 }
 /** 获取歌单信息 */
 async function getPlaylistDetailWithId(id: number, type: AudioInfoType) {
@@ -253,7 +251,10 @@ async function getPlaylistDetailWithId(id: number, type: AudioInfoType) {
     if (!err && result) {
         // console.log(result)
         let { code, data } = result.data;
-        playlistInfo.value = data;
+        playlistInfo.value = {
+            type: AudioInfoType.cloud,
+            ...data
+        };
         return true
     }
     else {
@@ -282,7 +283,7 @@ async function getPlaylistTrackWithId(id: number, type: AudioInfoType) {
         return false;
     }
 }
-
+/** 改变描述的展示状态 */
 function switchDescriptionState() {
     descriptionOpen.value = !descriptionOpen.value;
 }

@@ -54,7 +54,7 @@
                     </div>
                 </div>
             </div>
-            <el-icon class="botcontrol_btn-icon list" @click="activatePlayinglistState"><List /></el-icon>
+            <el-icon class="botcontrol_btn-icon list" @click="activatePlayinglistState"><Expand /></el-icon>
         </div>
     </div>
     <Playinglist :active="activePlayinglist" @close="deactivatePlayinglistState" />
@@ -373,7 +373,6 @@ import Play from '@/assets/iconfont/play.vue';
 import Skipback from '@/assets/iconfont/skipback.vue';
 import Skipforward from '@/assets/iconfont/skipforward.vue';
 import Volume_mute from '@/assets/iconfont/volume_mute.vue';
-import List from '@/assets/iconfont/list.vue';
 import AudioPlayType from '@/components/AudioPlayType/index.vue';
 import Playinglist from '@/components/Playinglist/index.vue';
 
@@ -422,12 +421,6 @@ function bindAudioEvent() {
         audioDom.addEventListener('loadeddata', function() {
             console.log('loadeddata')
             this.play()
-        })
-        audioDom.addEventListener('loadstart', function() {
-            console.log('loadstart')
-        })
-        audioDom.addEventListener('loadedmetadata', function() {
-            console.log('loadedmetadata')
         })
         audioDom.addEventListener('emptied', function() {
             console.log('emptied')
@@ -546,7 +539,7 @@ function playAudio() {
 }
 /** 播放上一首歌曲 */
 function playPre() {
-    let pre = findPreMusic(audioInfo.value);
+    let pre = findPreMusic();
     if (!pre) {
         resetAudioInfo();
         return;
@@ -562,7 +555,7 @@ function playNext(isAuto: boolean = true) {
             mode = PlayMode.loop;
         }
     }
-    let next = findNextMusic(audioInfo.value, mode);
+    let next = findNextMusic(mode);
     if (!next) {
         resetAudioInfo();
         return;

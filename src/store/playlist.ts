@@ -1,13 +1,14 @@
 import { defineStore, storeToRefs } from "pinia";
 import { reactive } from "vue";
 import { MusicInfo, PlayMode } from "@/interface";
-import { usePlayerStore } from './player'
-import { info } from "console";
-import { PlaylistVal } from "@/assets/cloudApi";
+import { usePlayerStore } from '@/store/player';
 
 
 export const usePlaylistStore = defineStore('playlist', () => {
     const playinglist = reactive<MusicInfo[]>([]);
+    const playerStore = usePlayerStore();
+    const { audioInfo } = storeToRefs(playerStore);
+
 
     /** 替换播放列表 */
     function playinglistReplace(songs: MusicInfo[]) {
@@ -34,9 +35,37 @@ export const usePlaylistStore = defineStore('playlist', () => {
         playinglist.splice(index, 1);
         return switchSong
     }
+    /**
+     * 添加至播放列表
+     * @param musicInfo 添加的歌曲信息
+     * @returns 是否添加成功
+     */
+    function addToPlaylist(musicInfo: MusicInfo): boolean {
+        let index = playinglist.findIndex(music => audioInfo.value.id === music.id);
+        if (index === -1) {
+            playinglist.push(musicInfo);
+            return true;
+        }
+        playinglist.splice(index, 0, musicInfo);
+        return true;
+    }
+    /**
+     * 添加至下一首播放
+     * @param musicInfo 添加的歌曲信息
+     * @returns 是否添加成功
+     */
+    function addToNextPlay(musicInfo: MusicInfo): boolean {
+        let index = playinglist.findIndex(music => audioInfo.value.id === music.id);
+        if (index === -1) {
+            playinglist.push(musicInfo);
+            return true;
+        }
+        playinglist.splice(index + 1, 0, musicInfo);
+        return true;
+    }
     /** 返回播放列表中当前播放歌曲的上一首播放的歌曲信息 */
-    function findPreMusic(curMusic: MusicInfo): MusicInfo | null {
-        let index = playinglist.findIndex(music => curMusic.id === music.id);
+    function findPreMusic(): MusicInfo | null {
+        let index = playinglist.findIndex(music => audioInfo.value.id === music.id);
         if (index === -1) {
             return null;
         }
@@ -48,7 +77,8 @@ export const usePlaylistStore = defineStore('playlist', () => {
      * @param mode 播放模式
      * @returns null表示不切换, 其他返回为切换至的歌曲信息
      */
-    function findNextMusic(curMusic: MusicInfo, mode: PlayMode): MusicInfo | null {
+    function findNextMusic(mode: PlayMode): MusicInfo | null {
+        let curMusic = audioInfo.value;
         switch(mode) {
             case PlayMode.loop: {
                 let index = playinglist.findIndex(music => curMusic.id === music.id);
@@ -80,6 +110,8 @@ export const usePlaylistStore = defineStore('playlist', () => {
         playinglist,
         playinglistReplace,
         playinglistSplice,
+        addToPlaylist,
+        addToNextPlay,
         findPreMusic,
         findNextMusic,
     }
