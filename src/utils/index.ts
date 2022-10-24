@@ -1,4 +1,5 @@
-import { LocalAudioInfo, CloudAudioInfo, AudioInfoType, Singer, MusicInfo, CloudMusic, LocalMusic, CloudPlaylistInfo, CloudPlaylist, PlaylistInfo } from "@/interface";
+import { LocalAudioInfo, CloudAudioInfo, AudioInfoType, Singer, MusicInfo, CloudMusic, LocalMusic, CloudPlaylist, PlaylistInfo, PlaylistInfoPartial } from "@/interface";
+import { PersonalizedPlaylistResponse } from '@/assets/cloudApi';
 import { isArray } from 'lodash';
 
 
@@ -92,9 +93,18 @@ export function twoDigitStr(num: number) {
 }
 
 /** 整合歌单数据, 统一本地歌单和网易云歌单的字段, 目前差本地歌单筛选 */
-export function formatPlaylist(
-    playlist: CloudPlaylistInfo | CloudPlaylist | PlaylistInfo, 
-    type?: AudioInfoType
+export function formatPlaylistInfo(playlist: CloudPlaylist[] | PlaylistInfo[], type: AudioInfoType): PlaylistInfo[];
+export function formatPlaylistInfo(playlist: CloudPlaylist | PlaylistInfo, type: AudioInfoType): PlaylistInfo;
+export function formatPlaylistInfo(
+    playlist: CloudPlaylist | PlaylistInfo | CloudPlaylist[] | PlaylistInfo[], 
+    type: AudioInfoType
+): PlaylistInfo | PlaylistInfo[] {
+    return isArray(playlist) ? playlist.map(item => formatSinglePlaylistInfo(item, type)) : formatSinglePlaylistInfo(playlist, type)
+}
+/** 整合单个歌单的信息字段 */
+function formatSinglePlaylistInfo(
+    playlist: CloudPlaylist | PlaylistInfo,
+    type: AudioInfoType
 ): PlaylistInfo {
     // 当前已经是 PlaylistInfo 类型直接返回
     if (
@@ -130,9 +140,9 @@ export function formatPlaylist(
         };
 
     try {
-        // console.log(info)
+        // console.log(playlist)
         // isType 这里只是保证 ts 不报错, 在运行时 isType 函数一直是 true
-        if (isType<CloudPlaylistInfo>(playlist) && (type === AudioInfoType.cloud || playlist.type === AudioInfoType.cloud)) {
+        if (isType<CloudPlaylist>(playlist) && type === AudioInfoType.cloud) {
             id = playlist.id;
             title = playlist.name;
             updateTime = playlist.updateTime;
@@ -157,10 +167,61 @@ export function formatPlaylist(
         throw e;
     }
     return {
-        type: type || playlist.type, id, title, 
+        type: type, id, title, 
         updateTime, createTime, cover, description, 
         playCount, trackCount, creator,
         // tracks, 
+    }
+}
+
+
+/** 整合歌单的部分信息字段 */
+export function formatPlaylistPartial(playlist: PlaylistInfoPartial | PersonalizedPlaylistResponse): PlaylistInfoPartial;
+export function formatPlaylistPartial(playlist: PlaylistInfoPartial[] | PersonalizedPlaylistResponse[]): PlaylistInfoPartial[];
+export function formatPlaylistPartial(
+    playlist: PlaylistInfoPartial | PlaylistInfoPartial[] | PersonalizedPlaylistResponse | PersonalizedPlaylistResponse[]
+): PlaylistInfoPartial | PlaylistInfoPartial[] {
+    return isArray(playlist) ? playlist.map(item => formatSinglePlaylistPartial(item)) : formatSinglePlaylistPartial(playlist)
+}
+/** 整合单个歌单的部分信息字段 */
+function formatSinglePlaylistPartial(info:PlaylistInfoPartial |  PersonalizedPlaylistResponse): PlaylistInfoPartial {
+    if (
+        isType<PlaylistInfoPartial>(info) &&
+        info.id && info.title &&
+        info.cover && info.playCount
+    ) {
+        return info;
+    }
+
+    let id: number = 0,
+        title: string = '',
+        cover: string = '',
+        playCount: number = 0;
+
+    try {
+        if (
+            isType<PersonalizedPlaylistResponse>(info) && 
+            info.id &&
+            info.name &&
+            info.picUrl &&
+            info.playCount &&
+            info.trackCount &&
+            info.trackNumberUpdateTime
+        ) {
+            id = info.id;
+            title = info.name;
+            cover = info.picUrl;
+            playCount = info.playCount;
+        }
+        else {
+            throw Error('function formatMusicInfo argument type error')
+        }
+    }
+    catch(e) {
+        throw e;
+    }
+    return {
+        id, title, cover, playCount 
     }
 }
 

@@ -6,16 +6,16 @@
             <div v-if="playlistInfo" class="playlist_info">
                 <div class="playlist_info_left">
                     <div class="playlist_info_cover">
-                        <img :src="playlistInfo.coverImgUrl" alt="歌单封面" />
+                        <img :src="playlistInfo.cover" alt="歌单封面" />
                     </div>
                 </div>
                 <div class="playlist_info_right">
                     <div class="playlist_info_right_line">
-                        <h3 class="playlist_info_title" :title="playlistInfo.name">{{playlistInfo.name}}</h3>
+                        <h3 class="playlist_info_title" :title="playlistInfo.title">{{playlistInfo.title}}</h3>
                     </div>
                     <div class="playlist_info_right_line">
                         <el-avatar class="playlist_info_avatar" :size="28" :icon="UserFilled" :src="playlistInfo.creator.avatarUrl" />
-                        <span class="playlist_info_nickname">{{playlistInfo.creator.nickname}}</span>
+                        <span class="playlist_info_nickname">{{playlistInfo.creator.name}}</span>
                         <span class="playlist_info_createTime">{{new Date(playlistInfo.createTime).toLocaleDateString()}}</span>
                     </div>
                     <div class="playlist_info_right_line">
@@ -195,13 +195,10 @@
 
 <script lang="ts" setup>
 import { onMounted, ref } from 'vue';
-import { storeToRefs } from 'pinia';
 import { UserFilled } from '@element-plus/icons-vue';
-import {  } from '@/assets/localApi';
 import { getCloudPlaylistDetail, getCloudPlaylistTrack } from '@/assets/cloudApi';
-import { AudioInfoType, MusicInfo, CloudPlaylistInfo } from '@/interface';
-import { usePlayerStore } from '@/store/player';
-import { formatMusicInfo } from '@/utils';
+import { AudioInfoType, MusicInfo, CloudPlaylist, PlaylistInfo } from '@/interface';
+import { formatMusicInfo, formatPlaylistInfo } from '@/utils';
 import LoadingErrorTip from '@/components/LoadingErrorTip/index.vue';
 import Songlist from '@/components/Songlist/index.vue';
 
@@ -213,9 +210,6 @@ const props = defineProps<{
     id: number
     t: AudioInfoType
 }>();
-const playerStore = usePlayerStore();
-const {  } = storeToRefs(playerStore);
-const {  } = playerStore;
 
 
 const loading = ref(false);
@@ -223,7 +217,7 @@ const loadingSong = ref(false);
 const loadingError = ref(false);
 const loadingSongError = ref(false);
 const songsInfo = ref<MusicInfo[]>([]);
-const playlistInfo = ref<CloudPlaylistInfo>();
+const playlistInfo = ref<PlaylistInfo>();
 const descriptionOpen = ref(false);
 
 
@@ -251,10 +245,7 @@ async function getPlaylistDetailWithId(id: number, type: AudioInfoType) {
     if (!err && result) {
         // console.log(result)
         let { code, data } = result.data;
-        playlistInfo.value = {
-            type: AudioInfoType.cloud,
-            ...data
-        };
+        playlistInfo.value = formatPlaylistInfo(data, type);
         return true
     }
     else {
@@ -272,10 +263,7 @@ async function getPlaylistTrackWithId(id: number, type: AudioInfoType) {
     if (!err && result) {
         // console.log(result)
         let { code, data } = result.data;
-        
-        let audiolist = formatMusicInfo(data, type);
-        // console.log(audiolist)
-        songsInfo.value = audiolist;
+        songsInfo.value = formatMusicInfo(data, type);
         return true;
     }
     else {

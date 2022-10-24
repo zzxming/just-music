@@ -1,6 +1,6 @@
 
 import to from 'await-to-js';
-import { CloudMusic, CloudPlaylist } from "@/interface";
+import { CloudMusic, CloudPlaylist, PlaylistInfoPartial } from "@/interface";
 import { axios, AxiosResult, AxiosResultError, jointQuery } from '@/assets/api';
 import { AxiosResponse } from 'axios';
 
@@ -35,6 +35,7 @@ export enum PlaylistVal {
     Classical = '古典',
     Jazz = '爵士'
 } 
+
 interface HighqualityPlaylistResponse {
     more: boolean
     msg?: string
@@ -56,6 +57,41 @@ export const getCloudPlaylistHighquality = async (
         axios.get(jointQuery(`/music/cloud/playlist/highquality`, query))
     )
 }
+
+/** 网易云每日推荐歌单, 歌单部分信息 */
+export interface PersonalizedPlaylistResponse {
+    id: number
+    name: string
+    picUrl: string
+    playCount: number
+    trackCount: number
+    trackNumberUpdateTime: number
+}
+/** 获取网易云每日随机歌单 */
+export const getCloudPersonalized = async (
+    query: {
+        limit: number
+    }
+) => await to<AxiosResponse<AxiosResult<PlaylistInfoPartial[]>>, AxiosResultError>(
+        axios.get(jointQuery('/music/cloud/playlist/personalized', query))
+        .then((response: AxiosResponse<AxiosResult<PersonalizedPlaylistResponse[]>>) => {
+            // console.log(response)
+            return {
+                ...response,
+                data: {
+                    ...response.data,
+                    data: response.data.data.map(item => ({
+                        id: item.id,
+                        title: item.name,
+                        cover: item.picUrl,
+                        playCount: item.playCount
+                    }))
+                }
+            }
+        })
+    )
+
+
 export interface SearchCloudResult extends AxiosResult<CloudMusic[]> {
     count: number
 }

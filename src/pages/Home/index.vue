@@ -1,12 +1,12 @@
 <template>
-    <DataContent title="精选歌单" href="/playlist">
-        <CloudPlaylist />
+    <DataContent title="推荐歌单" href="/playlist">
+        <CloudPlaylistRecommend />
     </DataContent>
 </template>
 
 <script lang="ts" setup>
 import DataContent from "@/components/DataContent/index.vue";
-import CloudPlaylist from "@/components/CloudPlaylist/index.vue";
+import CloudPlaylistRecommend from "@/components/CloudPlaylistRecommend/index.vue";
 
 
 </script>

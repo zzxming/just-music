@@ -1,7 +1,7 @@
 <template>
     <ul class="playlist">
         <div v-if="playlist.length < 1" class="playlist_tip">你还没有创建过歌单哦</div>
-        <li v-for="info in playlist">
+        <li v-for="info in playlist" v-key="info.id">
             <div class="playlist_item">
                 <span class="playlist_title">{{ info.title }}</span>
             </div>

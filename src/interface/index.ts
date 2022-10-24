@@ -94,7 +94,7 @@ export interface BiliMusic {
 
 
 /** 歌单信息 */
-export interface PlaylistInfo {
+export interface PlaylistInfo extends PlaylistInfoPartial {
     type: AudioInfoType
     id: number
     title: string
@@ -110,10 +110,6 @@ export interface PlaylistInfo {
         name: string
         avatarUrl: string
     }
-}
-/** 携带 type 的网易云歌单信息 */
-export interface CloudPlaylistInfo extends CloudPlaylist {
-    type: AudioInfoType.cloud
 }
 /** 网易云歌单信息 */
 export interface CloudPlaylist {
@@ -132,6 +128,13 @@ export interface CloudPlaylist {
         avatarUrl: string
     }
     tags: string[]
+}
+/** 歌单部分信息 */
+export interface PlaylistInfoPartial {
+    id: number
+    title: string
+    cover: string
+    playCount: number
 }
 /** 播放模式 */
 export enum PlayMode {
