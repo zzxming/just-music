@@ -53,6 +53,7 @@ export interface AxiosResultError {
             message: string
         }
     }
+    status?: number
 }
 export interface AxiosResultCode {
     code: number

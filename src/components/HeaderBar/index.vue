@@ -9,7 +9,7 @@
             <IconInput v-if="!!inputTxt || inputTxt === ''" class="header_input_input" :inputTxt="inputTxt" @submit="commitSearch" />
         </div>
         <div class="header_right">
-            <CloudLogin class="header_login" />
+            <CloudLogin />
             <el-button class="header_drawer" plain @click="drawer = true">
                 <el-icon><List /></el-icon>
             </el-button>
@@ -110,9 +110,10 @@ watch(() => route, (val) => {
 function commitSearch(input: string) {
     let realInput = input.trim();
     if (realInput === '') return;
+    let t = route.path === '/search' ? route.query.t as string : AudioInfoType.cloud;
     router.push(jointQuery(`/search`, {
         kw: realInput,
-        t: (route.query.t as string) || AudioInfoType.cloud
+        t
     }))
 }
 </script>

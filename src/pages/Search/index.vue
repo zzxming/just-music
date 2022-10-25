@@ -17,13 +17,13 @@
                 </el-tab-pane>
             </el-tabs>
         </div>
-        <Songlist 
-            v-loading="fristLoading && !loadingError" 
-            v-if="!fristLoading || !loadingError" 
-            class="search_result" 
-            :songs="songsData" 
-            :emptyText="currentSearchType === AudioInfoType.bili ? '请输入正确的bv号' : '没有搜索到相关歌曲'" 
-        />
+        <div v-loading="fristLoading && !loadingError">
+            <Songlist 
+                v-if="!fristLoading || !loadingError" 
+                :songs="songsData" 
+                :emptyText="currentSearchType === AudioInfoType.bili ? '请输入正确的bv号' : '没有搜索到相关歌曲'" 
+            />
+        </div>
         <LoadingErrorTip :isError="fristLoading && loadingError" :requestFunc="() => requestSearch(true)" />
         <LoadingMore v-show="!fristLoading" ref="loadMore" :requestFunc="requestSearch" />
     </div>
@@ -55,9 +55,6 @@
         .is-active &_item {
             color: var(--el-color-danger-light-3);
         }
-    }
-    &_result {
-        // min-height: calc(100vh - 64px - 54px);
     }
 }
 .load {
@@ -100,7 +97,7 @@
 </style>
 
 <script lang="ts" setup>
-import { nextTick, reactive, ref, watch } from 'vue';
+import { nextTick, onMounted, reactive, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { AudioInfoType, MusicInfo, LocalMusic, CloudMusic } from '@/interface'
 import { formatMusicInfo, isType } from '@/utils'
@@ -125,7 +122,7 @@ const router = useRouter();
 const route = useRoute();
 const loadMore = ref<ExposeVar>();
 
-const currentSearchType = ref<AudioInfoType>(AudioInfoType[props.t]);
+const currentSearchType = ref<AudioInfoType>(props.t);
 const type = ref(1);
 const limit = ref(1);
 const fristLoading = ref(true);
@@ -147,18 +144,19 @@ watch(() => props, (val) => {
     // 但当在 search 页面改变 url 时 currentSearchType 已经赋值
     // 所以不会发生改变, 需要手动赋值一次
     currentSearchType.value = AudioInfoType[val.t];
+    limit.value = 1;
+    fristLoading.value = true;
+    loadingError.value = false;
+    songsData.length = 0;
     requestSearch(true);
 }, {
     deep: true,
     immediate: true
 });
 /** 滚动动态加载 */
-watch(fristLoading, (val) => {
-    if (!val) {
-        // 等 dom 挂载上再绑定事件
-        nextTick(() => observerLoad());
-    }
-}, { immediate: true });
+onMounted(() => {
+    nextTick(() => observerLoad());
+})
 /** 监听动态加载歌单 */
 function observerLoad() {
     if (!loadMore.value) return;
@@ -181,6 +179,7 @@ function searchTypeChange(tabName: AudioInfoType) {
     currentSearchType.value = AudioInfoType[tabName];
     limit.value = 1;
     fristLoading.value = true;
+    loadingError.value = false;
 }
 /**
  * 发起搜索请求
@@ -234,6 +233,10 @@ async function requestSearch(loadMore: boolean = false) {
     }
     else {
         // console.log(err)
+        if (err?.status === 200) {
+            fristLoading.value = false;
+            return 0;
+        }
         loadingError.value = true;
         return -1;
     }
