@@ -1,5 +1,6 @@
 import OriginAxios, { AxiosError, AxiosResponse } from "axios"
 import { ElMessage } from "element-plus";
+import { useRouter } from "vue-router";
 
 export const axios = OriginAxios.create({
     baseURL: process.env.NODE_ENV === 'development' ? '/api' : '/'
@@ -8,10 +9,10 @@ export const axios = OriginAxios.create({
 
 axios.interceptors.response.use((response) => {
     console.log(response)
-    if (response.data.code !== 1) {
+    if (response.data.code !== 1 && response.data.code !== 200) {
         ElMessage({
             type: 'error',
-            message: response.data.message ?? response.data.error.message
+            message: response.data.message ?? response.data.error?.message
         })
         return Promise.reject(response)
     }
@@ -48,6 +49,9 @@ export interface AxiosResultError {
     data: {
         code: number,
         message: string
+        data?: {
+            message: string
+        }
     }
 }
 export interface AxiosResultCode {
@@ -56,4 +60,5 @@ export interface AxiosResultCode {
 
 /** 静态资源路径 */
 export const mediaSrc = (src: string) => process.env.NODE_ENV === 'development' ? `/api${src}` : src
-
+/** 默认的封面图片 */
+export const defaultMusicImg = '/api/imgs/music.jpg';

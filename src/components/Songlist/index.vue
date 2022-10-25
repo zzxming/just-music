@@ -60,10 +60,14 @@
             </el-table-column>
         </el-table>
     </div>
-    <Popout :show="popoutVisible" :position="popoutPosition" @close="closePopout">
-        <PopoutItem @click="play">播放</PopoutItem>
-        <PopoutItem @click="nextPlay">下一首播放</PopoutItem>
-    </Popout>
+    <MusicAndPlaylistPopout 
+        :show="popoutVisible" 
+        :position="popoutPosition" 
+        :holdData="popoutHoldData"
+        :isMusic="true"
+        @close="popoutVisible = false"
+    />
+
 </template>
 
 
@@ -90,6 +94,11 @@
         }
         .songlist_title {
             color: var(--el-text-color-primary);
+        }
+    }
+    .disable {
+        .songlist_title {
+            color: var(--el-text-color-disabled);
         }
     }
     &_index {
@@ -143,6 +152,9 @@
 :deep(.el-table--striped .el-table__body tr.el-table__row.active td.el-table__cell) {
     background-color: var(--el-color-danger-light-7);
 }
+:deep(.el-table--striped .el-table__body tr.el-table__row.disable td.el-table__cell) {
+    background-color: var(--el-color-info-light-9);
+}
 :deep(.el-table--enable-row-hover .el-table__body tr:hover>td.el-table__cell) {
     background: var(--el-color-danger-light-8);
     color: var(--el-color-info);
@@ -159,31 +171,22 @@
     }
 }
 </style>
-<style lang="less">
-.songlist {
-    &_item {
-        &.active {
-            background-color: var(--el-color-danger-light-7);
-        }
-    }
-}
-</style>
 
 
 <script lang="ts" setup>
 import { TableColumn } from 'element-plus/es/components/table/src/table-column/defaults';
 import { storeToRefs } from 'pinia';
-import { ref, watch } from 'vue'
-import Vip from '@/assets/iconfont/vip.vue'
-import Playing from '@/assets/iconfont/playing.vue';
-import { MusicInfo, Singer } from '@/interface'
-import { usePlayerStore } from '@/store/player';
-import { usePlaylistStore } from '@/store/playlist';
-import { formatAudioTime, twoDigitStr } from '@/utils';
-import Popout, { PopoutPosition } from '@/components/Popout/index.vue';
-import PopoutItem from '@/components/PopoutItem/index.vue';
+import { ref, watch, toRefs } from 'vue';
 import { ElMessage } from 'element-plus';
-import { useIsSmallScreen } from '@/hooks'
+import Vip from '@/assets/iconfont/vip.vue';
+import Playing from '@/assets/iconfont/playing.vue';
+import { MusicInfo, Singer } from '@/interface';
+import { usePlayerStore } from '@/store/player';
+import { usePlaylistStore } from '@/store/playinglist';
+import { formatAudioTime, twoDigitStr } from '@/utils';
+import { PopoutPosition } from '@/components/Popout/index.vue';
+import { useIsSmallScreen } from '@/hooks';
+import MusicAndPlaylistPopout from '@/components/Popout/MusicAndPlaylistPopout.vue';
 
 
 const smallScreen = useIsSmallScreen();
@@ -191,14 +194,15 @@ const playerStore = usePlayerStore();
 const playlistStore = usePlaylistStore();
 const { audioInfo }  = storeToRefs(playerStore);
 const { setAudioInfo } = playerStore;
-const { playinglistReplace, addToPlaylist, addToNextPlay } = playlistStore;
+const { playinglistReplace } = playlistStore;
 
-const { songs, emptyText } = withDefaults(defineProps<{
+const props = withDefaults(defineProps<{
     songs: MusicInfo[]
     emptyText?: string
 }>(), {
     emptyText: '这里什么都没有',
 });
+const { songs, emptyText } = toRefs(props);
 
 const activeId = ref(audioInfo.value.id);
 const popoutVisible = ref(false);
@@ -216,19 +220,25 @@ watch(audioInfo, () => activeId.value = audioInfo.value.id)
 async function playSong(row: MusicInfo, column: TableColumn<MusicInfo>, event: MouseEvent) {
     // console.log(column)
     // console.log(row)
-    if (audioInfo.value.id !== row.id) {
-        setAudioInfo(row);
+    if (row.st === -200) {
         ElMessage({
-            type: 'success',
-            message: '已开始播放'
-        });
+            type: 'error',
+            message: '当前歌曲网易云音乐已下架'
+        })
+        return;
+    }
+    if (audioInfo.value.id !== row.id) {
         activeId.value = row.id;
-        playinglistReplace(songs);
+        playinglistReplace(songs.value);
+        setAudioInfo(row);
     }
 }
 /** 激活的歌曲行 */
 function tableRowClass(data: {row: MusicInfo}) {
-    return data.row.id === activeId.value ? 'songlist_item active' : 'songlist_item'
+    let str = 'songlist_item';
+    (data.row.id === activeId.value) && (str += ' active');
+    (data.row.st === -200) && (str += ' disable');
+    return str
 }
 /** 展示弹出框 */
 function showPopbox(row: MusicInfo, column: TableColumn<MusicInfo>, event: MouseEvent) {
@@ -240,47 +250,6 @@ function showPopbox(row: MusicInfo, column: TableColumn<MusicInfo>, event: Mouse
         top: event.pageY,
     }
     popoutHoldData.value = row;
-}
-/** 关闭弹出框 */
-function closePopout() {
-    popoutVisible.value = false;
-}
-/** 弹出框点击播放 */
-function play() {
-    if (popoutHoldData.value) {
-        let result = addToPlaylist(popoutHoldData.value);
-        if (result) {
-            setAudioInfo(popoutHoldData.value);
-            ElMessage({
-                type: 'success',
-                message: '已开始播放'
-            });
-        }
-        else {
-            ElMessage({
-                type: 'error',
-                message: '添加失败'
-            });
-        }
-    }
-}
-/** 弹出框点击下一首播放 */
-function nextPlay() {
-    if (popoutHoldData.value) {
-        let result = addToNextPlay(popoutHoldData.value);
-        if (result) {
-            ElMessage({
-                type: 'success',
-                message: '已添加到播放列表'
-            });
-        }
-        else {
-            ElMessage({
-                type: 'error',
-                message: '添加失败'
-            });
-        }
-    }
 }
 </script>
 

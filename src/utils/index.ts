@@ -1,4 +1,4 @@
-import { LocalAudioInfo, CloudAudioInfo, AudioInfoType, Singer, MusicInfo, CloudMusic, LocalMusic, CloudPlaylist, PlaylistInfo, PlaylistInfoPartial } from "@/interface";
+import { LocalAudioInfo, CloudAudioInfo, AudioInfoType, Singer, MusicInfo, CloudMusic, LocalMusic, CloudPlaylist, PlaylistInfo, PlaylistInfoPartial, PlaylistType } from "@/interface";
 import { PersonalizedPlaylistResponse } from '@/assets/cloudApi';
 import { isArray } from 'lodash';
 
@@ -39,7 +39,12 @@ function formatSingleMusicInfo(
         duration: number = 0, 
         singers: Singer[] = [],
         album: string = '',
-        fee: number = 0;
+        fee: number = 0,
+        noCopyrightRcmd: {
+            type: number, 
+            typeDesc: string
+        } | null = null,
+        st: number = 0;
     try {
         // console.log(info)
         // isType 这里只是保证 ts 不报错, 在运行时 isType 函数一直是 true
@@ -51,6 +56,7 @@ function formatSingleMusicInfo(
             singers = info.singers.map(item => ({id: item.singer_id, name: item.singer_name}));
             fee = 0;
             album = info.album;
+            noCopyrightRcmd = null;
         }
         else if (isType<CloudAudioInfo>(info) && (type === AudioInfoType.cloud || info.type === AudioInfoType.cloud)) {
             id = info.id;
@@ -60,6 +66,8 @@ function formatSingleMusicInfo(
             singers = info.ar;
             fee = info.fee
             album = info.al.name;
+            noCopyrightRcmd = info.noCopyrightRcmd;
+            st = info.st;
         }
         else {
             throw Error('function formatMusicInfo argument type error')
@@ -70,7 +78,7 @@ function formatSingleMusicInfo(
     }
 
     return {
-        type: type || info.type, id, title, cover, duration, singers, fee, album
+        type: type || info.type, id, title, cover, duration, singers, fee, album, noCopyrightRcmd, st
     }
 }
 /** 格式化播放时间 */
@@ -93,18 +101,18 @@ export function twoDigitStr(num: number) {
 }
 
 /** 整合歌单数据, 统一本地歌单和网易云歌单的字段, 目前差本地歌单筛选 */
-export function formatPlaylistInfo(playlist: CloudPlaylist[] | PlaylistInfo[], type: AudioInfoType): PlaylistInfo[];
-export function formatPlaylistInfo(playlist: CloudPlaylist | PlaylistInfo, type: AudioInfoType): PlaylistInfo;
+export function formatPlaylistInfo(playlist: CloudPlaylist[] | PlaylistInfo[], type: PlaylistType): PlaylistInfo[];
+export function formatPlaylistInfo(playlist: CloudPlaylist | PlaylistInfo, type: PlaylistType): PlaylistInfo;
 export function formatPlaylistInfo(
     playlist: CloudPlaylist | PlaylistInfo | CloudPlaylist[] | PlaylistInfo[], 
-    type: AudioInfoType
+    type: PlaylistType
 ): PlaylistInfo | PlaylistInfo[] {
     return isArray(playlist) ? playlist.map(item => formatSinglePlaylistInfo(item, type)) : formatSinglePlaylistInfo(playlist, type)
 }
 /** 整合单个歌单的信息字段 */
 function formatSinglePlaylistInfo(
     playlist: CloudPlaylist | PlaylistInfo,
-    type: AudioInfoType
+    type: PlaylistType
 ): PlaylistInfo {
     // 当前已经是 PlaylistInfo 类型直接返回
     if (
@@ -142,7 +150,7 @@ function formatSinglePlaylistInfo(
     try {
         // console.log(playlist)
         // isType 这里只是保证 ts 不报错, 在运行时 isType 函数一直是 true
-        if (isType<CloudPlaylist>(playlist) && type === AudioInfoType.cloud) {
+        if (isType<CloudPlaylist>(playlist) && type === PlaylistType.cloud) {
             id = playlist.id;
             title = playlist.name;
             updateTime = playlist.updateTime;
@@ -226,21 +234,4 @@ function formatSinglePlaylistPartial(info:PlaylistInfoPartial |  PersonalizedPla
 }
 
 
-/** 获取用户创建歌单 */
-export function getCustomPlaylist(): PlaylistInfo[] {
-    let str = localStorage.getItem('playlist');
-    if (str) {
-        try {
-            return JSON.parse(str);
-        }
-        catch (e) {
-            localStorage.setItem('playlist', '');
-        }
-    }
-    return [];
-}
-/** 保存用户创建歌单 */
-export function setCustomPlaylist() {
-
-}
 

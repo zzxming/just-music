@@ -5,7 +5,13 @@ import { axios, AxiosResult, AxiosResultError, jointQuery } from '@/assets/api';
 import { AxiosResponse } from 'axios';
 
 
-
+/** 网易云用户登录 */
+export const postCloudLogin = async (
+    params: {
+        phone: string, 
+        password: string
+    }
+) => await to<AxiosResponse<AxiosResult<{code: number, message: string}>>, AxiosResultError>(axios.post(`/music/cloud/login`, { ...params }))
 /** 通过网易云歌曲 id 获取歌曲播放路径 */
 export const getMusicSrcWithCloudId = async (id: number) => 
     await to<AxiosResponse<AxiosResult<{src: string}>>, AxiosResultError>(

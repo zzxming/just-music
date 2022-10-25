@@ -1,7 +1,8 @@
 <template>
-    <div :class="`pop_item ${botBorder ? 'border-bot' : ''}`">
+    <div class="pop_item" @click="(e) => emit('click', e)">
         <slot></slot>
     </div>
+    <div v-if="botBorder" class="border-bot"></div>
 </template>
 
 <style lang="less" scoped>
@@ -12,18 +13,19 @@
         justify-content: flex-start;
         box-sizing: border-box;
         width: 100%;
-        height: 28px;
-        line-height: 28px;
-        padding: 0 10px;
+        height: 32px;
+        padding: 4px 10px;
         font-size: 14px;
         cursor: default;
         &:hover {
             background-color: var(--el-color-info-light-8);
         }
-        &.border-bot {
-            border-bottom: 1px solid var(--el-color-info-light-8);
-        }
     }
+}
+.border-bot {
+    width: 100%;
+    height: 1px;
+    background-color: var(--el-color-info-light-8);
 }
 </style>
 
@@ -35,5 +37,8 @@ const { botBorder } = defineProps({
         default: false
     }
 });
+const emit = defineEmits<{
+    (e: 'click', event: MouseEvent): void;
+}>();
 
 </script>

@@ -11,7 +11,7 @@
         </div>
         <div class="botcontrol_info">
             <div class="botcontrol_info_cover">
-                <img class="botcontrol_info_cover-img" :src="audioInfo.cover" @error="onErrorImg" />
+                <img class="botcontrol_info_cover-img" :src="audioInfo.cover === '' ? musicImg : audioInfo.cover" @error.once="onErrorImg" />
             </div>
             <div class="botcontrol_info_mid">
                 <div class="botcontrol_info_title">
@@ -223,9 +223,12 @@
             height: 72px;
             display: flex;
             align-items: center;
+            justify-content: center;
             user-select: none;
             &-img {
                 width: 100%;
+                height: 100%;
+                object-fit: contain;
             }
         }
         &_title:extend(.textOverflowEllipsis) {
@@ -362,11 +365,12 @@
 
 <script lang="ts" setup>
 import { storeToRefs } from 'pinia';
-import { onMounted, computed, ref, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { usePlayerStore } from '@/store/player';
-import { usePlaylistStore } from '@/store/playlist';
+import { usePlaylistStore } from '@/store/playinglist';
 import { formatAudioTime } from '@/utils';
 import { PlayMode } from '@/interface';
+import { defaultMusicImg } from '@/assets/api';
 import Volume from '@/assets/iconfont/volume.vue';
 import Pause from '@/assets/iconfont/pause.vue';
 import Play from '@/assets/iconfont/play.vue';
@@ -376,7 +380,7 @@ import Volume_mute from '@/assets/iconfont/volume_mute.vue';
 import AudioPlayType from '@/components/AudioPlayType/index.vue';
 import Playinglist from '@/components/Playinglist/index.vue';
 
-const musicImg = ref('/api/imgs/music.jpg');
+const musicImg = ref(defaultMusicImg);
 
 const playerStore = usePlayerStore();
 const playlistStore = usePlaylistStore();
@@ -409,13 +413,18 @@ watch(audio, (val, preVal) => {
         bindAudioEvent();
     }
 });
+watch(audioInfo, () => {
+    if (audioInfo.value.id) {
+        audioLoading.value = true;
+    }
+})
 
 
 
 function bindAudioEvent() {
     let audioDom = audio.value;
     if (audioDom) {
-        // seek: load -> canplay -> playing
+        // 加载过程中点暂停播放是没用的
         audioDom.addEventListener('timeupdate', updateAudioCurrentTime);
         audioDom.addEventListener('seeking', updateAudioCurrentTime);
         audioDom.addEventListener('loadeddata', function() {
@@ -423,8 +432,8 @@ function bindAudioEvent() {
             this.play()
         })
         audioDom.addEventListener('emptied', function() {
-            console.log('emptied')
-            if (!!audioSrc) {
+            console.log('emptied', !audioSrc.value)
+            if (!!audioSrc.value) {
                 audioLoading.value = true;
             }
         })
@@ -523,11 +532,10 @@ function updateAudioCurrentTime() {
 /** 音频播放与暂停 */
 function playAudio() {
     let audioDom = audio.value;
-    if (audioDom) {
+    if (audioDom && audioInfo.value.id) {
         if (audioDom.paused) {
             // 当播放路径为空且播放列表有歌曲时, 播放第一首
             if (!audioSrc.value && playinglist.length > 0) {
-                console.log('in', audioSrc.value)
                 setAudioInfo(playinglist[0]);
             }
             audioDom.play();

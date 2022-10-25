@@ -1,19 +1,29 @@
 import { defineStore, storeToRefs } from "pinia";
 import { reactive } from "vue";
+import { isArray } from 'lodash';
 import { MusicInfo, PlayMode } from "@/interface";
 import { usePlayerStore } from '@/store/player';
+import { ElMessage } from "element-plus";
 
 
 export const usePlaylistStore = defineStore('playlist', () => {
     const playinglist = reactive<MusicInfo[]>([]);
     const playerStore = usePlayerStore();
-    const { audioInfo } = storeToRefs(playerStore);
-
+    const { audioInfo, curPlayMode } = storeToRefs(playerStore);
+    const { setAudioInfo } = playerStore;
 
     /** 替换播放列表 */
     function playinglistReplace(songs: MusicInfo[]) {
         playinglist.length = 0;
-        playinglist.push(...songs)
+        playinglist.push(...songs);
+        if (!audioInfo.value.id) {
+            if (curPlayMode.value === PlayMode.random) {
+                setAudioInfo(playinglist[Math.floor(Math.random() * (playinglist.length - 1))]);
+            }
+            else {
+                setAudioInfo(playinglist[0]);
+            }
+        }
     }
     /**
      * 从播放列表删除一项
@@ -41,12 +51,22 @@ export const usePlaylistStore = defineStore('playlist', () => {
      * @returns 是否添加成功
      */
     function addToPlaylist(musicInfo: MusicInfo): boolean {
-        let index = playinglist.findIndex(music => audioInfo.value.id === music.id);
-        if (index === -1) {
-            playinglist.push(musicInfo);
-            return true;
+        // 重复不再添加
+        if (!haveMusic(musicInfo)) {
+            let index = playinglist.findIndex(music => audioInfo.value.id === music.id);
+            if (index === -1) {
+                playinglist.push(musicInfo);
+            }
+            else {
+                playinglist.splice(index + 1, 0, musicInfo);
+            }
+            setAudioInfo(musicInfo);
         }
-        playinglist.splice(index, 0, musicInfo);
+
+        ElMessage({
+            type: 'success',
+            message: '已开始播放'
+        });
         return true;
     }
     /**
@@ -54,14 +74,36 @@ export const usePlaylistStore = defineStore('playlist', () => {
      * @param musicInfo 添加的歌曲信息
      * @returns 是否添加成功
      */
-    function addToNextPlay(musicInfo: MusicInfo): boolean {
+    function addToNextPlay(musicInfo: MusicInfo | MusicInfo[]): boolean {
         let index = playinglist.findIndex(music => audioInfo.value.id === music.id);
-        if (index === -1) {
-            playinglist.push(musicInfo);
-            return true;
+        if (!isArray(musicInfo)) {
+            musicInfo = [musicInfo];
         }
-        playinglist.splice(index + 1, 0, musicInfo);
+        // 去除重复歌曲
+        for (let i = 0; i < musicInfo.length; i++) {
+            if (haveMusic(musicInfo[i])) {
+                musicInfo.splice(i--, 1);
+            }
+        }
+
+        if (playinglist.length < 1) {
+            setAudioInfo(musicInfo[0]);
+        }
+        if (index === -1) {
+            playinglist.push(...musicInfo);
+        }
+        else {
+            playinglist.splice(index + 1, 0, ...musicInfo);
+            ElMessage({
+                type: 'success',
+                message: '已添加到播放列表'
+            });
+        }
         return true;
+    }
+    /** 播放列表中是否有这首歌 */
+    function haveMusic(findMusic: MusicInfo) {
+        return !!playinglist.find(music => music.id === findMusic.id && music.type === findMusic.type);
     }
     /** 返回播放列表中当前播放歌曲的上一首播放的歌曲信息 */
     function findPreMusic(): MusicInfo | null {

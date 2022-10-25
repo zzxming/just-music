@@ -26,19 +26,23 @@
                     <div class="playlist_info_right_line">
                         <div class="playlist_info_description">
                             <span class="playlist_info-tip">简介:</span>
-                            <span class="playlist_info_description-title" v-show="!descriptionOpen">{{playlistInfo.description}}</span>
-                            <span class="playlist_info_description-full" v-show="descriptionOpen">{{playlistInfo.description}}</span>
-                            <span class="playlist_info_description-arrow" @click="switchDescriptionState">
-                                <el-icon v-show="descriptionOpen"><CaretTop /></el-icon>
-                                <el-icon v-show="!descriptionOpen"><CaretBottom /></el-icon>
-                            </span>
+                            <span v-if="playlistInfo.description === ''">无</span>
+                            <template v-else>
+                                <span class="playlist_info_description-title" v-show="!descriptionOpen">{{playlistInfo.description}}</span>
+                                <span class="playlist_info_description-full" v-show="descriptionOpen">{{playlistInfo.description}}</span>
+                                <span class="playlist_info_description-arrow" @click="switchDescriptionState">
+                                    <el-icon v-show="descriptionOpen"><CaretTop /></el-icon>
+                                    <el-icon v-show="!descriptionOpen"><CaretBottom /></el-icon>
+                                </span>
+                            </template>
+
                         </div>
                     </div>
                 </div>
             </div>
             <div class="playlist_song" v-loading="loadingSong" v-show="playlistInfo">
                 <Songlist v-if="!loadingSong && !loadingSongError" :songs="songsInfo" />
-                <LoadingErrorTip :style="{alignSelf: 'center'}" :isError="!loadingSong && loadingSongError" :requestFunc="getPlaylistTrackWithId.bind(undefined, props.id, props.t)" />
+                <LoadingErrorTip :style="{alignSelf: 'center'}" :isError="!loadingSong && loadingSongError" :requestFunc="getPlaylistTrackWithId.bind(undefined, Number(props.id), props.t)" />
             </div>
         </div>
     </div>
@@ -194,48 +198,64 @@
 </style>
 
 <script lang="ts" setup>
-import { onMounted, ref } from 'vue';
+import { ref, watch } from 'vue';
 import { UserFilled } from '@element-plus/icons-vue';
 import { getCloudPlaylistDetail, getCloudPlaylistTrack } from '@/assets/cloudApi';
-import { AudioInfoType, MusicInfo, CloudPlaylist, PlaylistInfo } from '@/interface';
+import { AudioInfoType, MusicInfo, PlaylistInfo, PlaylistType } from '@/interface';
 import { formatMusicInfo, formatPlaylistInfo } from '@/utils';
 import LoadingErrorTip from '@/components/LoadingErrorTip/index.vue';
 import Songlist from '@/components/Songlist/index.vue';
+import { getCustomPlaylistWithId } from '@/utils/localStorage';
+import { useRouter } from 'vue-router';
 
 
 // 本地歌曲的歌单还没有做
 
 
 const props = defineProps<{
-    id: number
-    t: AudioInfoType
+    id: string
+    t: PlaylistType
 }>();
+const router = useRouter();
 
 
-const loading = ref(false);
-const loadingSong = ref(false);
+const loading = ref(true);
+const loadingSong = ref(true);
 const loadingError = ref(false);
 const loadingSongError = ref(false);
 const songsInfo = ref<MusicInfo[]>([]);
 const playlistInfo = ref<PlaylistInfo>();
 const descriptionOpen = ref(false);
 
-
-onMounted(() => {
+watch([() => props.id, () => props.t], () => {
     requestPlaylistData();
+}, { immediate: true })
 
-    // getPlaylistDetailWithId(1, AudioInfoType.local);
-    // getPlaylistDetailWithId(569105662, AudioInfoType.cloud);
-    // getCloudMusicInfoWithId({ids:569105662})
-});
 
 /** 请求歌单信息 */
 async function requestPlaylistData() {
-    getPlaylistDetailWithId(props.id, props.t);
-    getPlaylistTrackWithId(props.id, props.t);
+
+    if (props.t === PlaylistType.localStorage) {
+        loading.value = true;
+        loadingSong.value = true;
+        let customPlaylist = getCustomPlaylistWithId(Number(props.id));
+        if (customPlaylist) {
+            playlistInfo.value = customPlaylist;
+            songsInfo.value = customPlaylist.tracks;
+        }
+        else {
+            router.replace('/404');
+        }
+        loading.value = false;
+        loadingSong.value = false;
+        return;
+    }
+
+    getPlaylistDetailWithId(Number(props.id), props.t);
+    getPlaylistTrackWithId(Number(props.id), props.t);
 }
 /** 获取歌单信息 */
-async function getPlaylistDetailWithId(id: number, type: AudioInfoType) {
+async function getPlaylistDetailWithId(id: number, type: PlaylistType) {
     loading.value = true;
     loadingError.value = false;
     // // let [err, result] = type === AudioInfoType.local ? await ({id}) : await getCloudPlaylistDetail({id});
@@ -249,21 +269,24 @@ async function getPlaylistDetailWithId(id: number, type: AudioInfoType) {
         return true
     }
     else {
+        router.replace('/404');
         loadingError.value = true;
         return false;
     }
 }
 /** 获取歌单内歌曲 */
-async function getPlaylistTrackWithId(id: number, type: AudioInfoType) {
+async function getPlaylistTrackWithId(id: number, type: PlaylistType) {
     loadingSong.value = true;
     loadingSongError.value = false;
+    let musicType = type === PlaylistType.cloud ? AudioInfoType.cloud : AudioInfoType.local;
+    // let [err, result] = musicType === AudioInfoType.cloud ? await getCloudPlaylistTrack({id}) : await ({id});
     let [err, result] = await getCloudPlaylistTrack({id});
     loadingSong.value = false;
 
     if (!err && result) {
         // console.log(result)
         let { code, data } = result.data;
-        songsInfo.value = formatMusicInfo(data, type);
+        songsInfo.value = formatMusicInfo(data, musicType);
         return true;
     }
     else {

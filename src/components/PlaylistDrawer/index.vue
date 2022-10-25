@@ -4,20 +4,22 @@
         v-model="show"
         direction="rtl"
         :size="smallScreen ? '100%' : 400"
+        :before-close="() => emit('close')"
     >
         <template #header>
             <div class="drawer_header">
                 <span class="drawer_header_title">
                     创建的歌单
-                    <div class="drawer_btn">
+                    <div class="drawer_btn" @click="dialogVisible = true">
                         <el-icon><Plus /></el-icon>
                     </div>
                 </span>
             </div>
         </template>
         
-        <PlaylistTitleList :playlist="playlists" />
+        <PlaylistTitleList @clickItem="() => emit('close')" />
     </el-drawer>
+    <CreatePlaylist :visible="dialogVisible" @close="dialogVisible = false" />
 </template>
 
 <style lang="less" scoped>
@@ -52,27 +54,30 @@
             }
         }
     }
+    .el-drawer.ltr, 
+    .el-drawer.rtl {
+        position: static;
+        float: right;
+    }
 }
 </style>
 
 <script lang="ts" setup>
-import { ref, onMounted } from 'vue';
-import { PlaylistInfo } from '@/interface';
+import { ref } from 'vue';
 import { useIsSmallScreen } from '@/hooks';
-import { getCustomPlaylist } from '@/utils';
 import PlaylistTitleList from '@/components/PlaylistTitleList/index.vue';
+import CreatePlaylist from '@/components/CreatePlaylist/index.vue';
 
 
 const { show } = defineProps<{
     show: boolean
 }>();
+const emit = defineEmits<{
+    (event: 'close'): void
+}>();
 const smallScreen = useIsSmallScreen();
 
-const playlists = ref<PlaylistInfo[]>([]);
-
-onMounted(() => {
-    playlists.value = getCustomPlaylist();
-});
+const dialogVisible = ref(false);
 
 
 </script>

@@ -17,6 +17,11 @@ export enum AudioInfoType {
     cloud = 'cloud',
     bili = 'bili'
 }
+export enum PlaylistType {
+    local = 'local',
+    cloud = 'cloud',
+    localStorage = 'localStorage'
+}
 /** 整合后的歌曲信息 */
 export interface MusicInfo {
     type: AudioInfoType
@@ -28,6 +33,12 @@ export interface MusicInfo {
     album: string
     /** 值为 1 时是vip歌曲, 只能播放部分 */
     fee: number
+    noCopyrightRcmd: {
+        type: number
+        typeDesc: string
+    } | null
+    /** -200 表示歌曲下架不能听 */
+    st: number
 } 
 /** 整合后的歌手信息 */
 export interface Singer {
@@ -67,6 +78,12 @@ export interface CloudMusic {
     dt: number
     /** 值为 1 时是vip歌曲, 只能播放部分 */
     fee: number
+    noCopyrightRcmd: {
+        type: number
+        typeDesc: string
+    }
+    /** -200 表示歌曲下架不能听 */
+    st: number
 }
 /** 网易云音乐歌手部分信息 */
 export interface CloudSingerShort {
@@ -95,7 +112,7 @@ export interface BiliMusic {
 
 /** 歌单信息 */
 export interface PlaylistInfo extends PlaylistInfoPartial {
-    type: AudioInfoType
+    type: PlaylistType
     id: number
     title: string
     updateTime: number

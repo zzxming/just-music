@@ -9,7 +9,8 @@
             <IconInput v-if="!!inputTxt || inputTxt === ''" class="header_input_input" :inputTxt="inputTxt" @submit="commitSearch" />
         </div>
         <div class="header_right">
-            <el-button plain @click="drawer = true">
+            <CloudLogin class="header_login" />
+            <el-button class="header_drawer" plain @click="drawer = true">
                 <el-icon><List /></el-icon>
             </el-button>
         </div>
@@ -29,12 +30,14 @@
     width: 100%;
     height: 64px;
     padding: 16px 40px 8px;
-    z-index: 10;
+    z-index: 9;
     &_left {
 
     }
     &_right {
-
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
     &_back {
     }
@@ -81,8 +84,9 @@ import { jointQuery } from '@/assets/api';
 import { AudioInfoType } from '@/interface';
 import IconInput from '@/components/IconInput/index.vue';
 import BackRoute from '@/components/BackRoute/index.vue';
+import CloudLogin from '@/components/CloudLogin/index.vue';
+import PlaylistDrawer from '@/components/PlaylistDrawer/index.vue';
 import List from '@/assets/iconfont/list.vue';
-import PlaylistDrawer from '../PlaylistDrawer/index.vue';
 
 
 const route = useRoute();

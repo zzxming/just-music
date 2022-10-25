@@ -14,7 +14,9 @@ const initAudioInfo = {
     duration: 0,
     singers: [],
     album: '',
-    fee: 0
+    fee: 0,
+    noCopyrightRcmd: null,
+    st: 0
 };
 export const usePlayerStore = defineStore('player', () => {
     const audio = ref<HTMLAudioElement>();
@@ -32,7 +34,7 @@ export const usePlayerStore = defineStore('player', () => {
         }
     }
     /** 设置音频播放路径 */
-    function setAudioSrc(src: string) {
+    function setAudioSrc(src: string | null) {
         audioSrc.value = src;
     }
     /** 改变全局音频显示状态 */
@@ -43,6 +45,7 @@ export const usePlayerStore = defineStore('player', () => {
     function resetAudioInfo() {
         audioSrc.value = '';
         audioInfo.value = initAudioInfo;
+        audio.value?.pause();
     }
     /** 设置当前音频显示信息 */
     async function setAudioInfo(info: LocalAudioInfo | CloudAudioInfo | MusicInfo) {
@@ -62,24 +65,30 @@ export const usePlayerStore = defineStore('player', () => {
         }
 
 
-        let src: string;
+        let src: string | null;
         let audioInfoCur = audioInfo.value;
         if (audioInfoCur.type === AudioInfoType.cloud) {
-            // https://music.163.com/song?id=476081899
-            // 如果是vip歌曲需要获取歌曲的播放路径
-            // 部分 vip 歌曲不让试听, 则获取的 src 为 null
-            if (audioInfoCur.fee) {
-                let [err, result] = await getMusicSrcWithCloudId(audioInfoCur.id as number);
-                if (!err && result) {
-                    src = result.data.data.src;
-                }
-                else {
-                    await setAudioInfo(info);
-                    return;
-                }
+            // 网易云没有音源, 这个属性表示有别的版本
+            if (audioInfoCur.noCopyrightRcmd) {
+                src = null;
             }
             else {
-                src = `https://music.163.com/song/media/outer/url?id=${audioInfoCur.id}.mp3`
+                // https://music.163.com/song?id=476081899
+                // 如果是 vip 歌曲需要获取歌曲的播放路径
+                // 部分 vip 歌曲不让试听, 则获取的 src 为 null
+                if (audioInfoCur.fee) {
+                    let [err, result] = await getMusicSrcWithCloudId(audioInfoCur.id as number);
+                    if (!err && result) {
+                        src = result.data.data.src;
+                    }
+                    else {
+                        console.log(err);
+                        return;
+                    }
+                }
+                else {
+                    src = `https://music.163.com/song/media/outer/url?id=${audioInfoCur.id}.mp3`
+                }
             }
         }
         else if (audioInfoCur.type === AudioInfoType.bili) {
@@ -90,7 +99,6 @@ export const usePlayerStore = defineStore('player', () => {
         }
         // console.log(src)
         setAudioSrc(src)
-        // audioSrc.value = result.src
     }
     /** 切换播放模式 */
     function changePlayMode() {

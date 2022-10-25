@@ -1,7 +1,14 @@
 <template>
     <div :class="`playinglist ${active ? 'active' : ''}`">
         <div class="playinglist_content">
-            <div class="playinglist_header"></div>
+            <div class="playinglist_header">
+                <div class="playinglist_header_left">
+
+                </div>
+                <div class="playinglist_header_right">
+                    <el-icon class="playinglist_header_btn clear" @click="clearPlayinglist"><Delete /></el-icon>
+                </div>
+            </div>
             <ul class="playinglist_list">
                 <li 
                     v-for="songInfo in playinglist" 
@@ -19,7 +26,7 @@
                 </li>
             </ul>
             <!-- 
-            <el-icon><Delete /></el-icon> -->
+             -->
         </div>
     </div>
     <div v-show="active" class="mask" @click="maskClick"></div>
@@ -40,6 +47,26 @@
     transition: bottom linear .1s;
     &.active {
         bottom: 100px;
+    }
+    &_header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        height: 30px;
+        &_left {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        &_right {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        &_btn {
+            padding: 0 6px;
+            cursor: pointer;
+        }
     }
     &_content {
         box-sizing: border-box;
@@ -114,7 +141,7 @@
 @media screen and (max-width: 550px) {
     .playinglist {
         right: 0;
-        width: calc(100% - 30px);
+        width: calc(100% - 20px);
         margin: 10px;
         &.active {
             bottom: 30px;
@@ -129,7 +156,7 @@
 <script lang="ts" setup>
 import { ref } from 'vue'
 import { storeToRefs } from 'pinia';
-import { usePlaylistStore } from '@/store/playlist'
+import { usePlaylistStore } from '@/store/playinglist'
 import { usePlayerStore } from '@/store/player'
 import { MusicInfo } from '@/interface'
 import Playing from '@/assets/iconfont/playing.vue'
@@ -146,7 +173,7 @@ const playlistStore = usePlaylistStore();
 const { audioInfo } = storeToRefs(playerStore);
 const { playinglist } = storeToRefs(playlistStore);
 const { setAudioInfo, resetAudioInfo } = playerStore;
-const { playinglistSplice } = playlistStore;
+const { playinglistSplice, playinglistReplace } = playlistStore;
 
 /** 点击蒙层关闭播放列表 */
 function maskClick() {
@@ -166,6 +193,10 @@ function deleteFromPlayinglist(info: MusicInfo) {
     else {
         resetAudioInfo();
     }
+}
+function clearPlayinglist() {
+    playinglistReplace([]);
+    resetAudioInfo();
 }
 
 </script>
