@@ -33,17 +33,25 @@ export const usePlaylistStore = defineStore('playlist', () => {
      */
     function playinglistSplice(id: number | string, curPlaying: MusicInfo): MusicInfo | null {
         let index = playinglist.findIndex(song => song.id === id);
-        if (index === -1) return null;
-        // 在外部无法使用 usePlayerStore 获取到 playerStore 里的变量, 用传参的方式判断是否为当前播放歌曲
-        let switchSong = null;
-        if (id === curPlaying.id) {
-            // 如果删除是当前播放歌曲, 切换当前播放歌曲, 获取清除当前播放歌曲
-            if (playinglist[index + 1] || playinglist[index - 1]) {
-                switchSong = playinglist[index + 1] ?? playinglist[index - 1];
+        let returnSong = null;
+        if (index !== -1) {
+            // 在外部无法使用 usePlayerStore 获取到 playerStore 里的变量, 用传参的方式判断是否为当前播放歌曲
+            let switchSong = null;
+            if (id === curPlaying.id) {
+                // 如果删除是当前播放歌曲, 切换当前播放歌曲, 获取清除当前播放歌曲
+                if (playinglist[index + 1] || playinglist[index - 1]) {
+                    switchSong = playinglist[index + 1] ?? playinglist[index - 1];
+                }
             }
+            playinglist.splice(index, 1);
+
+            returnSong = switchSong;
         }
-        playinglist.splice(index, 1);
-        return switchSong
+        ElMessage({
+            type: 'success',
+            message: '删除成功'
+        });
+        return returnSong;
     }
     /**
      * 添加至播放列表
@@ -94,11 +102,11 @@ export const usePlaylistStore = defineStore('playlist', () => {
         }
         else {
             playinglist.splice(index + 1, 0, ...musicInfo);
-            ElMessage({
-                type: 'success',
-                message: '已添加到播放列表'
-            });
         }
+        ElMessage({
+            type: 'success',
+            message: '已添加到播放列表'
+        });
         return true;
     }
     /** 播放列表中是否有这首歌 */

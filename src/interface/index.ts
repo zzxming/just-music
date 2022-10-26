@@ -166,6 +166,7 @@ export interface CloudPlaylist {
 }
 /** 歌单部分信息 */
 export interface PlaylistInfoPartial {
+    type: PlaylistType
     id: number
     title: string
     cover: string

@@ -14,14 +14,13 @@
 </style>
 
 <script lang="ts" setup>
-import { useRouter, useRoute } from 'vue-router'
+import { useRouter } from 'vue-router'
 
 const router = useRouter();
-const route = useRoute();
 
 function backRoute() {
-    console.log(router)
-    console.log(router.options.history.state)
+    // console.log(router)
+    // console.log(router.options.history.state)
     router.back()
 }
 

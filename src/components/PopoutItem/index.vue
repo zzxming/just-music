@@ -54,7 +54,7 @@
 </style>
 
 <script lang="ts" setup>
-import { useSlots, ref, onMounted, nextTick, watch } from 'vue';
+import { useSlots, ref, nextTick, watch } from 'vue';
 import Popout, { PopoutPosition } from '@/components/Popout/index.vue';
 
 const { botBorder } = defineProps({

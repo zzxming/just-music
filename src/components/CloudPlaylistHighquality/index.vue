@@ -1,6 +1,6 @@
 <template>
     <div class="playlist">
-        <PlaylistList v-loading="fristLoading && !loadingError"  :isTopList="isTopList" :playlist="playlist" :type="PlaylistType.cloud" />
+        <PlaylistList v-loading="fristLoading && !loadingError"  :isTopList="isTopList" :playlist="playlist" />
         <LoadingErrorTip :isError="fristLoading && loadingError" :requestFunc="getCloudPlaylistHighqualityData" />
     </div>
     <LoadingMore v-show="isTopList && !fristLoading" ref="loadMore" :requestFunc="getCloudPlaylistHighqualityData" />
@@ -24,7 +24,7 @@ import { getCloudPlaylistHighquality, PlaylistVal } from '@/assets/cloudApi';
 import LoadingErrorTip from '@/components/LoadingErrorTip/index.vue'
 import LoadingMore, { ExposeVar } from '@/components/LoadingMore/index.vue'
 import PlaylistList from '@/components/PlaylistList/index.vue';
-import { formatPlaylistInfo } from '@/utils';
+import { formatPlaylistPartial, formatPlaylistInfo } from '@/utils';
 
 
 const { isTopList } = defineProps({

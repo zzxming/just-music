@@ -43,8 +43,10 @@
                     <span class="songlist_duration">{{ formatAudioTime(song.duration / 1000) }}</span>
                 </div>
             </div>
+            <div v-if="songs.length < 1" class="songlist_empty">{{ emptyText }}</div>
         </div>
     </div>
+
 </template>
 
 
@@ -153,6 +155,13 @@
     &_duration {
         grid-area: duration;
     }
+    &_empty {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 200px;
+        color: var(--el-color-info-light-3);
+    }
 }
 
 @media screen and (max-width: 550px) {
@@ -186,9 +195,7 @@ import { usePlayerStore } from '@/store/player';
 import { usePlaylistStore } from '@/store/playinglist';
 import { usePopoutStore } from '@/store/popout';
 import { formatAudioTime, twoDigitStr } from '@/utils';
-import { PopoutPosition } from '@/components/Popout/index.vue';
 import { useIsSmallScreen } from '@/hooks';
-import MusicAndPlaylistPopout from '@/components/Popout/MusicAndPlaylistPopout.vue';
 
 
 const smallScreen = useIsSmallScreen();
@@ -211,12 +218,6 @@ const props = withDefaults(defineProps<{
 const { songs, emptyText } = toRefs(props);
 
 const activeId = ref(audioInfo.value.id);
-const popoutVisible = ref(false);
-const popoutPosition = ref<PopoutPosition>({
-    left: 0,
-    top: 0
-});
-const popoutHoldData = ref<MusicInfo>();        // 弹出框相关的数据
 
 // 当前播放变化监听
 watch(audioInfo, () => activeId.value = audioInfo.value.id)
@@ -234,13 +235,7 @@ async function playSong(event: MouseEvent, song: MusicInfo) {
 function showPopbox(event: MouseEvent, song: MusicInfo) {
     // console.log(event)
     event.preventDefault();
-    // popoutVisible.value = true;
-    // popoutPosition.value = {
-    //     left: event.pageX,
-    //     top: event.pageY,
-    // }
-    // popoutHoldData.value = song;
-    
+
     setPopoutState({
         popoutVisible: true,
         popoutPosition: {

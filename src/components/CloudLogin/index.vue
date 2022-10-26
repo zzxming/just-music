@@ -23,7 +23,7 @@
 
         <template #footer>
             <span class="dialog-footer">
-                <el-button @click="cloudLoginVisible = false">取消</el-button>
+                <el-button @click="closeLogin">取消</el-button>
                 <el-button type="danger" @click="submitLogin">登录</el-button>
             </span>
         </template>
@@ -65,13 +65,12 @@ function submitLogin() {
             let [err, result] = await postCloudLogin(ruleForm);
             loading.value = false;
             if (!err && result) {
-                console.log(result)
                 ElMessage({
                     type: result.data.code === 200 ? 'success' : 'error',
-                    message: result.data.data.message
+                    message: result.data.code === 200 ? '登录成功' : result.data.data.message
                 });
                 if (result.data.data.code === 200) {
-                    cloudLoginVisible.value = false;
+                    (popoutStore.cloudLoginVisible as unknown as boolean) = false;
                     return true;
                 }
                 return false;
@@ -85,6 +84,10 @@ function submitLogin() {
             return false;
         }
     })
+}
+
+function closeLogin() {
+    (popoutStore.cloudLoginVisible as unknown as boolean) = false
 }
 
 </script>

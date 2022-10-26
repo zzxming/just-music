@@ -1,10 +1,12 @@
 <template>
     <div class="content">
-        <div class="content_title" @click="linkTo">
-            <span class="content_title_text">{{ title }}</span>
-            <el-icon class="content_title_icon"><ArrowRightBold /></el-icon>
+        <div class="content_header">
+            <div class="content_title" @click="linkTo">
+                <span class="content_title_text">{{ title }}</span>
+                <el-icon class="content_title_icon"><ArrowRightBold /></el-icon>
+            </div>
         </div>
-        <div class="content_content">
+        <div class="content_body">
             <slot></slot>
         </div>
     </div>
@@ -20,10 +22,14 @@
     padding: 40px;
     background-color: var(--el-fill-color-blank);
     border: 1px solid var(--el-border-color);
-    &_title {
+    &_header {
         display: flex;
         align-items: center;
         width: 100%;
+    }
+    &_title {
+        display: flex;
+        align-items: center;
         height: 48px;
         font-size: 24px;
         font-weight: 700;

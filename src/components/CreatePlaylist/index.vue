@@ -12,7 +12,7 @@
                 <el-input class="creator_input" v-model="playlistData.title" placeholder="请输入新建歌单标题" />
             </el-form-item>
             <el-form-item prop="playlistLink">
-                <el-input class="creator_input" v-model="playlistData.playlistLink" placeholder="请输入要导入的网易云音乐歌单id" />
+                <el-input class="creator_input" v-model="playlistData.playlistLink" placeholder="请输入要导入的网易云音乐歌单分享链接" />
             </el-form-item>
         </el-form>
 
@@ -109,11 +109,9 @@ function submitForm() {
 }
 /** 创建歌单 */
 async function createPlaylist(): Promise<{status: boolean, message: string}> {
-
-
     let link = playlistData.value.playlistLink;
     let id = '';
-    // https://music.163.com/playlist?id=5396146672&userid=293778248
+    // 主要获取路径中的 id 就行
     let query = link.split('?').slice(1).join('').split('&');
     for (let i = 0; i < query.length; i++) {
         let cur = query[i].split('=');
@@ -137,11 +135,6 @@ async function createPlaylist(): Promise<{status: boolean, message: string}> {
         }
     }
     setCustomPlaylist(playlistData.value.title, songs);
-    // 获取歌单内的歌曲信息
-    // 拿不到返回false和'歌单id不正确'的信息
-    // 拿到后对信息格式化, 带type
-    // 把格式化后的数组保存
-    // 把最后数据保存到localStorage
     return {
         status: true,
         message: '创建成功'

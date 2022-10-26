@@ -1,7 +1,7 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
 import { PopoutPosition } from '@/components/Popout/index.vue';
-import { MusicInfo, PlaylistInfo } from "@/interface";
+import { MusicInfo, PlaylistInfoPartial } from "@/interface";
 
 // 有些组件(PlaylistDrawer)要在他关闭的时候执行一些东西
 /** MusicAndPlaylistPopout 组件关闭时 window 触发的事件名 */
@@ -20,7 +20,7 @@ export const usePopoutStore = defineStore('popout', () => {
         left: 0,
         top: 0
     });
-    const popoutHoldData = ref<MusicInfo | PlaylistInfo>();
+    const popoutHoldData = ref<MusicInfo | PlaylistInfoPartial>();
     const popoutCanDelete = ref(false);
     const popoutIsMusic = ref(false);
     /** MusicAndPlaylistPopout 组件的状态 end */
@@ -28,7 +28,7 @@ export const usePopoutStore = defineStore('popout', () => {
     function setPopoutState(state: {
         popoutVisible: boolean
         popoutPosition: PopoutPosition
-        popoutHoldData: MusicInfo | PlaylistInfo
+        popoutHoldData: MusicInfo | PlaylistInfoPartial
         popoutCanDelete: boolean
         popoutIsMusic: boolean
     }) {

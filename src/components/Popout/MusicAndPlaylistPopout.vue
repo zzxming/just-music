@@ -5,14 +5,15 @@
         @close="closePopout"
     >
         <PopoutItem @click="play">播放</PopoutItem>
-        <PopoutItem botBorder @click="nextPlay">下一首播放</PopoutItem>
-        <PopoutItem :botBorder="popoutCanDelete" v-if="popoutIsMusic">
+        <PopoutItem @click="nextPlay">下一首播放</PopoutItem>
+        <PopoutItem topBoder :botBorder="popoutCanDelete" v-if="popoutIsMusic">
             收藏到歌单
             <template #second>
                 <PopoutItem botBorder @click="createPlaylist">创建新歌单</PopoutItem>
                 <PopoutItem v-for="playlist in customPlaylist" @click="() => collectMusic(playlist.id)">{{playlist.title}}</PopoutItem>
             </template>
         </PopoutItem>
+        <PopoutItem topBoder :botBorder="popoutCanDelete" v-if="!popoutIsMusic" @click="collectPlaylist">收藏</PopoutItem>
         <PopoutItem v-if="popoutCanDelete && popoutIsMusic" @click="deletefromPlaylist">从歌单中删除</PopoutItem>
         <PopoutItem v-if="popoutCanDelete && !popoutIsMusic" @click="deletePlaylist">删除歌单</PopoutItem>
     </Popout>
@@ -25,16 +26,16 @@
 import { onMounted, onUnmounted, ref } from 'vue';
 import { storeToRefs } from 'pinia';
 import { ElMessage } from 'element-plus';
-import { PlaylistInfo, PlaylistType, MusicInfo, CustomPlaylist } from '@/interface';
+import { useRoute } from 'vue-router';
+import { PlaylistInfo, PlaylistType, MusicInfo, CustomPlaylist, AudioInfoType } from '@/interface';
 import { getCloudPlaylistTrack } from '@/assets/cloudApi';
 import { usePlaylistStore } from '@/store/playinglist';
 import { usePlayerStore } from '@/store/player';
 import { popoutCloseEvent, usePopoutStore } from '@/store/popout';
-import { getAllCustomPlaylist, getCustomPlaylistWithId, deleteCustomPlaylistWithId, updateCustomPlaylist, localStoragePlaylistEvent } from '@/utils/localStorage';
-import Popout, { PopoutPosition } from '@/components/Popout/index.vue';
+import { getAllCustomPlaylist, getCustomPlaylistWithId, deleteCustomPlaylistWithId, updateCustomPlaylist, localStoragePlaylistEvent, setCustomPlaylist } from '@/utils/localStorage';
+import Popout from '@/components/Popout/index.vue';
 import PopoutItem from '@/components/PopoutItem/index.vue';
 import { formatMusicInfo } from '@/utils';
-import { useRoute } from 'vue-router';
 
 
 const route = useRoute();
@@ -83,6 +84,10 @@ async function play() {
             if (playlistInfo) {
                 resetAudioInfo();
                 playinglistReplace(playlistInfo.tracks);
+                ElMessage({
+                    type: 'success',
+                    message: '已开始播放'
+                });
             }
         }
         else {
@@ -90,7 +95,17 @@ async function play() {
             let [err, result] = await getCloudPlaylistTrack({id: data.id});
             if (!err && result) {
                 resetAudioInfo();
-                playinglistReplace(formatMusicInfo(result.data.data));
+                playinglistReplace(formatMusicInfo(result.data.data, AudioInfoType.cloud));
+                ElMessage({
+                    type: 'success',
+                    message: '已开始播放'
+                });
+            }
+            if (err) {
+                ElMessage({
+                    type: 'error',
+                    message: 'NETWORK TIMEOUT'
+                })
             }
         }
     }
@@ -116,7 +131,13 @@ async function nextPlay() {
             // let [err, result] = data.type === PlaylistType.cloud ? await getCloudPlaylistTrack() : await ();
             let [err, result] = await getCloudPlaylistTrack({id: data.id});
             if (!err && result) {
-                addToNextPlay(formatMusicInfo(result.data.data));
+                addToNextPlay(formatMusicInfo(result.data.data, AudioInfoType.cloud));
+            }
+            if (err) {
+                ElMessage({
+                    type: 'error',
+                    message: 'NETWORK TIMEOUT'
+                })
             }
         }
     }
@@ -149,6 +170,7 @@ function collectMusic(playlistid: number) {
                 return;
             }
             customPlaylist.value[i].tracks.unshift(popoutHoldData.value as MusicInfo);
+            customPlaylist.value[i].trackCount += 1;
             break;
         }
     }
@@ -157,6 +179,26 @@ function collectMusic(playlistid: number) {
         type: 'info',
         message: '已收藏到歌单'
     });
+}
+/** 收藏歌单到 localstorage */
+async function collectPlaylist() {
+    let data = popoutHoldData.value as PlaylistInfo;
+    if (data) {
+        // let [err, result] = data.type === PlaylistType.cloud ? await getCloudPlaylistTrack
+        let [err, result] = await getCloudPlaylistTrack({id: data.id});
+        if (!err && result) {
+            setCustomPlaylist(data.title, formatMusicInfo(result.data.data, data.type === PlaylistType.cloud ? AudioInfoType.cloud : AudioInfoType.local))
+            ElMessage({
+                type: 'success',
+                message: '收藏成功'
+            });
+            return;
+        }
+    }
+    ElMessage({
+        type: 'error',
+        message: '错误操作, 无法获取数据'
+    })
 }
 /** 从歌单中删除选中的歌曲 */
 function deletefromPlaylist() {
@@ -168,6 +210,7 @@ function deletefromPlaylist() {
                 break;
             }
             customPlaylist.value[i].tracks.splice(index, 1);
+            customPlaylist.value[i].trackCount -= 1;
             break;
         }
     }
@@ -179,7 +222,6 @@ function deletefromPlaylist() {
 }
 /** 关闭 popout */
 function closePopout() {
-    console.log('wS');
     (popoutStore.popoutVisible as unknown as boolean) = false;
     window.dispatchEvent(new Event(popoutCloseEvent));
 }

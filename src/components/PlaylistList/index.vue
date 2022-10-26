@@ -7,7 +7,8 @@
             >
                 <div 
                     class="playlist_list_item"
-                    @click="gotoPlaylistDetail(item.id, type)"
+                    @click="gotoPlaylistDetail(item.id, item.type)"
+                    @contextmenu="(e) => showPopbox(e, item)"
                 >
                     <div class="playlist_list_item-cover">
                         <el-icon class="playlist_list_item-icon play"><VideoPlay /></el-icon>
@@ -184,19 +185,21 @@
 </style>
 
 <script lang="ts" setup>
-import { PlaylistType, PlaylistInfoPartial } from '@/interface';
 import { throttle } from 'lodash';
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
+import { PlaylistType, PlaylistInfoPartial, PlaylistInfo } from '@/interface';
+import { usePopoutStore } from '@/store/popout';
 
 const musicImg = ref('/api/imgs/music.jpg');
 
-const { isTopList } = defineProps<{
+const { isTopList, playlist } = defineProps<{
     isTopList: boolean
     playlist: PlaylistInfoPartial[]
-    type: PlaylistType
 }>();
 const router = useRouter();
+const popoutStore = usePopoutStore();
+const { setPopoutState } = popoutStore;
 
 
 /** 格式化显示播放数 */
@@ -216,6 +219,23 @@ function gotoPlaylistDetail(id: number, type: PlaylistType) {
 /** 图片加载失败 */
 function onErrorImg(e: Event) {
     (e.target as HTMLImageElement).src = musicImg.value
+}
+
+function showPopbox(e: MouseEvent, playlist: PlaylistInfoPartial) {
+    // console.log(event)
+    e.preventDefault();
+    // console.log(playlist)
+
+    setPopoutState({
+        popoutVisible: true,
+        popoutPosition: {
+            left: e.pageX,
+            top: e.pageY,
+        },
+        popoutHoldData: playlist,
+        popoutIsMusic: false,
+        popoutCanDelete: false
+    })
 }
 
 </script>

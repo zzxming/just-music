@@ -407,7 +407,7 @@ const audioVolume = ref(0.7);
 const activePlayinglist = ref(false);
 
 /** 初始值 */
-watch(audio, (val, preVal) => {
+watch(audio, (val) => {
     unbindAudioEvent();
     if (val) {
         volumeHeight.value = 70;

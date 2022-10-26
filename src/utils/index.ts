@@ -1,5 +1,4 @@
 import { LocalAudioInfo, CloudAudioInfo, AudioInfoType, Singer, MusicInfo, CloudMusic, LocalMusic, CloudPlaylist, PlaylistInfo, PlaylistInfoPartial, PlaylistType } from "@/interface";
-import { PersonalizedPlaylistResponse } from '@/assets/cloudApi';
 import { isArray } from 'lodash';
 
 
@@ -10,12 +9,12 @@ export function isType<T, >(data: any): data is T {
     return true
 }
 /** 整合歌曲数据, 统一本地歌曲和网易云歌曲的字段 */
-export function formatMusicInfo(info: LocalAudioInfo[] | CloudAudioInfo[] | MusicInfo[] | LocalMusic[] | CloudMusic[], type?: AudioInfoType): MusicInfo[];
-export function formatMusicInfo(info: LocalAudioInfo | CloudAudioInfo | MusicInfo | LocalMusic | CloudMusic, type?: AudioInfoType): MusicInfo;
+export function formatMusicInfo(info: LocalAudioInfo[] | CloudAudioInfo[] | MusicInfo[] | LocalMusic[] | CloudMusic[], type: AudioInfoType): MusicInfo[];
+export function formatMusicInfo(info: LocalAudioInfo | CloudAudioInfo | MusicInfo | LocalMusic | CloudMusic, type: AudioInfoType): MusicInfo;
 export function formatMusicInfo(
     info: LocalAudioInfo | CloudAudioInfo | MusicInfo | LocalMusic | CloudMusic | 
           LocalAudioInfo[] | CloudAudioInfo[] | MusicInfo[] | LocalMusic[] | CloudMusic[], 
-    type?: AudioInfoType
+    type: AudioInfoType
 ): MusicInfo | MusicInfo[] {
     return isArray(info) ? info.map(item => formatSingleMusicInfo(item, type)) : formatSingleMusicInfo(info, type)
 }
@@ -185,15 +184,16 @@ function formatSinglePlaylistInfo(
 
 
 /** 整合歌单的部分信息字段 */
-export function formatPlaylistPartial(playlist: PlaylistInfoPartial | PersonalizedPlaylistResponse): PlaylistInfoPartial;
-export function formatPlaylistPartial(playlist: PlaylistInfoPartial[] | PersonalizedPlaylistResponse[]): PlaylistInfoPartial[];
+export function formatPlaylistPartial(playlist: PlaylistInfoPartial | PlaylistInfo, type: PlaylistType): PlaylistInfoPartial;
+export function formatPlaylistPartial(playlist: PlaylistInfoPartial[] | PlaylistInfo[], type: PlaylistType): PlaylistInfoPartial[];
 export function formatPlaylistPartial(
-    playlist: PlaylistInfoPartial | PlaylistInfoPartial[] | PersonalizedPlaylistResponse | PersonalizedPlaylistResponse[]
+    playlist: PlaylistInfoPartial | PlaylistInfoPartial[] | PlaylistInfo | PlaylistInfo[],
+    type: PlaylistType
 ): PlaylistInfoPartial | PlaylistInfoPartial[] {
-    return isArray(playlist) ? playlist.map(item => formatSinglePlaylistPartial(item)) : formatSinglePlaylistPartial(playlist)
+    return isArray(playlist) ? playlist.map(item => formatSinglePlaylistPartial(item, type)) : formatSinglePlaylistPartial(playlist, type)
 }
 /** 整合单个歌单的部分信息字段 */
-function formatSinglePlaylistPartial(info:PlaylistInfoPartial |  PersonalizedPlaylistResponse): PlaylistInfoPartial {
+function formatSinglePlaylistPartial(info:PlaylistInfoPartial |  PlaylistInfo, type: PlaylistType): PlaylistInfoPartial {
     if (
         isType<PlaylistInfoPartial>(info) &&
         info.id && info.title &&
@@ -208,29 +208,21 @@ function formatSinglePlaylistPartial(info:PlaylistInfoPartial |  PersonalizedPla
         playCount: number = 0;
 
     try {
-        if (
-            isType<PersonalizedPlaylistResponse>(info) && 
-            info.id &&
-            info.name &&
-            info.picUrl &&
-            info.playCount &&
-            info.trackCount &&
-            info.trackNumberUpdateTime
-        ) {
+        if (isType<PlaylistInfo>(info) && type === PlaylistType.cloud) {
             id = info.id;
-            title = info.name;
-            cover = info.picUrl;
+            title = info.title;
+            cover = info.cover;
             playCount = info.playCount;
         }
         else {
-            throw Error('function formatMusicInfo argument type error')
+            throw Error('function formatPlaylistPartial argument type error')
         }
     }
     catch(e) {
         throw e;
     }
     return {
-        id, title, cover, playCount 
+        id, title, cover, playCount, type
     }
 }
 

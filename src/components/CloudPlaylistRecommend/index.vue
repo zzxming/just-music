@@ -1,6 +1,6 @@
 <template>
     <div class="playlist">
-        <PlaylistList v-loading="fristLoading && !loadingError"  :isTopList="isTopList" :playlist="playlist" :type="PlaylistType.cloud" />
+        <PlaylistList v-loading="fristLoading && !loadingError"  :isTopList="isTopList" :playlist="playlist" />
         <LoadingErrorTip :isError="fristLoading && loadingError" :requestFunc="getCloudPlaylistPersonalized" />
     </div>
     <LoadingMore v-show="isTopList && !fristLoading" ref="loadMore" :requestFunc="getCloudPlaylistPersonalized" />
@@ -77,7 +77,7 @@ async function getCloudPlaylistPersonalized() {
 
     if (!err && result) {
         const { code, data } = result.data;
-        playlist.push(...formatPlaylistPartial(data));
+        playlist.push(...formatPlaylistPartial(data, PlaylistType.cloud));
         // 第一次加载完成
         fristLoading.value = false;
         return data.length

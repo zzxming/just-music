@@ -87,7 +87,6 @@ onUnmounted(() => {
 });
 
 function close() {
-    console.log('close?')
     emit('close');
 }
 </script>

@@ -54,7 +54,7 @@ export const usePlayerStore = defineStore('player', () => {
             audioInfo.value = info;
         }
         else {
-            let result = formatMusicInfo(info);
+            let result = formatMusicInfo(info, info.type);
             audioInfo.value = result;
         }
         showPlayerControl.value = true;
