@@ -6,8 +6,6 @@
 import { ref, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import { usePlayerStore } from '@/store/Player'
-import { ElMessage } from 'element-plus';
-import axios from 'axios';
 
 const audioMedia = ref<HTMLAudioElement>();
 const playerStore = usePlayerStore();
@@ -24,14 +22,10 @@ watch(audioMedia, (val, preVal) => {
 watch(audioInfo, () => {
     let audio = audioMedia.value;
     if (!audio) return;
-    // 还要一种情况判断, 网易云音乐没有且没有其他版本
-    if (!audioInfo.value.id || audioInfo.value.noCopyrightRcmd) {
-        ElMessage({
-            type: 'error',
-            message: '此歌曲无法在网易云音乐播放'
-        })
+    if (audioInfo.value.noCopyrightRcmd || audioInfo.value.st === -200) {
+        return;
     } 
-    else if (audioSrc.value) {
+    if (audioSrc.value) {
         audio.load();
     }
 });
@@ -39,7 +33,6 @@ watch(audioInfo, () => {
 /** 加载失败重试 */
 function loadError(e: Event) {
     // 当有播放路径时再重试
-    console.log(e, audioSrc.value)
     if (!audioSrc.value) return;
     setTimeout(() => {
         audioMedia.value && audioMedia.value.load();

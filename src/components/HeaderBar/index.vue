@@ -1,22 +1,20 @@
 <template>
     <div class="header">
         <div class="header_left">
-            <el-button plain v-show="route.path !== '/home'">
-                <BackRoute class="header_back" />
-            </el-button>
+            <BackRoute class="header_back" v-show="route.path !== '/home'" />
         </div>
         <div class="header_input">
             <IconInput v-if="!!inputTxt || inputTxt === ''" class="header_input_input" :inputTxt="inputTxt" @submit="commitSearch" />
         </div>
         <div class="header_right">
-            <CloudLogin />
+            <div class="header_login" @click="cloudLoginVisible = true">登录</div>
             <el-button class="header_drawer" plain @click="drawer = true">
                 <el-icon><List /></el-icon>
             </el-button>
         </div>
     </div>
 
-    <PlaylistDrawer :show="drawer" @close="drawer = false" />
+    <PlaylistDrawer :show="drawer" @close="closeDrawer" />
 </template>
 
 
@@ -45,6 +43,19 @@
         width: 400px;
         padding: 0 20px;
         margin-right: auto;
+    }
+    &_login {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 40px;
+        height: 100%;
+        margin-right: 20px;
+        color: var(--el-color-info);
+        cursor: pointer;
+        &:hover {
+            color: var(--el-color-danger);
+        }
     }
 }
 :deep(.el-button.is-plain) {
@@ -82,11 +93,12 @@ import { watch, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { jointQuery } from '@/assets/api';
 import { AudioInfoType } from '@/interface';
+import { usePopoutStore } from '@/store/popout';
 import IconInput from '@/components/IconInput/index.vue';
 import BackRoute from '@/components/BackRoute/index.vue';
-import CloudLogin from '@/components/CloudLogin/index.vue';
 import PlaylistDrawer from '@/components/PlaylistDrawer/index.vue';
 import List from '@/assets/iconfont/list.vue';
+import { storeToRefs } from 'pinia';
 
 
 const route = useRoute();
@@ -94,6 +106,8 @@ const router = useRouter();
 const inputTxt = ref<string>((route.query.kw as string) ?? '');
 
 const drawer = ref(false);
+const popoutStore = usePopoutStore();
+const { cloudLoginVisible } = storeToRefs(popoutStore);
 
 // 同步 url 的搜索参数
 watch(() => route, (val) => {
@@ -111,10 +125,22 @@ function commitSearch(input: string) {
     let realInput = input.trim();
     if (realInput === '') return;
     let t = route.path === '/search' ? route.query.t as string : AudioInfoType.cloud;
+    if (route.path === '/search') {
+        router.replace(jointQuery(`/search`, {
+            kw: realInput,
+            t
+        }));
+        return;
+    }
     router.push(jointQuery(`/search`, {
         kw: realInput,
         t
-    }))
+    }));
+}
+
+function closeDrawer() {
+    drawer.value = false
+    console.log('close!')
 }
 </script>
 

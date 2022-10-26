@@ -1,6 +1,6 @@
 <template>
     <div class="playlist">
-        <PlaylistList v-loading="fristLoading && !loadingError"  :isTopList="isTopList" :playlist="playlist" :type="AudioInfoType.cloud" />
+        <PlaylistList v-loading="fristLoading && !loadingError"  :isTopList="isTopList" :playlist="playlist" :type="PlaylistType.cloud" />
         <LoadingErrorTip :isError="fristLoading && loadingError" :requestFunc="getCloudPlaylistHighqualityData" />
     </div>
     <LoadingMore v-show="isTopList && !fristLoading" ref="loadMore" :requestFunc="getCloudPlaylistHighqualityData" />
@@ -19,7 +19,7 @@
 
 <script lang="ts" setup>
 import { ref, reactive, onMounted, watch, nextTick } from 'vue';
-import { AudioInfoType, PlaylistInfo } from '@/interface'
+import { PlaylistInfo, PlaylistType } from '@/interface'
 import { getCloudPlaylistHighquality, PlaylistVal } from '@/assets/cloudApi';
 import LoadingErrorTip from '@/components/LoadingErrorTip/index.vue'
 import LoadingMore, { ExposeVar } from '@/components/LoadingMore/index.vue'
@@ -84,7 +84,7 @@ async function getCloudPlaylistHighqualityData() {
 
     if (!err && result) {
         const { code, data } = result.data;
-        playlist.push(...formatPlaylistInfo(data.playlist, AudioInfoType.cloud));
+        playlist.push(...formatPlaylistInfo(data.playlist, PlaylistType.cloud));
         lasttime.value = data.lasttime;
         // 第一次加载完成
         fristLoading.value = false;

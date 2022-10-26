@@ -1,26 +1,9 @@
 import { defaultMusicImg } from "@/assets/api";
-import { PlaylistType, MusicInfo, PlaylistInfo } from "@/interface";
+import { PlaylistType, MusicInfo, CustomPlaylist } from "@/interface";
 
 const localStoragePlaylist = 'customPlaylist';
 export const localStoragePlaylistEvent = 'customPlaylistEvent';
 
-interface CustomPlaylist extends PlaylistInfo {
-    type: PlaylistType.localStorage
-    id: number
-    title: string
-    updateTime: number
-    createTime: number
-    cover: string
-    description: string
-    playCount: number
-    tracks: MusicInfo[]
-    trackCount: number
-    creator: {
-        userId: number
-        name: string
-        avatarUrl: string
-    },
-}
 /** 获取 localStorage 里的自定义歌单 */
 export function getAllCustomPlaylist(): CustomPlaylist[] {
     let customPlaylist = localStorage.getItem(localStoragePlaylist) as (null | string);
@@ -45,6 +28,7 @@ export function getCustomPlaylistWithId(id: number): CustomPlaylist | null {
     }
     return null;
 }
+/** 根据 id 删除自定义歌单 */
 export function deleteCustomPlaylistWithId(id: number) {
     let allPlaylist = getAllCustomPlaylist();
     if (allPlaylist) {
@@ -80,6 +64,11 @@ export function setCustomPlaylist(title: string, songs: MusicInfo[] = []) {
         }
     }
     playlist.unshift(newPlaylist);
+    localStorage.setItem(localStoragePlaylist, JSON.stringify(playlist));
+    window.dispatchEvent(new Event(localStoragePlaylistEvent));
+}
+/** 更新自定义歌单 */
+export function updateCustomPlaylist(playlist: CustomPlaylist[]) {
     localStorage.setItem(localStoragePlaylist, JSON.stringify(playlist));
     window.dispatchEvent(new Event(localStoragePlaylistEvent));
 }

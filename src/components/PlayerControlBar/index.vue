@@ -218,13 +218,16 @@
             margin: 0 20px;
         }
         &_cover {
-            width: 72px;
-            min-width: 72px;
-            height: 72px;
+            width: 60px;
+            min-width: 60px;
+            height: 60px;
+            margin: 0 10px;
             display: flex;
             align-items: center;
             justify-content: center;
             user-select: none;
+            border-radius: 8px;
+            overflow: hidden;
             &-img {
                 width: 100%;
                 height: 100%;

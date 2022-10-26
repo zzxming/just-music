@@ -1,8 +1,6 @@
 <template>
-    <div class="login" @click="dialogVisible = true">登录</div>
-    
     <el-dialog
-        v-model="dialogVisible"
+        v-model="cloudLoginVisible"
         title="网易云音乐登录"
         width="400px"
         :destroy-on-close="true"
@@ -25,7 +23,7 @@
 
         <template #footer>
             <span class="dialog-footer">
-                <el-button @click="dialogVisible = false">取消</el-button>
+                <el-button @click="cloudLoginVisible = false">取消</el-button>
                 <el-button type="danger" @click="submitLogin">登录</el-button>
             </span>
         </template>
@@ -33,28 +31,20 @@
 </template>
 
 <style lang="less" scoped>
-.login {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 40px;
-    height: 100%;
-    margin-right: 20px;
-    color: var(--el-color-info);
-    cursor: pointer;
-    &:hover {
-        color: var(--el-color-danger);
-    }
-}
+
 </style>
 
 <script lang="ts" setup>
 import { ref, reactive } from 'vue';
 import { FormInstance, ElMessage } from 'element-plus';
 import { postCloudLogin } from '@/assets/cloudApi';
+import { usePopoutStore } from '@/store/popout';
+import { storeToRefs } from 'pinia';
+
+const popoutStore = usePopoutStore();
+const { cloudLoginVisible } = storeToRefs(popoutStore);
 
 const ruleFormRef = ref<FormInstance>();
-const dialogVisible = ref(false);
 const ruleForm = reactive({
     phone: '',
     password: '',
@@ -81,7 +71,7 @@ function submitLogin() {
                     message: result.data.data.message
                 });
                 if (result.data.data.code === 200) {
-                    dialogVisible.value = false;
+                    cloudLoginVisible.value = false;
                     return true;
                 }
                 return false;

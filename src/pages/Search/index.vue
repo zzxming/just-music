@@ -17,7 +17,7 @@
                 </el-tab-pane>
             </el-tabs>
         </div>
-        <div v-loading="fristLoading && !loadingError">
+        <div v-loading="fristLoading && !loadingError" class="search_result">
             <Songlist 
                 v-if="!fristLoading || !loadingError" 
                 :songs="songsData" 
@@ -30,7 +30,6 @@
 </template>
 
 
-<!-- songlist 在添加数据的时候滚动体任然在最底部,  -->
 
 <style lang="less" scoped>
 .search {
@@ -55,6 +54,13 @@
         .is-active &_item {
             color: var(--el-color-danger-light-3);
         }
+    }
+    &_result {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
     }
 }
 .load {

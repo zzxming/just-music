@@ -12,17 +12,17 @@
     justify-content: center;
     position: absolute;
     width: 240px;
-    padding: 20px 0;
+    padding: 10px 0;
     border-radius: 8px;
     box-shadow: var(--el-box-shadow-light);
     background-color: var(--el-color-white);
-    z-index: 11;
+    z-index: 3000;      // elementplus 的 drawer 的 z-index 是 2004, 要在他之上
 }
 
 </style>
 
 <script lang="ts" setup>
-import { ref, watch, nextTick } from 'vue';
+import { ref, watch, nextTick, toRefs } from 'vue';
 
 
 export interface PopoutPosition {
@@ -31,26 +31,41 @@ export interface PopoutPosition {
     bottom?: number | string
     right?: number | string
 }
-const props = defineProps<{
-    show: boolean
-    position: PopoutPosition
-}>();
+const props = withDefaults(
+    defineProps<{
+        show: boolean
+        position: PopoutPosition,
+        limitPosition?: boolean
+    }>(), {
+        limitPosition: true
+    }
+);
 const emit = defineEmits<{
     (event: 'close'): void
 }>();
 
+const { show, position, limitPosition } = toRefs(props);
 const pop = ref<HTMLDivElement>();
+const popoutPosition = ref<PopoutPosition>(props.position);
 
-
-watch(() => props.show, () => {
-    if (props.show) {
+defineExpose({
+    pop
+});
+/** 点击其他地方关闭 popout */
+watch(() => props.show, (val) => {
+    if (val) {
         document.addEventListener('click', closePopout);
     }
     else {
         document.removeEventListener('click', closePopout);
     }
 });
+/** 防止 popout 超时视口 */
 watch(() => props.position, (val) => {
+    if (!limitPosition.value){
+        popoutPosition.value = { ...val }
+        return;
+    }
     // 使用 nextTick 获取 pop 的宽度和高度
     nextTick(() => {
         if (!pop.value) {
@@ -61,40 +76,40 @@ watch(() => props.position, (val) => {
         const { clientWidth: totalWidth,  } = document.body;
         // 使用视口高度进行判断
         const { innerHeight: totalHeight, scrollY } = window;
-        let position: PopoutPosition = {
-            ...val
-        }
         
-        if (typeof position.left !== 'number') {
-            position.left = Number(position.left.split('px')[0]);
-            if (isNaN(position.left)) return;
+        // console.log(clientHeight, clientWidth)
+        // console.log(totalWidth, totalHeight, scrollY)
+        let tempPosition = {...position.value}
+        if (typeof tempPosition.left !== 'number') {
+            tempPosition.left = parseFloat(tempPosition.left);
+            if (isNaN(tempPosition.left)) return;
         }
-        if (typeof position.top !== 'number') {
-            position.top = Number(position.top.split('px')[0]);
-            if (isNaN(position.top)) return;
+        if (typeof tempPosition.top !== 'number') {
+            tempPosition.top = parseFloat(tempPosition.top);
+            if (isNaN(tempPosition.top)) return;
         }
-        position.left += 10;
-        position.top += 20;
-        // 超出视口跳转回来
-        if (position.left + clientWidth > totalWidth) {
-            position.right = `${totalWidth - position.left + 20}px`;
-            position.left = 'auto';
-        }
-        if (position.top + clientHeight > scrollY + totalHeight) {
-            position.top = `${position.top - clientHeight - 20}px`;
-        }
-        // console.log(position)
-        // 保证最后是字符串 px 
-        if (!isNaN(Number(position.top))) position.top = `${position.top}px`;
-        if (!isNaN(Number(position.left))) position.left = `${position.left}px`;
-        popoutPosition.value = position;
-    })
-}, { deep: true });
 
-const popoutPosition = ref<PopoutPosition>({
-    left: 0,
-    top: 0
-});
+        tempPosition.left += 10;
+        tempPosition.top += 20;
+        // 超出视口跳转回来
+        if (tempPosition.left + clientWidth > totalWidth) {
+            tempPosition.right = `${totalWidth - tempPosition.left + 20}px`;
+            tempPosition.left = 'auto';
+        }
+        if (tempPosition.top + clientHeight > scrollY + totalHeight) {
+            tempPosition.top = `${tempPosition.top - clientHeight - 20}px`;
+        }
+        // console.log(props.tempPosition)
+        // console.log(tempPosition)
+        // 保证最后是字符串 px 
+        if (!isNaN(Number(tempPosition.top))) tempPosition.top = `${tempPosition.top}px`;
+        if (!isNaN(Number(tempPosition.left))) tempPosition.left = `${tempPosition.left}px`;
+        popoutPosition.value = tempPosition;
+    })
+}, { deep: true, immediate: true });
+
+
+
 /** 关闭弹窗 */
 function closePopout() {
     emit('close');

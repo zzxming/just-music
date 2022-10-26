@@ -4,7 +4,7 @@ import { jointQuery, mediaSrc } from "@/assets/api";
 import { getMusicSrcWithCloudId } from "@/assets/cloudApi";
 import { AudioInfoType, LocalAudioInfo, CloudAudioInfo, MusicInfo, PlayMode } from "@/interface"
 import { formatMusicInfo, isType } from "@/utils"
-import { ElMessageBox } from "element-plus";
+import { ElMessageBox, ElMessage } from "element-plus";
 
 const initAudioInfo = {
     type: AudioInfoType.local,
@@ -58,12 +58,26 @@ export const usePlayerStore = defineStore('player', () => {
             audioInfo.value = result;
         }
         showPlayerControl.value = true;
-        if (audioInfo.value.fee === 1) {
+
+        // 网易云音乐没有其他版本, 下架了
+        if (audioInfo.value.st === -200) {
+            ElMessage({
+                type: 'error',
+                message: '当前歌曲网易云音乐已下架'
+            })
+        }
+        // 网易云音乐有其他版本
+        else if (audioInfo.value.noCopyrightRcmd) {
+            ElMessage({
+                type: 'error',
+                message: '此歌曲无法在网易云音乐播放'
+            })
+        } 
+        else if (audioInfo.value.fee === 1) {
             ElMessageBox.alert(`正在试听 ${audioInfo.value.title} 歌曲片段`, '', {
                 center: true
             })
         }
-
 
         let src: string | null;
         let audioInfoCur = audioInfo.value;

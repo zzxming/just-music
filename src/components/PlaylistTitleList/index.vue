@@ -11,13 +11,6 @@
             </div>
         </li>
     </ul>
-    <MusicAndPlaylistPopout 
-        :show="popoutVisible" 
-        :position="popoutPosition" 
-        :holdData="popoutHoldData"
-        @click="() => emit('clickItem')" 
-        @close="popoutVisible = false"
-    />
 </template>
 
 
@@ -45,15 +38,13 @@
 }
 </style>
 
-
 <script lang="ts" setup>
 import { ref, onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { PlaylistInfo, PlaylistType } from '@/interface';
 import { jointQuery } from '@/assets/api';
 import { getAllCustomPlaylist, localStoragePlaylistEvent } from '@/utils/localStorage';
-import { PopoutPosition } from '@/components/Popout/index.vue';
-import MusicAndPlaylistPopout from '@/components/Popout/MusicAndPlaylistPopout.vue';
+import { usePopoutStore } from '@/store/popout';
 
 const router = useRouter();
 const { canOperate } = withDefaults(defineProps<{
@@ -66,13 +57,10 @@ const emit = defineEmits<{
 }>();
 
 
-const popoutVisible = ref(false);
-const popoutPosition = ref<PopoutPosition>({
-    left: 0,
-    top: 0
-});
-const popoutHoldData = ref<PlaylistInfo>();        // 弹出框相关的数据
 
+
+const popoutStore = usePopoutStore();
+const { setPopoutState } = popoutStore;
 
 const playlist = ref<PlaylistInfo[]>([]);
 
@@ -100,13 +88,16 @@ function rightClick(event: MouseEvent, info: PlaylistInfo) {
     if (!canOperate) return;
     // console.log(event)
     event.preventDefault();
-    popoutPosition.value = {
-        left: event.pageX,
-        top: event.pageY,
-    }
-    popoutHoldData.value = info;
-    popoutVisible.value = true;
+    setPopoutState({
+        popoutHoldData: info,
+        popoutVisible: true,
+        popoutCanDelete: info.type === PlaylistType.localStorage,
+        popoutIsMusic: false,
+        popoutPosition: {
+            left: event.pageX,
+            top: event.pageY,
+        }
+    });
 }
-
 </script>
 

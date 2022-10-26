@@ -4,7 +4,7 @@
         <template v-else>
             <div v-show="!loadingError">
                 <span v-show="loading">加载中...</span>
-                <span v-show="!loading" class="load-btn" @click="() => loadFunc()">加载更多</span>
+                <span v-show="!loading" class="load-btn" @click="loadFunc">加载更多</span>
             </div>
             <LoadingErrorTip :isError="!loading && loadingError" :requestFunc="loadFunc" />
         </template>
@@ -60,6 +60,10 @@ async function loadFunc() {
     }
     else if (state === 0) {
         haveMore.value = false;
+    }
+    else {
+        haveMore.value = true;
+        loadingError.value = false;
     }
 }
 

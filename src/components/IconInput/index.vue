@@ -101,7 +101,7 @@ function blur() {
 }
 /** input提交 */
 function submitInput() {
-    console.log('submit input', input.value)
+    // console.log('submit input', input.value)
     emit('submit', input.value);
 }
 

@@ -25,8 +25,6 @@
                     <el-icon class="playinglist_list_item-delete" @click.stop="() => deleteFromPlayinglist(songInfo)"><Close /></el-icon>
                 </li>
             </ul>
-            <!-- 
-             -->
         </div>
     </div>
     <div v-show="active" class="mask" @click="maskClick"></div>
@@ -154,7 +152,7 @@
 </style>
 
 <script lang="ts" setup>
-import { ref } from 'vue'
+import { ElMessage } from 'element-plus'
 import { storeToRefs } from 'pinia';
 import { usePlaylistStore } from '@/store/playinglist'
 import { usePlayerStore } from '@/store/player'
@@ -194,9 +192,14 @@ function deleteFromPlayinglist(info: MusicInfo) {
         resetAudioInfo();
     }
 }
+/** 清空播放列表 */
 function clearPlayinglist() {
     playinglistReplace([]);
     resetAudioInfo();
+    ElMessage({
+        type: 'success',
+        message: '播放列表已清空'
+    });
 }
 
 </script>

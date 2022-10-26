@@ -10,7 +10,7 @@
             <div class="drawer_header">
                 <span class="drawer_header_title">
                     创建的歌单
-                    <div class="drawer_btn" @click="dialogVisible = true">
+                    <div class="drawer_btn" @click="createPlaylistVisible = true">
                         <el-icon><Plus /></el-icon>
                     </div>
                 </span>
@@ -19,7 +19,6 @@
         
         <PlaylistTitleList @clickItem="() => emit('close')" />
     </el-drawer>
-    <CreatePlaylist :visible="dialogVisible" @close="dialogVisible = false" />
 </template>
 
 <style lang="less" scoped>
@@ -63,11 +62,11 @@
 </style>
 
 <script lang="ts" setup>
-import { ref } from 'vue';
+import { onMounted, onUnmounted } from 'vue';
+import { storeToRefs } from 'pinia';
 import { useIsSmallScreen } from '@/hooks';
+import { popoutCloseEvent, usePopoutStore } from '@/store/popout';
 import PlaylistTitleList from '@/components/PlaylistTitleList/index.vue';
-import CreatePlaylist from '@/components/CreatePlaylist/index.vue';
-
 
 const { show } = defineProps<{
     show: boolean
@@ -77,8 +76,19 @@ const emit = defineEmits<{
 }>();
 const smallScreen = useIsSmallScreen();
 
-const dialogVisible = ref(false);
+const popoutStore = usePopoutStore();
+const { createPlaylistVisible } = storeToRefs(popoutStore);
 
+onMounted(() => {
+    window.addEventListener(popoutCloseEvent, close)
+});
+onUnmounted(() => {
+    window.removeEventListener(popoutCloseEvent, close)
+});
 
+function close() {
+    console.log('close?')
+    emit('close');
+}
 </script>
 

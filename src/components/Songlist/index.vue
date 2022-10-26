@@ -1,188 +1,190 @@
 <template>
-    <div class="songlist">
-        <el-table 
-            class="songlist_large"
-            :data="songs" 
-            stripe 
-            style="width: 100%" 
-            :empty-text="emptyText"
-            :row-class-name="tableRowClass"
-            :row-key="(row: MusicInfo) => row.id"
-            @row-contextmenu="showPopbox"
-            @row-dblclick="playSong"
-        >
-            <el-table-column prop="index" :min-width="smallScreen ? '' : '50px'" :width="smallScreen ? '58px' : ''">
-                <template #default="scope">
-                    <div class="songlist_column index">
-                        <span class="songlist_index">{{ twoDigitStr(scope.$index + 1) }}</span>
-                        <span class="el-icon songlist_playing"><Playing /></span>
+        <div class="songlist">
+        <div class="songlist_header">
+            <div class="songlist_index"></div>
+            <div class="songlist_title">标题</div>
+            <div class="songlist_singer" v-if="!smallScreen">歌手</div>
+            <div class="songlist_duration">时间</div>
+        </div>
+        <div class="songlist_body">
+            <div 
+                v-for="(song, index) in songs" 
+                :class="`songlist_item ${index % 2 === 0 ? 'stripe' : ''} ${activeId === song.id ? 'active' : ''} ${song.st === -200 ? 'disable' : ''}`"
+                @dblclick="(e) => playSong(e, song)"
+                @contextmenu="(e) => showPopbox(e, song)"
+            >
+                <div class="songlist_index">
+                    <span class="songlist_index-text">{{ twoDigitStr(index + 1) }}</span>
+                    <span class="el-icon songlist_index-icon playing"><Playing /></span>
+                </div>
+                <div class="songlist_title">
+                    <div class="songlist_title-title">
+                        <span class="songlist_title-text" :title="song.title">{{song.title}}</span>
+                        <span v-if="song.fee === 1" class="el-icon songlist_title-icon"><Vip /></span>
                     </div>
-                </template>
-            </el-table-column>
-            <el-table-column prop="title" label="标题" min-width="180px">
-                <template #default="scope">
-                    <div class="songlist_column_incell">
-                        <div class="songlist_column title">
-                            <div class="songlist_title">
-                                <span :title="scope.row.title">{{scope.row.title}}</span>
-                            </div>
-                            <span v-if="scope.row.fee === 1" class="el-icon songlist_title-icon"><Vip /></span>
-                        </div>
-                        <div v-if="smallScreen" class="songlist_column singer" :title="scope.row.singers.map((s: Singer) => s.name).join(' / ')">
-                            <span class="songlist_singer">
-                                <template v-for="(singer, index) in scope.row.singers">
-                                    <span class="songlist_singer_item">{{ singer.name }}</span>
-                                    {{ index === scope.row.singers.length - 1 ? '' : '&nbsp;/&nbsp;'}}
-                                </template>
-                            </span>
-                        </div>
-                    </div>
-                </template>
-            </el-table-column>
-            <el-table-column prop="singers" label="歌手" min-width="120px" v-if="!smallScreen">
-                <template #default="scope">
-                    <div class="songlist_column singer" :title="scope.row.singers.map((s: Singer) => s.name).join(' / ')">
+                    <div v-if="smallScreen" class="songlist_title-singer" :title="song.singers.map((s: Singer) => s.name).join(' / ')">
                         <span class="songlist_singer">
-                            <template v-for="(singer, index) in scope.row.singers">
+                            <template v-for="(singer, index) in song.singers">
                                 <span class="songlist_singer_item">{{ singer.name }}</span>
-                                {{ index === scope.row.singers.length - 1 ? '' : '&nbsp;/&nbsp;'}}
+                                {{ index === song.singers.length - 1 ? '' : '&nbsp;/&nbsp;'}}
                             </template>
                         </span>
                     </div>
-                </template>
-            </el-table-column>
-            <el-table-column prop="duration" label="时间" min-width="60px">
-                <template #default="scope">
-                    <div class="songlist_column duration">
-                        <span class="songlist_duration">{{formatAudioTime(scope.row.duration / 1000)}}</span>
-                    </div>
-                </template>
-            </el-table-column>
-        </el-table>
+                </div>
+                <div v-if="!smallScreen" class="songlist_singer" :title="song.singers.map((s: Singer) => s.name).join(' / ')">
+                    <span class="songlist_singer">
+                        <template v-for="(singer, index) in song.singers">
+                            <span class="songlist_singer_item">{{ singer.name }}</span>
+                            {{ index === song.singers.length - 1 ? '' : '&nbsp;/&nbsp;'}}
+                        </template>
+                    </span>
+                </div>
+                <div class="songlist_duration">
+                    <span class="songlist_duration">{{ formatAudioTime(song.duration / 1000) }}</span>
+                </div>
+            </div>
+        </div>
     </div>
-    <MusicAndPlaylistPopout 
-        :show="popoutVisible" 
-        :position="popoutPosition" 
-        :holdData="popoutHoldData"
-        :isMusic="true"
-        @close="popoutVisible = false"
-    />
-
 </template>
 
 
 <style lang="less" scoped>
+.songlist {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    box-sizing: border-box;
+    width: 100%;
+    padding-bottom: 40px;
+    border-radius: 10px;
+    cursor: default;
+    background-color: var(--el-bg-color-overlay);
+    &_header,
+    &_item {
+        display: grid;
+        align-items: center;
+        justify-content: center;
+        grid-template-areas: 'index title singer duration';
+        grid-template-columns: minmax(auto, 1fr) 6fr 4fr minmax(auto, 1fr);
+        grid-gap: 10px;
+        width: 100%;
+        height: 36px;
+    }
+    &_body {
+        width: 100%;
+    }
+    &_header {
+        color: var(--el-color-info);
+        font-size: 14px;
+    }
+    &_item {
+        height: 40px;
+        font-size: 16px;
+        color: var(--el-color-info-light-3);
+        font-weight: lighter;
+        background-color: var(--el-bg-color);
+        &.stripe {
+            background-color: var(--el-color-info-light-9);
+        }
+        &.active {
+            background-color: var(--el-color-info-light-7);
+            .songlist {
+                &_index {
+                    color: var(--el-color-danger);
+                    &-text {
+                        display: none;
+                    }
+                    &-icon.playing {
+                        display: block;
+                    }
+                }
+                &_title {
+                    color: var(--el-color-danger);
+                }
+            }
+        }
+        &.disable {
+            .songlist_title {
+                color: var(--el-color-info-light-5);
+            }
+        }
+        &:hover {
+            background-color: var(--el-color-info-light-8);
+        }
+    }
+    &_index,
+    &_title,
+    &_singer,
+    &_duration {
+        margin-right: 6px;
+        padding: 0 4px;
+    }
+    &_index {
+        grid-area: index;
+        box-sizing: border-box;
+        padding: 0 10px;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        &-icon {
+            display: none;
+        }
+    }
+    &_title:extend(.textOverflowEllipsis) {
+        grid-area: title;
+        color: var(--el-text-color-primary);
+        &-title {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+        }
+        &-text:extend(.textOverflowEllipsis) {
+            
+        }
+        &-icon {
+            margin-left: 4px;
+            font-size: 30px;
+        }
+    }
+    &_singer:extend(.textOverflowEllipsis) {
+        grid-area: singer;
+    }
+    &_duration {
+        grid-area: duration;
+    }
+}
+
+@media screen and (max-width: 550px) {
+    .songlist {
+        &_header,
+        &_item {
+            grid-template-areas: 'index title duration';
+            grid-template-columns: minmax(auto, 1fr) 6fr minmax(auto, 1fr);
+        }
+        &_item {
+            height: 64px;
+        }
+    }
+}
+
 .textOverflowEllipsis {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
-.songlist {
-    box-sizing: border-box;
-    width: 100%;
-    padding-bottom: 50px;
-    cursor: default;
-    .active {
-        .songlist_column.index {
-            color: var(--el-text-color-primary);
-        }
-        .songlist_index {
-            display: none;
-        }
-        .songlist_playing {
-            display: block;
-        }
-        .songlist_title {
-            color: var(--el-text-color-primary);
-        }
-    }
-    .disable {
-        .songlist_title {
-            color: var(--el-text-color-disabled);
-        }
-    }
-    &_index {
-        color: var(--el-color-info-light-3);
-    }
-    &_playing {
-        display: none;
-    }
-    &_column:extend(.textOverflowEllipsis) {
-        display: flex;
-        align-items: center;
-        justify-content: flex-start;
-        &_incell {
-            display: flex;
-            flex-direction: column;
-            .singer {
-                font-size: 12px;
-            }
-        }
-        &.index {
-            color: var(--el-color-info-light-3);
-        }
-        &.title {
-            
-        }
-        &.singer {
-
-        }
-    }
-    &_title:extend(.textOverflowEllipsis) {
-        color: var(--el-text-color-regular);
-        &-icon {
-            width: 30px;
-            font-size: 30px;
-            color: var(--el-color-info);
-        }
-    }
-    &_singer:extend(.textOverflowEllipsis) {
-        &_item {
-            color: var(--el-color-info);
-            cursor: pointer;
-            &:hover {
-                color: var(--el-text-color-primary);
-            }
-        }
-    }
-    &_duration {
-    }
-}
-
-:deep(.el-table--striped .el-table__body tr.el-table__row.active td.el-table__cell) {
-    background-color: var(--el-color-danger-light-7);
-}
-:deep(.el-table--striped .el-table__body tr.el-table__row.disable td.el-table__cell) {
-    background-color: var(--el-color-info-light-9);
-}
-:deep(.el-table--enable-row-hover .el-table__body tr:hover>td.el-table__cell) {
-    background: var(--el-color-danger-light-8);
-    color: var(--el-color-info);
-}
-
-
-@media screen and (max-width: 550px) {
-    .songlist {
-        &_column {
-            &.title {
-                font-size: 18px;
-            }
-        }
-    }
-}
 </style>
 
 
 <script lang="ts" setup>
-import { TableColumn } from 'element-plus/es/components/table/src/table-column/defaults';
 import { storeToRefs } from 'pinia';
 import { ref, watch, toRefs } from 'vue';
-import { ElMessage } from 'element-plus';
 import Vip from '@/assets/iconfont/vip.vue';
 import Playing from '@/assets/iconfont/playing.vue';
 import { MusicInfo, Singer } from '@/interface';
 import { usePlayerStore } from '@/store/player';
 import { usePlaylistStore } from '@/store/playinglist';
+import { usePopoutStore } from '@/store/popout';
 import { formatAudioTime, twoDigitStr } from '@/utils';
 import { PopoutPosition } from '@/components/Popout/index.vue';
 import { useIsSmallScreen } from '@/hooks';
@@ -192,15 +194,19 @@ import MusicAndPlaylistPopout from '@/components/Popout/MusicAndPlaylistPopout.v
 const smallScreen = useIsSmallScreen();
 const playerStore = usePlayerStore();
 const playlistStore = usePlaylistStore();
+const popoutStore = usePopoutStore();
 const { audioInfo }  = storeToRefs(playerStore);
 const { setAudioInfo } = playerStore;
 const { playinglistReplace } = playlistStore;
+const { setPopoutState } = popoutStore;
 
 const props = withDefaults(defineProps<{
     songs: MusicInfo[]
     emptyText?: string
+    canDeleteSong?: boolean
 }>(), {
     emptyText: '这里什么都没有',
+    canDeleteSong: false
 });
 const { songs, emptyText } = toRefs(props);
 
@@ -217,39 +223,34 @@ watch(audioInfo, () => activeId.value = audioInfo.value.id)
 
 
 /** 双击播放歌曲 */
-async function playSong(row: MusicInfo, column: TableColumn<MusicInfo>, event: MouseEvent) {
-    // console.log(column)
-    // console.log(row)
-    if (row.st === -200) {
-        ElMessage({
-            type: 'error',
-            message: '当前歌曲网易云音乐已下架'
-        })
-        return;
-    }
-    if (audioInfo.value.id !== row.id) {
-        activeId.value = row.id;
+async function playSong(event: MouseEvent, song: MusicInfo) {
+    if (audioInfo.value.id !== song.id) {
+        activeId.value = song.id;
+        setAudioInfo(song);
         playinglistReplace(songs.value);
-        setAudioInfo(row);
     }
-}
-/** 激活的歌曲行 */
-function tableRowClass(data: {row: MusicInfo}) {
-    let str = 'songlist_item';
-    (data.row.id === activeId.value) && (str += ' active');
-    (data.row.st === -200) && (str += ' disable');
-    return str
 }
 /** 展示弹出框 */
-function showPopbox(row: MusicInfo, column: TableColumn<MusicInfo>, event: MouseEvent) {
+function showPopbox(event: MouseEvent, song: MusicInfo) {
     // console.log(event)
     event.preventDefault();
-    popoutVisible.value = true;
-    popoutPosition.value = {
-        left: event.pageX,
-        top: event.pageY,
-    }
-    popoutHoldData.value = row;
+    // popoutVisible.value = true;
+    // popoutPosition.value = {
+    //     left: event.pageX,
+    //     top: event.pageY,
+    // }
+    // popoutHoldData.value = song;
+    
+    setPopoutState({
+        popoutVisible: true,
+        popoutPosition: {
+            left: event.pageX,
+            top: event.pageY,
+        },
+        popoutHoldData: song,
+        popoutIsMusic: true,
+        popoutCanDelete: props.canDeleteSong
+    })
 }
 </script>
 

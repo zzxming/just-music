@@ -1,6 +1,6 @@
 <template>
     <div class="playlist">
-        <PlaylistList v-loading="fristLoading && !loadingError"  :isTopList="isTopList" :playlist="playlist" :type="AudioInfoType.cloud" />
+        <PlaylistList v-loading="fristLoading && !loadingError"  :isTopList="isTopList" :playlist="playlist" :type="PlaylistType.cloud" />
         <LoadingErrorTip :isError="fristLoading && loadingError" :requestFunc="getCloudPlaylistPersonalized" />
     </div>
     <LoadingMore v-show="isTopList && !fristLoading" ref="loadMore" :requestFunc="getCloudPlaylistPersonalized" />
@@ -19,7 +19,7 @@
 
 <script lang="ts" setup>
 import { ref, reactive, onMounted, watch, nextTick } from 'vue';
-import { AudioInfoType, PlaylistInfo, PlaylistInfoPartial } from '@/interface'
+import { PlaylistType, PlaylistInfoPartial } from '@/interface'
 import { getCloudPersonalized, PlaylistVal } from '@/assets/cloudApi';
 import LoadingErrorTip from '@/components/LoadingErrorTip/index.vue'
 import LoadingMore, { ExposeVar } from '@/components/LoadingMore/index.vue'

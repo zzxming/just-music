@@ -6,7 +6,7 @@
                 <li 
                     v-for="tag in playlistTag" 
                     :class="`playlist_title_tag-item ${tag.id === Number(id) ? 'active' : ''}`" 
-                    @click="() => router.push(jointQuery(`/playlist`, { id: tag.id }))"
+                    @click="() => router.replace(jointQuery(`/playlist`, { id: tag.id }))"
                 >
                     {{ tag.title }}
                 </li>

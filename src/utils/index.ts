@@ -88,6 +88,7 @@ export function formatAudioTime(num: number) {
     let second = Math.floor(duration - minutes * 60);
     if (minutes >= 60) {
         let hour = Math.floor(minutes / 60);
+        minutes = Math.floor((duration - (hour * 60 * 60)) / 60);
         return `${twoDigitStr(hour)}:${twoDigitStr(minutes)}:${twoDigitStr(second)}`
     }
     return `${twoDigitStr(minutes)}:${twoDigitStr(second)}`

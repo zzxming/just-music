@@ -5,7 +5,10 @@
                 v-for="item in playlist" 
                 class="playlist_list_wrap"
             >
-                <div class="playlist_list_item" @click="gotoPlaylistDetail(item.id, type)">
+                <div 
+                    class="playlist_list_item"
+                    @click="gotoPlaylistDetail(item.id, type)"
+                >
                     <div class="playlist_list_item-cover">
                         <el-icon class="playlist_list_item-icon play"><VideoPlay /></el-icon>
                         <span class="playlist_list_item-playcount">
@@ -181,7 +184,7 @@
 </style>
 
 <script lang="ts" setup>
-import { AudioInfoType, PlaylistInfoPartial } from '@/interface';
+import { PlaylistType, PlaylistInfoPartial } from '@/interface';
 import { throttle } from 'lodash';
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
@@ -191,7 +194,7 @@ const musicImg = ref('/api/imgs/music.jpg');
 const { isTopList } = defineProps<{
     isTopList: boolean
     playlist: PlaylistInfoPartial[]
-    type: AudioInfoType
+    type: PlaylistType
 }>();
 const router = useRouter();
 
@@ -207,7 +210,7 @@ function formatPlayCount(num: number) {
     return `${num}`
 }
 /** 跳转至歌单内歌曲列表 */
-function gotoPlaylistDetail(id: number, type: AudioInfoType) {
+function gotoPlaylistDetail(id: number, type: PlaylistType) {
     router.push(`/playlist/detail?id=${id}&t=${type}`)
 }
 /** 图片加载失败 */

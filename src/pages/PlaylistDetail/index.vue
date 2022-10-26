@@ -41,8 +41,16 @@
                 </div>
             </div>
             <div class="playlist_song" v-loading="loadingSong" v-show="playlistInfo">
-                <Songlist v-if="!loadingSong && !loadingSongError" :songs="songsInfo" />
-                <LoadingErrorTip :style="{alignSelf: 'center'}" :isError="!loadingSong && loadingSongError" :requestFunc="getPlaylistTrackWithId.bind(undefined, Number(props.id), props.t)" />
+                <Songlist 
+                    v-if="!loadingSong && !loadingSongError" 
+                    :songs="songsInfo" 
+                    :canDeleteSong="playlistInfo?.type === PlaylistType.localStorage" 
+                />
+                <LoadingErrorTip 
+                    :style="{alignSelf: 'center'}" 
+                    :isError="!loadingSong && loadingSongError" 
+                    :requestFunc="getPlaylistTrackWithId.bind(undefined, Number(props.id), props.t)" 
+                />
             </div>
         </div>
     </div>
@@ -198,14 +206,14 @@
 </style>
 
 <script lang="ts" setup>
-import { ref, watch } from 'vue';
+import { ref, watch, onMounted, onUnmounted } from 'vue';
 import { UserFilled } from '@element-plus/icons-vue';
 import { getCloudPlaylistDetail, getCloudPlaylistTrack } from '@/assets/cloudApi';
 import { AudioInfoType, MusicInfo, PlaylistInfo, PlaylistType } from '@/interface';
 import { formatMusicInfo, formatPlaylistInfo } from '@/utils';
 import LoadingErrorTip from '@/components/LoadingErrorTip/index.vue';
 import Songlist from '@/components/Songlist/index.vue';
-import { getCustomPlaylistWithId } from '@/utils/localStorage';
+import { getCustomPlaylistWithId, localStoragePlaylistEvent } from '@/utils/localStorage';
 import { useRouter } from 'vue-router';
 
 
@@ -229,7 +237,16 @@ const descriptionOpen = ref(false);
 
 watch([() => props.id, () => props.t], () => {
     requestPlaylistData();
-}, { immediate: true })
+}, { immediate: true });
+
+onMounted(() => {
+    if (props.t === PlaylistType.localStorage) {
+        window.addEventListener(localStoragePlaylistEvent, requestPlaylistData);
+    }
+});
+onUnmounted(() => {
+    window.removeEventListener(localStoragePlaylistEvent, requestPlaylistData);
+});
 
 
 /** 请求歌单信息 */
