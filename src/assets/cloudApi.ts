@@ -74,24 +74,24 @@ export const getCloudPersonalized = async (
         limit: number
     }
 ) => await to<AxiosResponse<AxiosResult<PlaylistInfoPartial[]>>, AxiosResultError>(
-        axios.get(jointQuery('/music/cloud/playlist/personalized', query))
-        .then((response: AxiosResponse<AxiosResult<PersonalizedPlaylistResponse[]>>) => {
-            // console.log(response)
-            return {
-                ...response,
-                data: {
-                    ...response.data,
-                    data: response.data.data.map(item => ({
-                        type: PlaylistType.cloud,
-                        id: item.id,
-                        title: item.name,
-                        cover: item.picUrl,
-                        playCount: item.playCount
-                    }))
-                }
+    axios.get(jointQuery('/music/cloud/playlist/personalized', query))
+    .then((response: AxiosResponse<AxiosResult<PersonalizedPlaylistResponse[]>>) => {
+        // console.log(response)
+        return {
+            ...response,
+            data: {
+                ...response.data,
+                data: response.data.data.map(item => ({
+                    type: PlaylistType.cloud,
+                    id: item.id,
+                    title: item.name,
+                    cover: item.picUrl,
+                    playCount: item.playCount
+                }))
             }
-        })
-    )
+        }
+    })
+)
 
 
 export interface SearchCloudResult extends AxiosResult<CloudMusic[]> {
@@ -144,12 +144,24 @@ export const postCloudLogin = async (
         phone: string, 
         password: string
     }
-) => await to<AxiosResponse<AxiosResult<{code: number, message: string}>>, AxiosResultError>(axios.post(`/music/cloud/user/login`, { ...params }))
-/** 获取用户网易云登录状态 */
-export const getCloudUserStatue = async () => await to<boolean, AxiosResultError>(
-    axios.get('/music/cloud/user/status')
+) => await to<AxiosResponse<AxiosResult<{code: number, message: string}>>, AxiosResultError>(
+    axios.post(`/music/cloud/user/login`, { ...params })
+)
+/** 获取网易云用户登录状态 */
+export const getCloudUserState = async () => await to<boolean, AxiosResultError>(
+    axios.post('/music/cloud/user/status')
     .then((res: AxiosResponse<AxiosResult<{account: Object}>>) => {
+        // console.log(res)
         return !!res.data.data.account
     })
 )
+/** 刷新网易云用户登录状态 */
+export const refreshCloudUserState = async () => await to<AxiosResponse<AxiosResult<undefined>>, AxiosResultError>(
+    axios.post('/music/cloud/user/refresh')
+)
+/** 退出网易云用户登录 */
+export const postCloudLogout = async () => await to<AxiosResponse<AxiosResult<undefined>>, AxiosResultError>(
+    axios.post('/music/cloud/user/logout')
+)
+
 

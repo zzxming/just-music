@@ -69,8 +69,9 @@ function submitLogin() {
                     type: result.data.code === 200 ? 'success' : 'error',
                     message: result.data.code === 200 ? '登录成功' : result.data.data.message
                 });
-                if (result.data.data.code === 200) {
+                if (result.data.code === 200) {
                     (popoutStore.cloudLoginVisible as unknown as boolean) = false;
+                    (popoutStore.cloudIsLogin as unknown as boolean) = true;
                     return true;
                 }
                 return false;

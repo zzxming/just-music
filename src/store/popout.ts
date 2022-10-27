@@ -13,6 +13,7 @@ export const usePopoutStore = defineStore('popout', () => {
     const createPlaylistVisible = ref(false);
     /** cloudLogin 组件显示状态 */
     const cloudLoginVisible = ref(false);
+    const cloudIsLogin = ref(false);
 
     /** MusicAndPlaylistPopout 组件的状态 start */
     const popoutVisible = ref(false);
@@ -42,6 +43,7 @@ export const usePopoutStore = defineStore('popout', () => {
     return {
         createPlaylistVisible,
         cloudLoginVisible,
+        cloudIsLogin,
         popoutVisible,
         popoutPosition,
         popoutHoldData,

@@ -76,9 +76,12 @@
     &_body {
         width: 100%;
     }
-    &_header {
+    &_header:extend(.textOverflowEllipsis) {
         color: var(--el-color-info);
         font-size: 14px;
+        .songlist_duration {
+            margin-right: 24px;
+        }
     }
     &_item {
         height: 40px;

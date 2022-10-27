@@ -7,7 +7,7 @@
             <IconInput v-if="!!inputTxt || inputTxt === ''" class="header_input_input" :inputTxt="inputTxt" @submit="commitSearch" />
         </div>
         <div class="header_right">
-            <div class="header_login" v-if="!islogin" @click="cloudLoginVisible = true">登录</div>
+            <div class="header_login" v-if="!cloudIsLogin" @click="cloudLoginVisible = true">登录</div>
             <el-button class="header_drawer" plain @click="drawer = true">
                 <el-icon><List /></el-icon>
             </el-button>
@@ -92,7 +92,7 @@
 import { watch, ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { jointQuery } from '@/assets/api';
-import { getCloudUserStatue } from '@/assets/cloudApi';
+import { getCloudUserState } from '@/assets/cloudApi';
 import { AudioInfoType } from '@/interface';
 import { usePopoutStore } from '@/store/popout';
 import IconInput from '@/components/IconInput/index.vue';
@@ -107,16 +107,14 @@ const router = useRouter();
 const inputTxt = ref<string>((route.query.kw as string) ?? '');
 
 const popoutStore = usePopoutStore();
-const { cloudLoginVisible } = storeToRefs(popoutStore);
+const { cloudLoginVisible, cloudIsLogin } = storeToRefs(popoutStore);
 
 const drawer = ref(false);
-const islogin = ref(false);
 
 onMounted(async () => {
-    let [err, result] = await getCloudUserStatue();
-    console.log(result)
+    let [err, result] = await getCloudUserState();
     if (!err) {
-        islogin.value = !!result;
+        (popoutStore.cloudIsLogin as unknown as boolean) = !!result;
     }
 })
 

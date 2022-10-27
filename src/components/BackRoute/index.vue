@@ -1,5 +1,5 @@
 <template>
-    <el-button plain class="back" @click="backRoute">
+    <el-button plain class="back" @click="goBack">
         <el-icon><ArrowLeft /></el-icon>
     </el-button>
 </template>
@@ -14,15 +14,11 @@
 </style>
 
 <script lang="ts" setup>
-import { useRouter } from 'vue-router'
+import { useRouteHistory } from '@/hooks';
 
-const router = useRouter();
+const { goBack } = useRouteHistory();
 
-function backRoute() {
-    // console.log(router)
-    // console.log(router.options.history.state)
-    router.back()
-}
+
 
 </script>
 
