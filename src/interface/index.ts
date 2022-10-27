@@ -39,6 +39,7 @@ export interface MusicInfo {
     } | null
     /** -200 表示歌曲下架不能听 */
     st: number
+    full: boolean
 } 
 /** 整合后的歌手信息 */
 export interface Singer {
@@ -98,6 +99,7 @@ export interface CloudAlbumShort {
 }
 /** bili 获取的音频信息 */
 export interface BiliMusic {
+    type: AudioInfoType.bili
     bvid: string
     cid: number
     cover: string

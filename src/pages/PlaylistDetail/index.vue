@@ -6,7 +6,7 @@
             <div v-if="playlistInfo" class="playlist_info">
                 <div class="playlist_info_left">
                     <div class="playlist_info_cover">
-                        <img :src="playlistInfo.cover" alt="歌单封面" />
+                        <img :src="playlistInfo.cover.startsWith('http') ? playlistInfo.cover : mediaSrc(playlistInfo.cover)" alt="歌单封面" />
                     </div>
                 </div>
                 <div class="playlist_info_right">
@@ -215,6 +215,7 @@ import LoadingErrorTip from '@/components/LoadingErrorTip/index.vue';
 import Songlist from '@/components/Songlist/index.vue';
 import { getCustomPlaylistWithId, localStoragePlaylistEvent } from '@/utils/localStorage';
 import { useRouter } from 'vue-router';
+import { mediaSrc } from '@/assets/api';
 
 
 // 本地歌曲的歌单还没有做

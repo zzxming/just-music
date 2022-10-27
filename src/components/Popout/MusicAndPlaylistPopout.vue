@@ -14,6 +14,7 @@
             </template>
         </PopoutItem>
         <PopoutItem topBoder :botBorder="popoutCanDelete" v-if="!popoutIsMusic" @click="collectPlaylist">收藏</PopoutItem>
+        <PopoutItem v-if="!popoutIsMusic && popoutHoldData?.type === PlaylistType.localStorage" @click="uploadPlaylist">上传just</PopoutItem>
         <PopoutItem v-if="popoutCanDelete && popoutIsMusic" @click="deletefromPlaylist">从歌单中删除</PopoutItem>
         <PopoutItem v-if="popoutCanDelete && !popoutIsMusic" @click="deletePlaylist">删除歌单</PopoutItem>
     </Popout>
@@ -29,13 +30,15 @@ import { ElMessage } from 'element-plus';
 import { useRoute } from 'vue-router';
 import { PlaylistInfo, PlaylistType, MusicInfo, CustomPlaylist, AudioInfoType } from '@/interface';
 import { getCloudPlaylistTrack } from '@/assets/cloudApi';
+import { postCreatePlaylist } from '@/assets/localApi';
+import { defaultMusicImg } from "@/assets/api";
 import { usePlaylistStore } from '@/store/playinglist';
 import { usePlayerStore } from '@/store/player';
 import { popoutCloseEvent, usePopoutStore } from '@/store/popout';
+import { formatMusicInfo } from '@/utils';
 import { getAllCustomPlaylist, getCustomPlaylistWithId, deleteCustomPlaylistWithId, updateCustomPlaylist, localStoragePlaylistEvent, setCustomPlaylist } from '@/utils/localStorage';
 import Popout from '@/components/Popout/index.vue';
 import PopoutItem from '@/components/PopoutItem/index.vue';
-import { formatMusicInfo } from '@/utils';
 
 
 const route = useRoute();
@@ -171,6 +174,7 @@ function collectMusic(playlistid: number) {
             }
             customPlaylist.value[i].tracks.unshift(popoutHoldData.value as MusicInfo);
             customPlaylist.value[i].trackCount += 1;
+            customPlaylist.value[i].cover = customPlaylist.value[i].tracks[0].cover || defaultMusicImg;
             break;
         }
     }
@@ -211,6 +215,7 @@ function deletefromPlaylist() {
             }
             customPlaylist.value[i].tracks.splice(index, 1);
             customPlaylist.value[i].trackCount -= 1;
+            customPlaylist.value[i].cover = customPlaylist.value[i].tracks[0].cover || defaultMusicImg;
             break;
         }
     }
@@ -225,6 +230,19 @@ function closePopout() {
     (popoutStore.popoutVisible as unknown as boolean) = false;
     window.dispatchEvent(new Event(popoutCloseEvent));
 }
-
+/** 将歌单上传值数据库 */
+async function uploadPlaylist() {
+    if (popoutHoldData.value) {
+        const data = popoutHoldData.value as CustomPlaylist;
+        console.log(data)
+        let [err, result] = await postCreatePlaylist({...data, songs: data.tracks, creator_id: data.creator.userId})
+        if (!err && result) {
+            ElMessage({
+                type: 'success',
+                message: result.message
+            });
+        }
+    }
+}
 </script>
 

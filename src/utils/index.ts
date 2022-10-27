@@ -1,4 +1,4 @@
-import { LocalAudioInfo, CloudAudioInfo, AudioInfoType, Singer, MusicInfo, CloudMusic, LocalMusic, CloudPlaylist, PlaylistInfo, PlaylistInfoPartial, PlaylistType } from "@/interface";
+import { LocalAudioInfo, CloudAudioInfo, AudioInfoType, Singer, MusicInfo, CloudMusic, LocalMusic, CloudPlaylist, PlaylistInfo, PlaylistInfoPartial, PlaylistType, BiliMusic } from "@/interface";
 import { isArray } from 'lodash';
 
 
@@ -24,15 +24,11 @@ function formatSingleMusicInfo(
     type?: AudioInfoType
 ): MusicInfo {
     // 因为 isType 是通过 ts 的 is 进行判断, 在执行过程中, ts 以及不存在, 所以需要额外的判断
-    // 有 title 就表示是 MusicInfo 类型
-    if (
-        isType<MusicInfo>(info) && info.type && info.title && 
-        info.id && info.cover && info.singers && 
-        info.duration && info.album && info.fee
-    ) {
+    // 添加了一个额外字段, 表示已经是 MusicInfo 类型了
+    if (isType<MusicInfo>(info) &&  info.full) {
         return info;
     }
-    let id: number = 0, 
+    let id: number | string = 0, 
         title: string = '', 
         cover: string = '', 
         duration: number = 0, 
@@ -45,6 +41,7 @@ function formatSingleMusicInfo(
         } | null = null,
         st: number = 0;
     try {
+        
         // console.log(info)
         // isType 这里只是保证 ts 不报错, 在运行时 isType 函数一直是 true
         if (isType<LocalAudioInfo>(info) && (type === AudioInfoType.local || info.type === AudioInfoType.local)) {
@@ -55,7 +52,6 @@ function formatSingleMusicInfo(
             singers = info.singers.map(item => ({id: item.singer_id, name: item.singer_name}));
             fee = 0;
             album = info.album;
-            noCopyrightRcmd = null;
         }
         else if (isType<CloudAudioInfo>(info) && (type === AudioInfoType.cloud || info.type === AudioInfoType.cloud)) {
             id = info.id;
@@ -68,6 +64,16 @@ function formatSingleMusicInfo(
             noCopyrightRcmd = info.noCopyrightRcmd;
             st = info.st;
         }
+        else if (isType<BiliMusic>(info) && (type === AudioInfoType.bili || info?.type === AudioInfoType.bili)) {
+            console.log(info)
+            id = info.bvid;
+            title = info.title;
+            cover = info.cover;
+            duration = info.duration;
+            singers = info.singers.map(item => ({id: item.id, name: item.name}));
+            fee = 0;
+            album = info.album;
+        }
         else {
             throw Error('function formatMusicInfo argument type error')
         }
@@ -77,7 +83,7 @@ function formatSingleMusicInfo(
     }
 
     return {
-        type: type || info.type, id, title, cover, duration, singers, fee, album, noCopyrightRcmd, st
+        type: type || info.type, id, title, cover, duration, singers, fee, album, noCopyrightRcmd, st, full: true
     }
 }
 /** 格式化播放时间 */

@@ -1,6 +1,5 @@
 import OriginAxios, { AxiosError, AxiosResponse } from "axios"
 import { ElMessage } from "element-plus";
-import { useRouter } from "vue-router";
 
 export const axios = OriginAxios.create({
     baseURL: process.env.NODE_ENV === 'development' ? '/api' : '/'
@@ -62,4 +61,4 @@ export interface AxiosResultCode {
 /** 静态资源路径 */
 export const mediaSrc = (src: string) => process.env.NODE_ENV === 'development' ? `/api${src}` : src
 /** 默认的封面图片 */
-export const defaultMusicImg = '/api/imgs/music.jpg';
+export const defaultMusicImg = '/imgs/music.jpg';

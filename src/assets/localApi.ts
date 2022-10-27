@@ -44,7 +44,8 @@ export const searchMusicInfoWIthBvid = async (bvid: string) =>
                             duration: info?.duration,
                             fee: 0,
                             st: 0,
-                            noCopyrightRcmd: null
+                            noCopyrightRcmd: null,
+                            full: true
                         }
                     ]
                 }
@@ -75,3 +76,24 @@ export const getLocalMusicInfoWithId = async (
     await to<AxiosResponse<AxiosResult<LocalMusic>>, AxiosResultError>(
         axios.get(jointQuery(`/music/local/info`, query))
     )
+
+/** 创建数据库歌单 */
+export const postCreatePlaylist = async (
+    params: {
+        title: string, 
+        creator_id: number,
+        description: string,
+        cover: string,
+        songs: MusicInfo[],
+    }
+) => {
+    // 目前不弄用户系统, 所以创建者id默认为1
+    params.creator_id = params.creator_id ?? 1;
+    return await to<{code: number, message: string}, AxiosResultError>(
+        axios.post('/music/local/playlist/create', { ...params })
+        .then(res => ({
+            code: res.data.code,
+            message: res.data.message
+        }))
+    ) 
+}

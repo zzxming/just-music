@@ -231,6 +231,7 @@ async function requestSearch(loadMore: boolean = false) {
         // console.log(result)
         // bv 号搜索返回是单个数据
         let data = result.data;
+
         songsData.push(...formatMusicInfo(data.data, currentSearchType.value));
         if (data.data.length < 1 || (isType<SearchCloudResult>(data) && songsData.length >= data.count)) {
             return 0;
