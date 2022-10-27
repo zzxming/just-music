@@ -109,7 +109,7 @@ export const usePlayerStore = defineStore('player', () => {
             src = mediaSrc(jointQuery(`/bili/audio`, {bv: audioInfoCur.id}))
         }
         else {
-            src = mediaSrc(`/music/${audioInfoCur.id}`)
+            src = mediaSrc(`/music/local/${audioInfoCur.id}`)
         }
         // console.log(src)
         setAudioSrc(src)

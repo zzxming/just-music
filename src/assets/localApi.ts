@@ -5,7 +5,7 @@ import { AudioInfoType, BiliMusic, LocalMusic, MusicInfo } from "@/interface";
 import { axios, mediaSrc, jointQuery, AxiosResult, AxiosResultError } from './api';
 
 /** 根据数据库 music_id 获取歌曲的歌曲 */
-export const staticMusicWithid = (id: number) => mediaSrc(`/music/${id}`);
+export const staticMusicWithid = (id: number) => mediaSrc(`/music/local/${id}`);
 /** 根据 bvid 获取的歌曲 */
 export const searchMusicWithBvId = (bvid: string) => mediaSrc(
     jointQuery('/bili/audio', { 
@@ -42,7 +42,9 @@ export const searchMusicInfoWIthBvid = async (bvid: string) =>
                             singers: info?.singers,
                             album: info?.album,
                             duration: info?.duration,
-                            fee: 0
+                            fee: 0,
+                            st: 0,
+                            noCopyrightRcmd: null
                         }
                     ]
                 }
@@ -71,5 +73,5 @@ export const getLocalMusicInfoWithId = async (
     }
 ) => 
     await to<AxiosResponse<AxiosResult<LocalMusic>>, AxiosResultError>(
-        axios.get(jointQuery(`/music/info`, query))
+        axios.get(jointQuery(`/music/local/info`, query))
     )
