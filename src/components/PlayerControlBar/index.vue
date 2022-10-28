@@ -234,7 +234,8 @@
                 object-fit: contain;
             }
         }
-        &_title:extend(.textOverflowEllipsis) {
+        &_title {
+            .textOverflowEllipsis();
             height: 48px;
             display: grid;
             align-items: center;
@@ -243,11 +244,13 @@
             grid-template-columns: auto 1fr;
             grid-template-areas: 'song singer';
         }
-        &_song:extend(.textOverflowEllipsis) {
+        &_song {
+            .textOverflowEllipsis();
             grid-area: song;
             margin-right: 10px;
         }
-        &_singer:extend(.textOverflowEllipsis) {
+        &_singer {
+            .textOverflowEllipsis();
             grid-area: singer;
             color: var(--el-color-danger-light-5);
             &-name {
@@ -269,8 +272,6 @@
             user-select: none;
             &-current {
                 color: var(--el-text-color-primary);
-            }
-            &-duration {
             }
         }
     }
@@ -338,9 +339,6 @@
             display: none;
         }
         &_right {
-            .mute:extend(.volume) {
-
-            }
             .botcontrol_btn_play {
                 display: block;
                 font-size: 30px;

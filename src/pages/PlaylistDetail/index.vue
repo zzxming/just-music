@@ -150,9 +150,6 @@
             &-arrow {
                 cursor: pointer;
             }
-            &-full {
-
-            }
         }
     }
     &_song {

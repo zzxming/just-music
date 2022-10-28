@@ -76,7 +76,8 @@
     &_body {
         width: 100%;
     }
-    &_header:extend(.textOverflowEllipsis) {
+    &_header {
+        .textOverflowEllipsis();
         color: var(--el-color-info);
         font-size: 14px;
         .songlist_duration {
@@ -136,7 +137,8 @@
             display: none;
         }
     }
-    &_title:extend(.textOverflowEllipsis) {
+    &_title {
+        .textOverflowEllipsis();
         grid-area: title;
         color: var(--el-text-color-primary);
         &-title {
@@ -144,15 +146,16 @@
             align-items: center;
             justify-content: flex-start;
         }
-        &-text:extend(.textOverflowEllipsis) {
-            
+        &-text {
+            .textOverflowEllipsis();
         }
         &-icon {
             margin-left: 4px;
             font-size: 30px;
         }
     }
-    &_singer:extend(.textOverflowEllipsis) {
+    &_singer {
+        .textOverflowEllipsis();
         grid-area: singer;
     }
     &_duration {

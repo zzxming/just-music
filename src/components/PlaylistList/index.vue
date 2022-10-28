@@ -99,8 +99,6 @@
                 background: rgba(121,121,121,.5);
                 border-radius: 50%;
             }
-            &.allow-right {
-            }
         }
         &-playcount {
             position: absolute;

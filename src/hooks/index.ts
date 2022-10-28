@@ -34,6 +34,11 @@ export function useRouteHistory() {
             routeHistory.push({fullPath, path: val.path});
             return;
         }
+        // 如果这次进的是404, 表示上一次的路径是无效的, 删除掉
+        if (val.path === '/404' && routeHistory.length > 1) {
+            // 如果路径小于2, 说明是直接进入的404, 刚才删的是根路径, 补回去
+            routeHistory.splice(routeHistory.length - 1, 1);
+        }
         // 如果和上次路由的路径不同再添加
         if (val.path !== routeHistory[routeHistory.length - 1].path) {
             routeHistory.push({fullPath, path: val.path});
@@ -47,8 +52,9 @@ export function useRouteHistory() {
             router.replace('/');
             return;
         }
-        // 删除上一个路由, 并跳转至
-        router.replace(routeHistory.splice(-1, 1)[0].fullPath);
+        // 删除当前路由, 并跳转至前一个
+        routeHistory.splice(-1, 1);
+        router.replace(routeHistory[routeHistory.length - 1].fullPath);
     }
 
     return {

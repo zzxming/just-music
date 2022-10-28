@@ -1,7 +1,7 @@
 
 import to from 'await-to-js';
 import { AxiosResponse } from 'axios'
-import { AudioInfoType, BiliMusic, LocalMusic, MusicInfo } from "@/interface";
+import { AudioInfoType, BiliMusic, CloudAudioInfo, LocalAudioInfo, LocalMusic, MusicInfo } from "@/interface";
 import { axios, mediaSrc, jointQuery, AxiosResult, AxiosResultError } from './api';
 
 /** 根据数据库 music_id 获取歌曲的歌曲 */
@@ -77,6 +77,7 @@ export const getLocalMusicInfoWithId = async (
         axios.get(jointQuery(`/music/local/info`, query))
     )
 
+    
 /** 创建数据库歌单 */
 export const postCreatePlaylist = async (
     params: {
@@ -97,3 +98,19 @@ export const postCreatePlaylist = async (
         }))
     ) 
 }
+/** 获取歌单详细信息 */
+export const getLocalPlaylistDetail = async (
+    query: {
+        id: number
+    }
+) => await to<AxiosResponse<AxiosResult<LocalAudioInfo[] | CloudAudioInfo[]>>, AxiosResultError>(
+    axios.get(jointQuery('/music/local/playlist/detail', query))
+)
+/** 根据 id 获取本地歌单内歌曲信息 */
+export const geLocalCloudPlaylistTrack = async (
+    query: {
+        id: number
+    }
+) => await to<AxiosResponse<AxiosResult<LocalAudioInfo[] | CloudAudioInfo[]>>, AxiosResultError>(
+    axios.get(jointQuery('/music/local/playlist/track', query))
+)

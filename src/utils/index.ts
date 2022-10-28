@@ -19,7 +19,7 @@ export function formatMusicInfo(
     return isArray(info) ? info.map(item => formatSingleMusicInfo(item, type)) : formatSingleMusicInfo(info, type)
 }
 /** 格式化单个音频信息 */
-function formatSingleMusicInfo(
+export function formatSingleMusicInfo(
     info: LocalAudioInfo | CloudAudioInfo | LocalMusic | CloudMusic | MusicInfo, 
     type?: AudioInfoType
 ): MusicInfo {
@@ -116,7 +116,7 @@ export function formatPlaylistInfo(
     return isArray(playlist) ? playlist.map(item => formatSinglePlaylistInfo(item, type)) : formatSinglePlaylistInfo(playlist, type)
 }
 /** 整合单个歌单的信息字段 */
-function formatSinglePlaylistInfo(
+export function formatSinglePlaylistInfo(
     playlist: CloudPlaylist | PlaylistInfo,
     type: PlaylistType
 ): PlaylistInfo {

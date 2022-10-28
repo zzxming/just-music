@@ -166,6 +166,10 @@ export interface CloudPlaylist {
     }
     tags: string[]
 }
+export interface LocalPlaylist extends PlaylistInfo {
+    playlist_id: number,
+    playlist_title: string,
+}
 /** 歌单部分信息 */
 export interface PlaylistInfoPartial {
     type: PlaylistType

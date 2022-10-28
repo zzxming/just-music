@@ -29,15 +29,10 @@
     height: 64px;
     padding: 16px 40px 8px;
     z-index: 9;
-    &_left {
-
-    }
     &_right {
         display: flex;
         align-items: center;
         justify-content: center;
-    }
-    &_back {
     }
     &_input {
         width: 400px;
@@ -68,8 +63,6 @@
 
 @media screen and (max-width: 810px) {
     .header {
-        &_back {
-        }
         &_input {
             width: 300px;
             margin-right: 0;

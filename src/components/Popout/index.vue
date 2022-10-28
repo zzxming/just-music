@@ -53,6 +53,7 @@ defineExpose({
 });
 /** 点击其他地方关闭 popout */
 watch(() => props.show, (val) => {
+    console.log('???', val)
     if (val) {
         document.addEventListener('click', closePopout);
     }
@@ -112,6 +113,7 @@ watch(() => props.position, (val) => {
 
 /** 关闭弹窗 */
 function closePopout() {
+    console.log('wg')
     emit('close');
 }
 

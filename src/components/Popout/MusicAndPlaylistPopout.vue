@@ -14,7 +14,7 @@
             </template>
         </PopoutItem>
         <PopoutItem topBoder :botBorder="popoutCanDelete" v-if="!popoutIsMusic" @click="collectPlaylist">收藏</PopoutItem>
-        <PopoutItem v-if="!popoutIsMusic && popoutHoldData?.type === PlaylistType.localStorage" @click="uploadPlaylist">上传just</PopoutItem>
+        <!-- <PopoutItem v-if="!popoutIsMusic && popoutHoldData?.type === PlaylistType.localStorage" @click="uploadPlaylist">上传just</PopoutItem> -->
         <PopoutItem v-if="popoutCanDelete && popoutIsMusic" @click="deletefromPlaylist">从歌单中删除</PopoutItem>
         <PopoutItem v-if="popoutCanDelete && !popoutIsMusic" @click="deletePlaylist">删除歌单</PopoutItem>
     </Popout>
@@ -234,7 +234,7 @@ function closePopout() {
 async function uploadPlaylist() {
     if (popoutHoldData.value) {
         const data = popoutHoldData.value as CustomPlaylist;
-        console.log(data)
+        // console.log(data)
         let [err, result] = await postCreatePlaylist({...data, songs: data.tracks, creator_id: data.creator.userId})
         if (!err && result) {
             ElMessage({

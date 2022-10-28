@@ -25,7 +25,7 @@
             />
         </div>
         <LoadingErrorTip :isError="fristLoading && loadingError" :requestFunc="() => requestSearch(true)" />
-        <LoadingMore v-show="!fristLoading" ref="loadMore" :requestFunc="requestSearch" />
+        <LoadingMore v-if="currentSearchType !== AudioInfoType.bili" v-show="!fristLoading" ref="loadMore" :requestFunc="requestSearch" />
     </div>
 </template>
 

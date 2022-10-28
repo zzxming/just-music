@@ -58,6 +58,21 @@
         position: static;
         float: right;
     }
+    .el-drawer__body {
+        &::-webkit-scrollbar {
+            width: 6px;
+            border-radius: 6px;
+            overflow: hidden;
+            background-color: var(--el-bg-color-page);
+        }
+        &::-webkit-scrollbar-button {
+            display: none;
+        }
+        &::-webkit-scrollbar-thumb {
+            border-radius: 6px;
+            background-color: var(--el-color-danger-light-5);
+        }
+    }
 }
 </style>
 
