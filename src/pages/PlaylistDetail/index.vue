@@ -6,7 +6,7 @@
             <div v-if="playlistInfo" class="playlist_info">
                 <div class="playlist_info_left">
                     <div class="playlist_info_cover">
-                        <img :src="playlistInfo.cover.startsWith('http') ? playlistInfo.cover : mediaSrc(playlistInfo.cover)" alt="歌单封面" />
+                        <img :src="mediaSrc(playlistInfo.cover)" alt="歌单封面" />
                     </div>
                 </div>
                 <div class="playlist_info_right">
@@ -14,7 +14,7 @@
                         <h3 class="playlist_info_title" :title="playlistInfo.title">{{playlistInfo.title}}</h3>
                     </div>
                     <div class="playlist_info_right_line">
-                        <el-avatar class="playlist_info_avatar" :size="28" :icon="UserFilled" :src="playlistInfo.creator.avatarUrl" />
+                        <el-avatar class="playlist_info_avatar" :size="28" :icon="UserFilled" :src="mediaSrc(playlistInfo.creator.avatarUrl)" />
                         <span class="playlist_info_nickname">{{playlistInfo.creator.name}}</span>
                         <span class="playlist_info_createTime">{{new Date(playlistInfo.createTime).toLocaleDateString()}}</span>
                     </div>

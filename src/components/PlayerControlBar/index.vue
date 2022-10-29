@@ -11,7 +11,7 @@
         </div>
         <div class="botcontrol_info">
             <div class="botcontrol_info_cover">
-                <img class="botcontrol_info_cover-img" :src="audioInfo.cover === '' ? musicImg : audioInfo.cover" @error.once="onErrorImg" />
+                <img class="botcontrol_info_cover-img" :src="audioInfo.cover === '' ? mediaSrc(musicImg) : audioInfo.cover" @error.once="onErrorImg" />
             </div>
             <div class="botcontrol_info_mid">
                 <div class="botcontrol_info_title">
@@ -27,7 +27,7 @@
                     <div ref="audioTimeBar" class="botcontrol_time_bar" @click="seekAudio">
                         <div class="botcontrol_time_bar_bg" :style="{width: `${bufferedWidth}%`}"></div>
                         <div class="botcontrol_time_bar_progress" :style="{width: `${currentdWidth}%`}">
-                            <div class="botcontrol_time_bar_dot">
+                            <div class="botcontrol_time_bar_dot" @mousedown="(e) => dragDot(e, 'x')">
                                 <el-icon v-show="audioLoading"><Loading /></el-icon>
                             </div>
                         </div>
@@ -49,8 +49,11 @@
                 <el-icon class="botcontrol_btn-icon volume" v-show="audio.volume !== 0" @click="mutedAudio"><Volume /></el-icon>
                 <el-icon class="botcontrol_btn-icon mute" v-show="audio.volume === 0" @click="mutedAudio"><Volume_mute /></el-icon>
                 <div class="botcontrol_volume_bar">
+                    <div class="botcontrol_volume_text">{{ Math.floor(volumeHeight) }}</div>
                     <div ref="audioVolumeBar" class="botcontrol_volume_bar_inner" @click="seekVolume">
-                        <div class="botcontrol_volume_bar_progress" :style="{height: `${volumeHeight}%`}"></div>
+                        <div class="botcontrol_volume_bar_progress" :style="{height: `${volumeHeight}%`}">
+                            <div class="botcontrol_volume_bar_dot" @mousedown="(e) => dragDot(e, 'y')"></div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -243,6 +246,7 @@
             flex: 1 1 auto;
             grid-template-columns: auto 1fr;
             grid-template-areas: 'song singer';
+            user-select: none;
         }
         &_song {
             .textOverflowEllipsis();
@@ -276,21 +280,29 @@
         }
     }
     &_volume {
+        &_text {
+            width: 100%;
+            margin-top: 8px;
+            text-align: center;
+            user-select: none;
+        }
         &_bar {
             display: none;
             align-items: center;
-            justify-content: center;
+            justify-content: space-around;
+            flex-direction: column;
             position: relative;
-            bottom: 140px;
+            bottom: 180px;
             width: 100%;
-            height: 100px;
+            height: 140px;
             .progressBar(var(--el-fill-color-blank));
             box-shadow: var(--el-box-shadow-light);
             z-index: 1;
             &_inner {
                 position: relative;    
                 width: 8px;
-                height: 80%;
+                height: 100px;
+                margin: 10px 0;
                 .progressBar(var(--el-color-info-light-8));
                 transform: rotateZ(180deg);
                 cursor: pointer;
@@ -300,22 +312,20 @@
                 width: 100%;
                 height: 0%;
                 .progressBar(var(--el-color-danger-light-5));
-                &::before {
-                    content: '';
-                    box-sizing: border-box;
-                    display: flex;
-                    position: absolute;
-                    bottom: -8px;
-                    right: -4px;
-                    width: 16px;
-                    height: 16px;
-                    border-radius: 50%;
-                    border: 2px solid var(--el-color-info);
-                    background-color: var(--el-color-info-light-9);
-                    z-index: 4;
-                    &:hover {
-                        border: 2px solid var(--el-color-info-dark-2);
-                    }
+            }
+            &_dot {
+                box-sizing: border-box;
+                position: absolute;
+                bottom: -8px;
+                right: -4px;
+                width: 16px;
+                height: 16px;
+                border-radius: 50%;
+                border: 2px solid var(--el-color-info);
+                background-color: var(--el-color-info-light-9);
+                z-index: 4;
+                &:hover {
+                    border: 2px solid var(--el-color-info-dark-2);
                 }
             }
         }
@@ -371,7 +381,7 @@ import { usePlayerStore } from '@/store/player';
 import { usePlaylistStore } from '@/store/playinglist';
 import { formatAudioTime } from '@/utils';
 import { PlayMode } from '@/interface';
-import { defaultMusicImg } from '@/assets/api';
+import { defaultMusicImg, mediaSrc } from '@/assets/api';
 import Volume from '@/assets/iconfont/volume.vue';
 import Pause from '@/assets/iconfont/pause.vue';
 import Play from '@/assets/iconfont/play.vue';
@@ -393,9 +403,11 @@ const { findPreMusic, findNextMusic } = playlistStore;
 const audioTimeBar = ref<HTMLDivElement>();
 const audioVolumeBar = ref<HTMLDivElement>();
 
+// 三个样式宽高都是百分比数字
 const bufferedWidth = ref(0);
 const currentdWidth = ref(0);
-const volumeHeight = ref(0);
+const volumeHeight = ref(0);    
+const lock = ref(false);    // 是否在拖动
 
 const audioDuration = computed<string>(() => formatAudioTime(audioInfo.value.duration / 1000));
 const audioCurrentTimeStr = ref('00:00');
@@ -428,8 +440,10 @@ function bindAudioEvent() {
         // 加载过程中点暂停播放是没用的
         audioDom.addEventListener('timeupdate', updateAudioCurrentTime);
         audioDom.addEventListener('seeking', updateAudioCurrentTime);
+
         audioDom.addEventListener('loadeddata', function() {
             console.log('loadeddata')
+            // 加载完成就播放
             this.play()
         })
         audioDom.addEventListener('emptied', function() {
@@ -437,9 +451,6 @@ function bindAudioEvent() {
             if (!!audioSrc.value) {
                 audioLoading.value = true;
             }
-        })
-        audioDom.addEventListener('durationchange', function() {
-            console.log('durationchange', this.duration)
         })
         audioDom.addEventListener('canplay', function() {
             console.log('canplay')
@@ -523,6 +534,7 @@ function mutedAudio() {
 }
 /** 更新当前播放时间 */
 function updateAudioCurrentTime() {
+    if (lock.value) return;
     if (audio.value && audioTimeBar.value) {
         let currentTime = audio.value.currentTime
         audioCurrentTimeStr.value = formatAudioTime(currentTime);
@@ -587,6 +599,69 @@ function activatePlayinglistState() {
 function deactivatePlayinglistState() {
     activePlayinglist.value = false;
 }
+/** 拖动进度条或音量条 */
+function dragDot(e: MouseEvent, direction: 'x' | 'y') {
+    // console.log(e)
+    let positionInfo: DOMRect;
+    if (direction === 'x' && audioTimeBar.value) {
+        positionInfo = audioTimeBar.value.getBoundingClientRect();
+    }
+    else if (direction === 'y' && audioVolumeBar.value) {
+        positionInfo = audioVolumeBar.value.getBoundingClientRect();
+    }
+    else {
+        throw new Error('未知错误');
+    }
+    
+    // console.log(e.clientX)
+    // console.log(e.clientY)
+    // console.log(audioTimeBar.value?.getBoundingClientRect())
+    let eventHandle = computedMove.bind(undefined, direction, positionInfo);
+    let removeEventHandle = () => {
+        lock.value = false
+        document.removeEventListener('mousemove', eventHandle);
+        document.removeEventListener('mouseup', removeEventHandle);
+        if (audio.value) {
+            if (direction === 'x') audio.value.currentTime = audio.value.duration * (currentdWidth.value / 100);
+        }
+    }
+    document.addEventListener('mousemove', eventHandle);
+    document.addEventListener('mouseup', removeEventHandle);
 
+    
+    function computedMove(direction: 'x' | 'y', { x, y, width, height }: DOMRect, e: MouseEvent) {
+        lock.value = true;
+        let { clientX: moveX, clientY: moveY } = e;
+
+        if (direction === 'x') {
+            let maxX = x + width;
+            if (moveX < x) {
+                currentdWidth.value = 0;
+                return;
+            }
+            if (moveX > maxX) {
+                currentdWidth.value = 100;
+                return;
+            }
+
+            let nowX = moveX - x;
+            currentdWidth.value = Math.floor(nowX / width * 10000) / 100;
+        }
+        else if (direction === 'y') {
+            let maxY = y + height;
+            if (moveY < y) {
+                volumeHeight.value = 100;
+                return;
+            }
+            if (moveY > maxY) {
+                volumeHeight.value = 0;
+                return;
+            }
+
+            let nowY = moveY - y;
+            audio.value && (audio.value.volume = Number((1 - nowY / height).toFixed(2)));
+        }
+    }
+}
 </script>
 

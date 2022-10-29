@@ -4,7 +4,8 @@ import { jointQuery, mediaSrc } from "@/assets/api";
 import { getMusicSrcWithCloudId } from "@/assets/cloudApi";
 import { AudioInfoType, LocalAudioInfo, CloudAudioInfo, MusicInfo, PlayMode } from "@/interface"
 import { formatMusicInfo, isType } from "@/utils"
-import { ElMessageBox, ElMessage } from "element-plus";
+import { ElMessageBox, MessageBoxData, ElMessage } from "element-plus";
+import { usePlaylistStore } from "@/store/playinglist";
 
 const initAudioInfo = {
     type: AudioInfoType.local,
@@ -28,6 +29,10 @@ export const usePlayerStore = defineStore('player', () => {
     const playModeIndex = ref(0);
     const curPlayMode = computed(() => playMode[playModeIndex.value]);
 
+    const timer = ref<NodeJS.Timeout>();
+    const retryCount = ref(0);
+    const messageAlert = ref<Promise<MessageBoxData>>();
+
     /** 设置 audio 元素 */
     function setAudio(media: HTMLAudioElement) {
         if (audio) {
@@ -36,7 +41,27 @@ export const usePlayerStore = defineStore('player', () => {
     }
     /** 设置音频播放路径 */
     function setAudioSrc(src: string | null) {
+        /**
+         * 这个 store 不要放在全局, 如果在全局会导致 player 和 playinglist 两个 store 相互调用
+         * 导致获取的数据是 undefined , 从而出现其他的意外错误
+         */
+        const playinglistStore = usePlaylistStore();
+        const { findNextMusic } = playinglistStore;
+
         audioSrc.value = src;
+        if (src === null) {
+            ElMessage({
+                type: 'error',
+                message: '当前歌曲网易云音乐已下架'
+            });
+            if (timer.value) {
+                clearTimeout(timer.value)
+            }
+            timer.value = setTimeout(() => {
+                setAudioInfo(findNextMusic(curPlayMode.value) ?? initAudioInfo);
+                timer.value = undefined;
+            }, 2000);
+        }        
     }
     /** 改变全局音频显示状态 */
     function changePlayerControlState(visible: boolean) {
@@ -50,6 +75,8 @@ export const usePlayerStore = defineStore('player', () => {
     }
     /** 设置当前音频显示信息 */
     async function setAudioInfo(info: LocalAudioInfo | CloudAudioInfo | MusicInfo) {
+        if (info !== audioInfo.value) retryCount.value = 0;
+        if (timer.value) clearTimeout(timer.value);
         // 因为 isType 是通过 ts 的 is 进行判断, 在执行过程中, ts 以及不存在, 所以需要额外的判断
         if (isType<MusicInfo>(info) && info.title) {
             audioInfo.value = info;
@@ -60,25 +87,6 @@ export const usePlayerStore = defineStore('player', () => {
         }
         showPlayerControl.value = true;
 
-        // 网易云音乐没有其他版本, 下架了
-        if (audioInfo.value.st === -200) {
-            ElMessage({
-                type: 'error',
-                message: '当前歌曲网易云音乐已下架'
-            })
-        }
-        // 网易云音乐有其他版本
-        else if (audioInfo.value.noCopyrightRcmd) {
-            ElMessage({
-                type: 'error',
-                message: '此歌曲无法在网易云音乐播放'
-            })
-        } 
-        else if (audioInfo.value.fee === 1) {
-            ElMessageBox.alert(`正在试听 ${audioInfo.value.title} 歌曲片段`, '', {
-                center: true
-            })
-        }
 
         let src: string | null;
         let audioInfoCur = audioInfo.value;
@@ -91,13 +99,26 @@ export const usePlayerStore = defineStore('player', () => {
                 // https://music.163.com/song?id=476081899
                 // 如果是 vip 歌曲需要获取歌曲的播放路径
                 // 部分 vip 歌曲不让试听, 则获取的 src 为 null
-                if (audioInfoCur.fee) {
+                if (audioInfoCur.fee === 1) {
                     let [err, result] = await getMusicSrcWithCloudId(audioInfoCur.id as number);
                     if (!err && result) {
                         src = result.data.data.src;
                     }
                     else {
-                        console.log(err);
+                        if (retryCount.value > 3) {
+                            const playinglistStore = usePlaylistStore();
+                            const { findNextMusic } = playinglistStore;
+                            setAudioInfo(findNextMusic(curPlayMode.value) ?? initAudioInfo);
+                            return;
+                        }
+                        // console.log(err);
+                        retryCount.value += 1;
+                        timer.value = setTimeout(() => {
+                            // console.log('retry', retryCount.value)
+                            setAudioInfo(info);
+                            timer.value = undefined;
+                        }, 3000);
+                        src = '';
                         return;
                     }
                 }
@@ -113,7 +134,41 @@ export const usePlayerStore = defineStore('player', () => {
             src = mediaSrc(`/music/local/${audioInfoCur.id}`)
         }
         // console.log(src)
-        setAudioSrc(src)
+        setAudioSrc(src);
+        if (messageAlert.value) ElMessageBox.close();
+        // 网易云音乐没有其他版本, 下架了
+        if (audioInfo.value.st === -200) {
+            ElMessage({
+                type: 'error',
+                message: '当前歌曲网易云音乐已下架'
+            });
+            timer.value = setTimeout(() => {
+                const playinglistStore = usePlaylistStore();
+                const { findNextMusic } = playinglistStore;
+                setAudioInfo(findNextMusic(curPlayMode.value) ?? initAudioInfo);
+                timer.value = undefined;
+            }, 3000);
+        }
+        // 网易云音乐有其他版本
+        else if (audioInfo.value.noCopyrightRcmd) {
+            ElMessage({
+                type: 'error',
+                message: '此歌曲无法在网易云音乐播放'
+            })
+        } 
+        else if (audioInfo.value.fee === 1) {
+            // 防止 messagebox 的弹窗过多, 若上一个没有关闭手动关闭再开启新的
+            let t = {};
+            Promise.race([messageAlert.value, t]).then(v => (v === t)? "pending" : "fulfilled", () => "rejected")
+            .then(state => {
+                if (state === 'pending') {
+                    ElMessageBox.close();
+                }
+                messageAlert.value = ElMessageBox.alert(`正在试听 ${audioInfo.value.title} 歌曲片段`, '', {
+                    center: true
+                });
+            })
+        }
     }
     /** 切换播放模式 */
     function changePlayMode() {

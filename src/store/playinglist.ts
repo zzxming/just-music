@@ -16,7 +16,7 @@ export const usePlaylistStore = defineStore('playlist', () => {
     function playinglistReplace(songs: MusicInfo[]) {
         playinglist.length = 0;
         playinglist.push(...songs);
-        if (!audioInfo.value.id) {
+        if (!audioInfo?.value?.id) {
             if (curPlayMode.value === PlayMode.random) {
                 setAudioInfo(playinglist[Math.floor(Math.random() * (playinglist.length - 1))]);
             }

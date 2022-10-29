@@ -5,12 +5,13 @@
 <script lang="ts" setup>
 import { ref, watch } from 'vue'
 import { storeToRefs } from 'pinia'
-import { usePlayerStore } from '@/store/Player'
+import { usePlayerStore } from '@/store/player'
 
 const audioMedia = ref<HTMLAudioElement>();
 const playerStore = usePlayerStore();
 const { audioInfo, audioSrc } = storeToRefs(playerStore);
-const { setAudio } = playerStore;
+const { setAudio, setAudioInfo } = playerStore;
+
 
 // audioMedia 最初可能不显示, 当显示时再进行绑定
 watch(audioMedia, (val, preVal) => {
@@ -26,6 +27,7 @@ watch(audioInfo, () => {
         return;
     } 
     if (audioSrc.value) {
+        // console.log(audioSrc.value)
         audio.load();
     }
 });
@@ -33,9 +35,10 @@ watch(audioInfo, () => {
 /** 加载失败重试 */
 function loadError(e: Event) {
     // 当有播放路径时再重试
-    if (!audioSrc.value) return;
+    if (audioSrc.value === undefined || audioSrc.value === null) return;
     setTimeout(() => {
-        audioMedia.value && audioMedia.value.load();
+        // audioMedia.value && audioMedia.value.load();
+        setAudioInfo(audioInfo.value);
     }, 3000)
 }
 
