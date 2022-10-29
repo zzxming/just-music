@@ -13,10 +13,10 @@
                 <PopoutItem v-for="playlist in customPlaylist" @click="() => collectMusic(playlist.id)">{{playlist.title}}</PopoutItem>
             </template>
         </PopoutItem>
-        <PopoutItem topBoder :botBorder="popoutCanDelete" v-if="!popoutIsMusic" @click="collectPlaylist">收藏</PopoutItem>
+        <PopoutItem topBoder :botBorder="popoutCanDelete" v-if="!popoutIsMusic && !popoutCanDelete" @click="collectPlaylist">收藏</PopoutItem>
         <!-- <PopoutItem v-if="!popoutIsMusic && popoutHoldData?.type === PlaylistType.localStorage" @click="uploadPlaylist">上传just</PopoutItem> -->
-        <PopoutItem v-if="popoutCanDelete && popoutIsMusic" @click="deletefromPlaylist">从歌单中删除</PopoutItem>
-        <PopoutItem v-if="popoutCanDelete && !popoutIsMusic" @click="deletePlaylist">删除歌单</PopoutItem>
+        <PopoutItem topBorder v-if="popoutCanDelete && popoutIsMusic" @click="deletefromPlaylist">从歌单中删除</PopoutItem>
+        <PopoutItem topBorder v-if="popoutCanDelete && !popoutIsMusic" @click="deletePlaylist">删除歌单</PopoutItem>
     </Popout>
 </template>
 
@@ -162,6 +162,7 @@ function createPlaylist() {
  * @param playlistid 收藏至的歌单id
  */
 function collectMusic(playlistid: number) {
+    // 修改了哔哩哔哩的搜索, 现在不用存储在本地再发送, 即不存储再数据库里了, 数据结构要改
     for (let i = 0; i < customPlaylist.value.length; i++) {
         if (customPlaylist.value[i].id === playlistid) {
             let result = customPlaylist.value[i].tracks.find(music => music.id === popoutHoldData.value?.id && music.type == popoutHoldData.value.type);
@@ -232,11 +233,19 @@ function closePopout() {
 }
 /** 将歌单上传值数据库 */
 async function uploadPlaylist() {
+    // 服务器没有设置用户接口, 不能对上传的歌单进行信息修改, 不能知道是谁上传的, 此功能屏蔽
+
     if (popoutHoldData.value) {
         const data = popoutHoldData.value as CustomPlaylist;
         // console.log(data)
+        let tip = ElMessage({
+            type: 'info',
+            message: '上传中...',
+            duration: 0
+        })
         let [err, result] = await postCreatePlaylist({...data, songs: data.tracks, creator_id: data.creator.userId})
         if (!err && result) {
+            tip.close();
             ElMessage({
                 type: 'success',
                 message: result.message

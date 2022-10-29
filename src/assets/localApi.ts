@@ -1,7 +1,7 @@
 
 import to from 'await-to-js';
 import { AxiosResponse } from 'axios'
-import { AudioInfoType, BiliMusic, CloudAudioInfo, LocalAudioInfo, LocalMusic, MusicInfo } from "@/interface";
+import { AudioInfoType, BiliMusic, CloudAudioInfo, LocalAudioInfo, LocalMusic, MusicInfo, PlaylistInfo, LocalPlaylist } from "@/interface";
 import { axios, mediaSrc, jointQuery, AxiosResult, AxiosResultError } from './api';
 
 /** 根据数据库 music_id 获取歌曲的歌曲 */
@@ -103,14 +103,26 @@ export const getLocalPlaylistDetail = async (
     query: {
         id: number
     }
-) => await to<AxiosResponse<AxiosResult<LocalAudioInfo[] | CloudAudioInfo[]>>, AxiosResultError>(
+) => await to<AxiosResponse<AxiosResult<LocalPlaylist>>, AxiosResultError>(
     axios.get(jointQuery('/music/local/playlist/detail', query))
 )
 /** 根据 id 获取本地歌单内歌曲信息 */
-export const geLocalCloudPlaylistTrack = async (
+export const geLocalPlaylistTrack = async (
     query: {
         id: number
     }
 ) => await to<AxiosResponse<AxiosResult<LocalAudioInfo[] | CloudAudioInfo[]>>, AxiosResultError>(
     axios.get(jointQuery('/music/local/playlist/track', query))
 )
+/** 根据 id 获取本地歌单内歌曲信息 */
+export const getLocalPlaylistRandom = async (
+    query: {
+        limit?: number
+    }
+) => {
+    if (!query.limit) query.limit = 10;
+    return await to<AxiosResponse<AxiosResult<PlaylistInfo[]>>, AxiosResultError>(
+        axios.get('/music/local/playlist/random')
+    )
+}
+

@@ -16,7 +16,7 @@
                             <el-icon class="playlist_list_item-icon allow-right"><CaretRight /></el-icon>
                             {{formatPlayCount(item.playCount)}}
                         </span>
-                        <img class="playlist_list_item-img" :src="item.cover"  @error="throttle(onErrorImg, 3000)" />
+                        <img class="playlist_list_item-img" :src="item.type === PlaylistType.local ? mediaSrc(item.cover) : item.cover"  @error="throttle(onErrorImg, 3000)" />
                     </div>
                     <div class="playlist_list_item-title">
                         {{item.title}}
@@ -186,8 +186,9 @@
 import { throttle } from 'lodash';
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { PlaylistType, PlaylistInfoPartial, PlaylistInfo } from '@/interface';
+import { PlaylistType, PlaylistInfoPartial } from '@/interface';
 import { usePopoutStore } from '@/store/popout';
+import { mediaSrc } from '@/assets/api';
 
 const musicImg = ref('/api/imgs/music.jpg');
 
@@ -198,7 +199,6 @@ const { isTopList, playlist } = defineProps<{
 const router = useRouter();
 const popoutStore = usePopoutStore();
 const { setPopoutState } = popoutStore;
-
 
 /** 格式化显示播放数 */
 function formatPlayCount(num: number) {

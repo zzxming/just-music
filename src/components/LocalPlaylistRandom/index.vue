@@ -16,11 +16,10 @@
 }
 </style>
 
-
 <script lang="ts" setup>
 import { ref, reactive, onMounted, watch, nextTick } from 'vue';
 import { PlaylistType, PlaylistInfoPartial } from '@/interface'
-import { getCloudPersonalized } from '@/assets/cloudApi';
+import { getLocalPlaylistRandom } from '@/assets/localApi';
 import LoadingErrorTip from '@/components/LoadingErrorTip/index.vue'
 import LoadingMore, { ExposeVar } from '@/components/LoadingMore/index.vue'
 import PlaylistList from '@/components/PlaylistList/index.vue';
@@ -69,13 +68,13 @@ function observerLoad() {
 /** 获取精选歌单 */
 async function getPlaylistData() {
     loadingError.value = false;
-    let [err, result] = await getCloudPersonalized({
+    let [err, result] = await getLocalPlaylistRandom({
         limit: isTopList ? 20 : 10
     })
 
     if (!err && result) {
         const { code, data } = result.data;
-        playlist.push(...formatPlaylistPartial(data, PlaylistType.cloud));
+        playlist.push(...formatPlaylistPartial(data, PlaylistType.local));
         // 第一次加载完成
         fristLoading.value = false;
         return data.length

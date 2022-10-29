@@ -477,6 +477,7 @@ function unbindAudioEvent() {
     let audioDom = audio.value;
     if (audioDom) {
         audioDom.removeEventListener('timeupdate', updateAudioCurrentTime)
+        audioDom.addEventListener('seeking', updateAudioCurrentTime);
     }
 }
 // path 属性是 chrome 独有的, composedPath 是官方标准

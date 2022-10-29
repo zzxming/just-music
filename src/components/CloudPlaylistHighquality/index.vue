@@ -1,9 +1,9 @@
 <template>
     <div class="playlist">
         <PlaylistList v-loading="fristLoading && !loadingError"  :isTopList="isTopList" :playlist="playlist" />
-        <LoadingErrorTip :isError="fristLoading && loadingError" :requestFunc="getCloudPlaylistHighqualityData" />
+        <LoadingErrorTip :isError="fristLoading && loadingError" :requestFunc="getPlaylistData" />
     </div>
-    <LoadingMore v-show="isTopList && !fristLoading" ref="loadMore" :requestFunc="getCloudPlaylistHighqualityData" />
+    <LoadingMore v-show="isTopList && !fristLoading" ref="loadMore" :requestFunc="getPlaylistData" />
 </template>
 
 <style lang="less" scoped>
@@ -50,7 +50,7 @@ const playlist = reactive<PlaylistInfo[]>([
 
 
 onMounted(() => {
-    getCloudPlaylistHighqualityData();
+    getPlaylistData();
 });
 // 等待第一次加载完成再进行滚动加载的监听
 watch(fristLoading, (val) => {
@@ -74,7 +74,7 @@ function observerLoad() {
     loadIO.observe(loadMore.value.loadMore);
 }
 /** 获取精选歌单 */
-async function getCloudPlaylistHighqualityData() {
+async function getPlaylistData() {
     loadingError.value = false;
     let [err, result] = await getCloudPlaylistHighquality({
         before: lasttime.value, 

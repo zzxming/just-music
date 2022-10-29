@@ -1,4 +1,4 @@
-import { LocalAudioInfo, CloudAudioInfo, AudioInfoType, Singer, MusicInfo, CloudMusic, LocalMusic, CloudPlaylist, PlaylistInfo, PlaylistInfoPartial, PlaylistType, BiliMusic } from "@/interface";
+import { LocalAudioInfo, CloudAudioInfo, AudioInfoType, Singer, MusicInfo, CloudMusic, LocalMusic, CloudPlaylist, PlaylistInfo, PlaylistInfoPartial, PlaylistType, BiliMusic, LocalPlaylist } from "@/interface";
 import { isArray } from 'lodash';
 
 
@@ -16,7 +16,8 @@ export function formatMusicInfo(
           LocalAudioInfo[] | CloudAudioInfo[] | MusicInfo[] | LocalMusic[] | CloudMusic[], 
     type: AudioInfoType
 ): MusicInfo | MusicInfo[] {
-    return isArray(info) ? info.map(item => formatSingleMusicInfo(item, type)) : formatSingleMusicInfo(info, type)
+    // 在获取本地歌单内歌曲时会自带 type, 优先使用
+    return isArray(info) ? info.map(item => formatSingleMusicInfo(item, (item as MusicInfo).type ?? type)) : formatSingleMusicInfo(info, type)
 }
 /** 格式化单个音频信息 */
 export function formatSingleMusicInfo(
@@ -49,6 +50,7 @@ export function formatSingleMusicInfo(
             title = info.music_name;
             cover = info.music_cover;
             duration = info.duration;
+            console.log(info)
             singers = info.singers.map(item => ({id: item.singer_id, name: item.singer_name}));
             fee = 0;
             album = info.album;
@@ -172,6 +174,22 @@ export function formatSinglePlaylistInfo(
                 avatarUrl: playlist.creator.avatarUrl
             }
         }
+        else if (isType<LocalPlaylist>(playlist) && type === PlaylistType.local) {
+            id = playlist.id;
+            title = playlist.title;
+            updateTime = playlist.updateTime;
+            createTime = playlist.createTime;
+            cover = playlist.cover;
+            description = playlist.description;
+            playCount = playlist.playCount;
+            // tracks = formatMusicInfo(playlist.tracks, AudioInfoType.cloud);
+            trackCount = playlist.trackCount;
+            creator = {
+                userId: playlist.creator.userId,
+                name: playlist.creator.name,
+                avatarUrl: playlist.creator.avatarUrl
+            }
+        }
 
         else {
             throw Error('function formatMusicInfo argument type error')
@@ -215,6 +233,12 @@ function formatSinglePlaylistPartial(info:PlaylistInfoPartial |  PlaylistInfo, t
 
     try {
         if (isType<PlaylistInfo>(info) && type === PlaylistType.cloud) {
+            id = info.id;
+            title = info.title;
+            cover = info.cover;
+            playCount = info.playCount;
+        }
+        else if (isType<PlaylistInfo>(info) && type === PlaylistType.local) {
             id = info.id;
             title = info.title;
             cover = info.cover;

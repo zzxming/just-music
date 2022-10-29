@@ -52,7 +52,7 @@ export function setCustomPlaylist(title: string, songs: MusicInfo[] = []) {
         title,
         updateTime: new Date().getTime(),
         createTime: new Date().getTime(),
-        cover: songs[0].cover ?? defaultMusicImg,
+        cover: songs[0]?.cover ?? defaultMusicImg,
         description: '',
         playCount: songs.length ?? 0,
         tracks: songs,

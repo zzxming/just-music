@@ -44,7 +44,7 @@ import { useRouter } from 'vue-router';
 import { PlaylistInfo, PlaylistType } from '@/interface';
 import { jointQuery } from '@/assets/api';
 import { getAllCustomPlaylist, localStoragePlaylistEvent } from '@/utils/localStorage';
-import { usePopoutStore } from '@/store/popout';
+import { usePopoutStore, popoutCloseEvent } from '@/store/popout';
 
 const router = useRouter();
 const { canOperate } = withDefaults(defineProps<{
@@ -52,10 +52,6 @@ const { canOperate } = withDefaults(defineProps<{
 }>(), {
     canOperate: true
 });
-const emit = defineEmits<{
-    (event: 'clickItem'): void
-}>();
-
 
 
 
@@ -81,7 +77,8 @@ function updatePlaylist() {
 /** 进入查看歌单详细信息 */
 function leftClick(id: number, t:PlaylistType) {
     router.push(jointQuery(`/playlist/detail`, { id, t }));
-    emit('clickItem');
+    (popoutStore.popoutVisible as unknown as boolean) = false;
+    window.dispatchEvent(new Event(popoutCloseEvent));
 }
 /** 右键点击操作歌单 */
 function rightClick(event: MouseEvent, info: PlaylistInfo) {

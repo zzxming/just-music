@@ -16,7 +16,7 @@
 .content {
     position: relative;
     box-sizing: border-box;
-    width: 100vw;
+    // width: 100vw;
     max-width: 1280px;
     margin: 0 auto;
     padding: 40px;
@@ -39,7 +39,12 @@
             color: var(--el-color-black);
         }
         &_text {
-            display: inline-block;
+            display: inline-flex;
+            height: 100%;
+            align-items: center;
+            text-overflow: ellipsis;
+            overflow: hidden;
+            white-space: nowrap;
         }
         &_icon {
             display: inline-block;
@@ -56,11 +61,12 @@ import { useRouter } from 'vue-router';
 
 const props = defineProps<{
     title: string
-    href: string
+    href?: string
 }>();
 const router = useRouter()
 
 const linkTo = () => {
+    if (!props.href) return;
     router.push(props.href);
 }
 

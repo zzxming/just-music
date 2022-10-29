@@ -41,8 +41,6 @@ import MusicAndPlaylistPopout from '@/components/Popout/MusicAndPlaylistPopout.v
 import { usePopoutStore } from '@/store/popout';
 
 const popoutStore = usePopoutStore();
-const { 
-	createPlaylistVisible,
-} = storeToRefs(popoutStore);
+const { createPlaylistVisible } = storeToRefs(popoutStore);
 
 </script>

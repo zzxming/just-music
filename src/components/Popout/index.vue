@@ -16,7 +16,7 @@
     border-radius: 8px;
     box-shadow: var(--el-box-shadow-light);
     background-color: var(--el-color-white);
-    z-index: 3000;      // elementplus 的 drawer 的 z-index 是 2004, 要在他之上
+    z-index: 15;      // elementplus 的 drawer 的 z-index 是 2004, 要在他之上
 }
 
 </style>
@@ -53,7 +53,6 @@ defineExpose({
 });
 /** 点击其他地方关闭 popout */
 watch(() => props.show, (val) => {
-    console.log('???', val)
     if (val) {
         document.addEventListener('click', closePopout);
     }
@@ -113,7 +112,6 @@ watch(() => props.position, (val) => {
 
 /** 关闭弹窗 */
 function closePopout() {
-    console.log('wg')
     emit('close');
 }
 

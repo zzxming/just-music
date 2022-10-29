@@ -6,8 +6,9 @@
         center 
         :destroy-on-close="true"
         :before-close="() => emit('close')"
+        v-loading="loading"
     >
-        <el-form ref="formRef" :model="playlistData" :rules="rules" v-loading="loading">
+        <el-form ref="formRef" :model="playlistData" :rules="rules">
             <el-form-item prop="title">
                 <el-input class="creator_input" v-model="playlistData.title" placeholder="请输入新建歌单标题" />
             </el-form-item>
@@ -85,6 +86,7 @@ function submitForm() {
     if (!formRef.value) return;
     formRef.value.validate(async (valid) => {
         if (valid) {
+            if (loading.value) return;
             loading.value = true;
             let result = await createPlaylist();
             loading.value = false;
@@ -125,7 +127,14 @@ async function createPlaylist(): Promise<{status: boolean, message: string}> {
     if (id && !isNaN(Number(id))) {
         let [err, result] = await getCloudPlaylistTrack({id: Number(id)});
         if (!err && result) {
-            songs = formatMusicInfo(result.data.data, AudioInfoType.cloud);
+            let data = result.data.data;
+            // 排除云端音乐
+            for (let i = 0; i < data.length; i++) {
+                if (data[i].name === null || data[i].ar[0].id === 0 || data[i].al.id === 0) {
+                    continue;
+                }
+                songs.push(formatMusicInfo(data[i], AudioInfoType.cloud));
+            }
         }
         if (err) {
             return {

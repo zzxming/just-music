@@ -206,13 +206,14 @@
 import { ref, watch, onMounted, onUnmounted } from 'vue';
 import { UserFilled } from '@element-plus/icons-vue';
 import { getCloudPlaylistDetail, getCloudPlaylistTrack } from '@/assets/cloudApi';
+import { getLocalPlaylistDetail, geLocalPlaylistTrack } from '@/assets/localApi';
+import { mediaSrc } from '@/assets/api';
 import { AudioInfoType, MusicInfo, PlaylistInfo, PlaylistType } from '@/interface';
 import { formatMusicInfo, formatPlaylistInfo } from '@/utils';
 import LoadingErrorTip from '@/components/LoadingErrorTip/index.vue';
 import Songlist from '@/components/Songlist/index.vue';
 import { getCustomPlaylistWithId, localStoragePlaylistEvent } from '@/utils/localStorage';
 import { useRouter } from 'vue-router';
-import { mediaSrc } from '@/assets/api';
 
 
 // 本地歌曲的歌单还没有做
@@ -224,7 +225,7 @@ const props = defineProps<{
 }>();
 const router = useRouter();
 
-
+console.log(props.id, props.t)
 const loading = ref(true);
 const loadingSong = ref(true);
 const loadingError = ref(false);
@@ -273,8 +274,7 @@ async function requestPlaylistData() {
 async function getPlaylistDetailWithId(id: number, type: PlaylistType) {
     loading.value = true;
     loadingError.value = false;
-    // // let [err, result] = type === AudioInfoType.local ? await ({id}) : await getCloudPlaylistDetail({id});
-    let [err, result] = await getCloudPlaylistDetail({id});
+    let [err, result] = type === PlaylistType.local ? await getLocalPlaylistDetail({id}) : await getCloudPlaylistDetail({id});
     loading.value = false;
 
     if (!err && result) {
@@ -293,15 +293,13 @@ async function getPlaylistDetailWithId(id: number, type: PlaylistType) {
 async function getPlaylistTrackWithId(id: number, type: PlaylistType) {
     loadingSong.value = true;
     loadingSongError.value = false;
-    let musicType = type === PlaylistType.cloud ? AudioInfoType.cloud : AudioInfoType.local;
-    // let [err, result] = musicType === AudioInfoType.cloud ? await getCloudPlaylistTrack({id}) : await ({id});
-    let [err, result] = await getCloudPlaylistTrack({id});
+    let [err, result] = type === PlaylistType.local ? await geLocalPlaylistTrack({id}) : await getCloudPlaylistTrack({id});
     loadingSong.value = false;
 
     if (!err && result) {
         // console.log(result)
         let { code, data } = result.data;
-        songsInfo.value = formatMusicInfo(data, musicType);
+        songsInfo.value = formatMusicInfo(data, type === PlaylistType.cloud ? AudioInfoType.cloud : AudioInfoType.local);
         return true;
     }
     else {
