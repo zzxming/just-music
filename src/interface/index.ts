@@ -26,6 +26,8 @@ export enum PlaylistType {
 export interface MusicInfo {
     type: AudioInfoType
     id: number | string
+    /** 用于 bili 的分 p 视频 */
+    cid: number
     title: string
     cover: string
     singers: Singer[]
@@ -102,12 +104,11 @@ export interface BiliMusic {
     type: AudioInfoType.bili
     bvid: string
     cid: number
+    title: string
+    singers: Singer[]
     cover: string
     duration: number
-    singers: Singer[]
-    title: string
     album: string
-    src: string
 }
 
 

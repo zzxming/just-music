@@ -44,7 +44,11 @@ export const jointQuery = (url: string, query: {[key: string]: string | number})
 export interface AxiosResult<T> extends AxiosResultCode {
     data: T
 }
-export interface AxiosResultError {
+export interface AxiosResultError extends AxiosError<ErrorResult> {
+    
+}
+
+export interface ErrorResult {
     data: {
         code: number,
         message: string

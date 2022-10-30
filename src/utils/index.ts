@@ -9,11 +9,11 @@ export function isType<T, >(data: any): data is T {
     return true
 }
 /** 整合歌曲数据, 统一本地歌曲和网易云歌曲的字段 */
-export function formatMusicInfo(info: LocalAudioInfo[] | CloudAudioInfo[] | MusicInfo[] | LocalMusic[] | CloudMusic[], type: AudioInfoType): MusicInfo[];
-export function formatMusicInfo(info: LocalAudioInfo | CloudAudioInfo | MusicInfo | LocalMusic | CloudMusic, type: AudioInfoType): MusicInfo;
+export function formatMusicInfo(info: LocalAudioInfo[] | CloudAudioInfo[] | MusicInfo[] | LocalMusic[] | CloudMusic[] | BiliMusic[], type: AudioInfoType): MusicInfo[];
+export function formatMusicInfo(info: LocalAudioInfo | CloudAudioInfo | MusicInfo | LocalMusic | CloudMusic | BiliMusic, type: AudioInfoType): MusicInfo;
 export function formatMusicInfo(
-    info: LocalAudioInfo | CloudAudioInfo | MusicInfo | LocalMusic | CloudMusic | 
-          LocalAudioInfo[] | CloudAudioInfo[] | MusicInfo[] | LocalMusic[] | CloudMusic[], 
+    info: LocalAudioInfo | CloudAudioInfo | MusicInfo | LocalMusic | CloudMusic | BiliMusic |
+          LocalAudioInfo[] | CloudAudioInfo[] | MusicInfo[] | LocalMusic[] | CloudMusic[] | BiliMusic[], 
     type: AudioInfoType
 ): MusicInfo | MusicInfo[] {
     // 在获取本地歌单内歌曲时会自带 type, 优先使用
@@ -21,7 +21,7 @@ export function formatMusicInfo(
 }
 /** 格式化单个音频信息 */
 export function formatSingleMusicInfo(
-    info: LocalAudioInfo | CloudAudioInfo | LocalMusic | CloudMusic | MusicInfo, 
+    info: LocalAudioInfo | CloudAudioInfo | LocalMusic | CloudMusic | MusicInfo | BiliMusic, 
     type?: AudioInfoType
 ): MusicInfo {
     // 因为 isType 是通过 ts 的 is 进行判断, 在执行过程中, ts 以及不存在, 所以需要额外的判断
@@ -29,7 +29,8 @@ export function formatSingleMusicInfo(
     if (isType<MusicInfo>(info) &&  info.full) {
         return info;
     }
-    let id: number | string = 0, 
+    let id: number | string = 0,
+        cid: number = 0, 
         title: string = '', 
         cover: string = '', 
         duration: number = 0, 
@@ -50,7 +51,6 @@ export function formatSingleMusicInfo(
             title = info.music_name;
             cover = info.music_cover;
             duration = info.duration;
-            console.log(info)
             singers = info.singers.map(item => ({id: item.singer_id, name: item.singer_name}));
             fee = 0;
             album = info.album;
@@ -67,8 +67,8 @@ export function formatSingleMusicInfo(
             st = info.st;
         }
         else if (isType<BiliMusic>(info) && (type === AudioInfoType.bili || info?.type === AudioInfoType.bili)) {
-            console.log(info)
             id = info.bvid;
+            cid = info.cid;
             title = info.title;
             cover = info.cover;
             duration = info.duration;
@@ -85,7 +85,7 @@ export function formatSingleMusicInfo(
     }
 
     return {
-        type: type || info.type, id, title, cover, duration, singers, fee, album, noCopyrightRcmd, st, full: true
+        type: type || info.type, id, cid, title, cover, duration, singers, fee, album, noCopyrightRcmd, st, full: true
     }
 }
 /** 格式化播放时间 */

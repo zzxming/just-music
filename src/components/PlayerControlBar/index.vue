@@ -511,6 +511,7 @@ function seekAudio(e: MouseEvent) {
 /** 点击音量条调整音量 */
 function seekVolume(e: MouseEvent) {
     // console.log(e)
+    if ((e.target as HTMLElement).children.length < 1) return;
     if (audioVolumeBar.value && audio.value) {
         let clickY = e.offsetY;
         let totalHeight = audioVolumeBar.value.offsetHeight;

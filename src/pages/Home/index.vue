@@ -2,9 +2,9 @@
     <DataContent title="网易云推荐歌单" href="/playlist">
         <CloudPlaylistRecommend />
     </DataContent>
-    <DataContent title="just推荐歌单">
+    <!-- <DataContent title="just推荐歌单">
         <LocalPlaylistRandom />
-    </DataContent>
+    </DataContent> -->
 </template>
 
 <script lang="ts" setup>

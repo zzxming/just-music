@@ -9,7 +9,7 @@
         <div class="songlist_body">
             <div 
                 v-for="(song, index) in songs" 
-                :class="`songlist_item ${index % 2 === 0 ? 'stripe' : ''} ${activeId === song.id ? 'active' : ''} ${song.st === -200 ? 'disable' : ''}`"
+                :class="`songlist_item ${index % 2 === 0 ? 'stripe' : ''} ${activeId === song.id && activeCid === song.cid ? 'active' : ''} ${song.st === -200 ? 'disable' : ''}`"
                 @dblclick="(e) => playSong(e, song)"
                 @contextmenu="(e) => showPopbox(e, song)"
             >
@@ -196,7 +196,7 @@ import { storeToRefs } from 'pinia';
 import { ref, watch, toRefs } from 'vue';
 import Vip from '@/assets/iconfont/vip.vue';
 import Playing from '@/assets/iconfont/playing.vue';
-import { MusicInfo, Singer } from '@/interface';
+import { AudioInfoType, MusicInfo, Singer } from '@/interface';
 import { usePlayerStore } from '@/store/player';
 import { usePlaylistStore } from '@/store/playinglist';
 import { usePopoutStore } from '@/store/popout';
@@ -224,15 +224,20 @@ const props = withDefaults(defineProps<{
 const { songs, emptyText } = toRefs(props);
 
 const activeId = ref(audioInfo.value.id);
+const activeCid = ref(audioInfo.value.cid);
 
 // 当前播放变化监听
-watch(audioInfo, () => activeId.value = audioInfo.value.id)
+watch(audioInfo, (val) => {
+    activeId.value = val.id
+    activeCid.value = val.cid
+});
 
 
 /** 双击播放歌曲 */
 async function playSong(event: MouseEvent, song: MusicInfo) {
-    if (audioInfo.value.id !== song.id) {
+    if (audioInfo.value.id !== song.id || (audioInfo.value.type === AudioInfoType.bili && audioInfo.value.cid !== song.cid)) {
         activeId.value = song.id;
+        activeId.value = song.cid
         setAudioInfo(song);
         playinglistReplace(songs.value);
     }

@@ -25,7 +25,7 @@
             />
         </div>
         <LoadingErrorTip :isError="fristLoading && loadingError" :requestFunc="() => requestSearch(true)" />
-        <LoadingMore v-if="currentSearchType !== AudioInfoType.bili" v-show="!fristLoading" ref="loadMore" :requestFunc="requestSearch" />
+        <LoadingMore v-if="currentSearchType !== AudioInfoType.bili" :key="currentSearchType" v-show="!fristLoading" ref="loadMore" :requestFunc="requestSearch" />
     </div>
 </template>
 
@@ -94,10 +94,6 @@
 @media screen and (max-width: 550px) {
     .search {
         padding: 0;
-        &_type {
-        }
-        &_result {
-        }
     }
 }
 </style>
@@ -105,7 +101,7 @@
 <script lang="ts" setup>
 import { nextTick, onMounted, reactive, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { AudioInfoType, MusicInfo, LocalMusic, CloudMusic } from '@/interface'
+import { AudioInfoType, MusicInfo } from '@/interface'
 import { formatMusicInfo, isType } from '@/utils'
 import { searchCloudMusic, SearchCloudResult } from '@/assets/cloudApi'
 import { searchLocalMusic, searchMusicInfoWIthBvid } from '@/assets/localApi'
@@ -139,6 +135,8 @@ const songsData = reactive<MusicInfo[]>([]);
 // 搜索类型变化更改 url
 watch(currentSearchType, (val) => {
     // console.log(val, route.query)
+    // 为 loadingMore 组件设置了 :key, 使每次 searchtype 改变都会重新加载, 所以要重新挂载 observer
+    nextTick(() => observerLoad());
     if (route.query.kw === props.kw && route.query.t === val) return;
     router.push(jointQuery(route.path, {kw: props.kw, t: val}));
 });
@@ -229,7 +227,6 @@ async function requestSearch(loadMore: boolean = false) {
         loadMore && (songsData.length = 0);
         fristLoading.value = false;
         // console.log(result)
-        // bv 号搜索返回是单个数据
         let data = result.data;
 
         songsData.push(...formatMusicInfo(data.data, currentSearchType.value));
@@ -238,15 +235,16 @@ async function requestSearch(loadMore: boolean = false) {
         }
         return data.data.length;
     }
-    else {
+    else if (err) {
+        fristLoading.value = false;
         // console.log(err)
-        if (err?.status === 200) {
-            fristLoading.value = false;
-            return 0;
+        if (err.response && err.response.status >= 500) {
+            loadingError.value = true;
+            return -1;
         }
-        loadingError.value = true;
-        return -1;
+        return 0;
     }
+    return -1;
 }
 
 </script>

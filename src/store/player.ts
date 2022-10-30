@@ -10,6 +10,7 @@ import { usePlaylistStore } from "@/store/playinglist";
 const initAudioInfo = {
     type: AudioInfoType.local,
     id: 0,
+    cid: 0,
     cover: '',
     title: '',
     duration: 0,
@@ -87,7 +88,6 @@ export const usePlayerStore = defineStore('player', () => {
         }
         showPlayerControl.value = true;
 
-
         let src: string | null;
         let audioInfoCur = audioInfo.value;
         if (audioInfoCur.type === AudioInfoType.cloud) {
@@ -128,7 +128,7 @@ export const usePlayerStore = defineStore('player', () => {
             }
         }
         else if (audioInfoCur.type === AudioInfoType.bili) {
-            src = mediaSrc(jointQuery(`/bili/audio`, {bv: audioInfoCur.id}))
+            src = mediaSrc(jointQuery(`/bili/audio`, {bvid: audioInfoCur.id, cid: audioInfoCur.cid}))
         }
         else {
             src = mediaSrc(`/music/local/${audioInfoCur.id}`)

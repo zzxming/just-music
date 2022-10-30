@@ -120,7 +120,7 @@
 </style> -->
 
 <script lang="ts" setup>
-import { onMounted, onUnmounted, watch } from 'vue';
+import { onMounted, onUnmounted } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useIsSmallScreen } from '@/hooks';
 import { popoutCloseEvent, usePopoutStore } from '@/store/popout';
@@ -136,13 +136,6 @@ const smallScreen = useIsSmallScreen();
 
 const popoutStore = usePopoutStore();
 const { createPlaylistVisible } = storeToRefs(popoutStore);
-
-watch(() => props.show, (val) => {
-    console.log(val)
-    if (val) {
-
-    }
-})
 
 onMounted(() => {
     window.addEventListener(popoutCloseEvent, close)

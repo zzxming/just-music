@@ -3,6 +3,7 @@ import to from 'await-to-js';
 import { AxiosResponse } from 'axios'
 import { AudioInfoType, BiliMusic, CloudAudioInfo, LocalAudioInfo, LocalMusic, MusicInfo, PlaylistInfo, LocalPlaylist } from "@/interface";
 import { axios, mediaSrc, jointQuery, AxiosResult, AxiosResultError } from './api';
+import { formatMusicInfo } from '@/utils';
 
 /** 根据数据库 music_id 获取歌曲的歌曲 */
 export const staticMusicWithid = (id: number) => mediaSrc(`/music/local/${id}`);
@@ -14,43 +15,8 @@ export const searchMusicWithBvId = (bvid: string) => mediaSrc(
 ));
 /** 根据 bvid 获取歌曲信息 */
 export const searchMusicInfoWIthBvid = async (bvid: string) =>
-    await to<AxiosResponse<AxiosResult<MusicInfo[]>>, AxiosResultError>(
+    await to<AxiosResponse<AxiosResult<BiliMusic[]>>, AxiosResultError>(
         axios.get(jointQuery('/bili/info', { bv: bvid }))
-        .then((response: AxiosResponse<AxiosResult<BiliMusic>>) => {
-            const info = response.data.data;
-
-            // 没有数据不会返回data, 防止报错设置空数组
-            if (response.data.code === 0) {
-                return {
-                    ...response,
-                    data: {
-                        ...response.data,
-                        data: []
-                    }
-                }
-            }
-            return {
-                ...response,
-                data: {
-                    ...response.data,
-                    data: [
-                        {
-                            type: AudioInfoType.bili,
-                            id: info?.bvid,
-                            title: info?.title,
-                            cover: info?.cover,
-                            singers: info?.singers,
-                            album: info?.album,
-                            duration: info?.duration,
-                            fee: 0,
-                            st: 0,
-                            noCopyrightRcmd: null,
-                            full: true
-                        }
-                    ]
-                }
-            }
-        })
     )
 
 

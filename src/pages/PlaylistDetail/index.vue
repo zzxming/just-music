@@ -216,8 +216,6 @@ import { getCustomPlaylistWithId, localStoragePlaylistEvent } from '@/utils/loca
 import { useRouter } from 'vue-router';
 
 
-// 本地歌曲的歌单还没有做
-
 
 const props = defineProps<{
     id: string
@@ -225,7 +223,6 @@ const props = defineProps<{
 }>();
 const router = useRouter();
 
-console.log(props.id, props.t)
 const loading = ref(true);
 const loadingSong = ref(true);
 const loadingError = ref(false);

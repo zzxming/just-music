@@ -12,7 +12,7 @@
             <ul class="playinglist_list">
                 <li 
                     v-for="songInfo in playinglist" 
-                    :class="`playinglist_list_item ${audioInfo.id === songInfo.id ? 'playing' : ''}`"
+                    :class="`playinglist_list_item ${audioInfo.id === songInfo.id && audioInfo.cid === songInfo.cid ? 'playing' : ''}`"
                     @click="() => playMusic(songInfo)"
                 >
                     <span v-if="audioInfo.id === songInfo.id" class="el-icon playinglist_list_item-icon playing"><Playing  /></span>
@@ -179,7 +179,7 @@ function maskClick() {
 }
 /** 播放列表点击切换歌曲 */
 function playMusic(info: MusicInfo) {
-    if (info.id === audioInfo.value.id) return;
+    if (info.id === audioInfo.value.id && info.cid === audioInfo.value.cid) return;
     setAudioInfo(info);
 }
 /** 从播放列表删除歌曲 */
