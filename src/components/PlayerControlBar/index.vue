@@ -24,14 +24,7 @@
                     </span>
                 </div>
                 <div class="botcontrol_info_bar-time">
-                    <div ref="audioTimeBar" class="botcontrol_time_bar" @click="seekAudio">
-                        <div class="botcontrol_time_bar_bg" :style="{width: `${bufferedWidth}%`}"></div>
-                        <div class="botcontrol_time_bar_progress" :style="{width: `${currentdWidth}%`}">
-                            <div class="botcontrol_time_bar_dot" @mousedown="(e) => dragDot(e, 'x')">
-                                <el-icon v-show="audioLoading"><Loading /></el-icon>
-                            </div>
-                        </div>
-                    </div>
+                    <ProgressControlBar :isTime="true" :loading="audioLoading" />
                 </div>
             </div>
             <div class="botcontrol_info_time">
@@ -45,16 +38,12 @@
                 <el-icon class="botcontrol_btn-icon play" v-show="audio.paused"><Play /></el-icon>
                 <el-icon class="botcontrol_btn-icon pause" v-show="!audio.paused"><Pause /></el-icon>    
             </div>
-            <div class="botcontrol_btn_volume">
+            <div class="botcontrol_btn_volume" @mouseenter="volumeShow = true" @mouseleave="volumeShow = false">
                 <el-icon class="botcontrol_btn-icon volume" v-show="audio.volume !== 0" @click="mutedAudio"><Volume /></el-icon>
                 <el-icon class="botcontrol_btn-icon mute" v-show="audio.volume === 0" @click="mutedAudio"><Volume_mute /></el-icon>
                 <div class="botcontrol_volume_bar">
-                    <div class="botcontrol_volume_text">{{ Math.floor(volumeHeight) }}</div>
-                    <div ref="audioVolumeBar" class="botcontrol_volume_bar_inner" @click="seekVolume">
-                        <div class="botcontrol_volume_bar_progress" :style="{height: `${volumeHeight}%`}">
-                            <div class="botcontrol_volume_bar_dot" @mousedown="(e) => dragDot(e, 'y')"></div>
-                        </div>
-                    </div>
+                    <div class="botcontrol_volume_text">{{ Math.floor(audioVolume * 100) }}</div>
+                    <ProgressControlBar v-show="volumeShow" :isTime="false" :loading="false" />
                 </div>
             </div>
             <el-icon class="botcontrol_btn-icon list" @click="activatePlayinglistState"><Expand /></el-icon>
@@ -145,67 +134,6 @@
     .progressBar(@color) {
         border-radius: 6px;
         background-color: @color;
-    }
-    &_time {
-        &_bar {
-            cursor: pointer;
-            position: relative;
-            height: 100%;
-            .progressBar(var(--el-color-info-light-8));
-            z-index: 1;
-            &_progress {
-                position: absolute;
-                top: 0;
-                left: 0;
-                .progressBar(var(--el-color-danger-light-5));
-                height: 100%;
-                z-index: 3;
-                &::before {
-                    content: '';
-                    box-sizing: border-box;
-                    display: flex;
-                    position: absolute;
-                    top: -4px;
-                    right: -10px;
-                    width: 20px;
-                    height: 20px;
-                    border-radius: 50%;
-                    border: 2px solid var(--el-color-info);
-                    background-color: var(--el-color-info-light-9);
-                    z-index: 4;
-                    cursor: pointer;
-                    &:hover {
-                        border: 2px solid var(--el-color-info-dark-2);
-                    }
-                }
-            }
-            &_bg {
-                .progressBar(var(--el-color-info-light-3));
-                width: 0%;
-                height: 100%;
-                z-index: 2;
-            }
-            &_dot {
-                box-sizing: border-box;
-                display: flex;
-                position: absolute;
-                top: -4px;
-                right: -10px;
-                width: 20px;
-                height: 20px;
-                border-radius: 50%;
-                border: 2px solid var(--el-color-info);
-                background-color: var(--el-color-info-light-9);
-                z-index: 4;
-                cursor: pointer;
-                i {
-                    animation: rotate360 linear 2s infinite;
-                }
-                &:hover {
-                    border: 2px solid var(--el-color-info-dark-2);
-                }
-            }
-        }
     }
     &_info {
         display: flex;
@@ -298,48 +226,7 @@
             .progressBar(var(--el-fill-color-blank));
             box-shadow: var(--el-box-shadow-light);
             z-index: 1;
-            &_inner {
-                position: relative;    
-                width: 8px;
-                height: 100px;
-                margin: 10px 0;
-                .progressBar(var(--el-color-info-light-8));
-                transform: rotateZ(180deg);
-                cursor: pointer;
-            }
-            &_progress {
-                position: relative;
-                width: 100%;
-                height: 0%;
-                .progressBar(var(--el-color-danger-light-5));
-            }
-            &_dot {
-                box-sizing: border-box;
-                position: absolute;
-                bottom: -8px;
-                right: -4px;
-                width: 16px;
-                height: 16px;
-                border-radius: 50%;
-                border: 2px solid var(--el-color-info);
-                background-color: var(--el-color-info-light-9);
-                z-index: 4;
-                &:hover {
-                    border: 2px solid var(--el-color-info-dark-2);
-                }
-            }
         }
-    }
-}
-@keyframes rotate360 {
-    0% {
-        transform: rotateZ(0deg);
-    }
-    50% {
-        transform: rotateZ(180deg);
-    }
-    100% {
-        transform: rotateZ(360deg);
     }
 }
 @media screen and (max-width: 810px) {
@@ -390,6 +277,7 @@ import Skipforward from '@/assets/iconfont/skipforward.vue';
 import Volume_mute from '@/assets/iconfont/volume_mute.vue';
 import AudioPlayType from '@/components/AudioPlayType/index.vue';
 import Playinglist from '@/components/Playinglist/index.vue';
+import ProgressControlBar from '@/components/ProgressControlBar/index.vue';
 
 const musicImg = ref(defaultMusicImg);
 
@@ -400,14 +288,7 @@ const { setAudioInfo, resetAudioInfo } = playerStore;
 const { playinglist } = playlistStore;
 const { findPreMusic, findNextMusic } = playlistStore;
 
-const audioTimeBar = ref<HTMLDivElement>();
-const audioVolumeBar = ref<HTMLDivElement>();
 
-// 三个样式宽高都是百分比数字
-const bufferedWidth = ref(0);
-const currentdWidth = ref(0);
-const volumeHeight = ref(0);    
-const lock = ref(false);    // 是否在拖动
 
 const audioDuration = computed<string>(() => formatAudioTime(audioInfo.value.duration / 1000));
 const audioCurrentTimeStr = ref('00:00');
@@ -415,14 +296,13 @@ const audioIsPaused = ref(true);
 const audioLoading = ref(false);
 const audioVolume = ref(0.7);
 const activePlayinglist = ref(false);
+const volumeShow = ref(false);
+
 
 /** 初始值 */
 watch(audio, (val) => {
     unbindAudioEvent();
     if (val) {
-        volumeHeight.value = 70;
-        currentdWidth.value = 0;
-        val.volume = volumeHeight.value / 100;
         bindAudioEvent();
     }
 });
@@ -430,8 +310,7 @@ watch(audioInfo, () => {
     if (audioInfo.value.id) {
         audioLoading.value = true;
     }
-})
-
+});
 
 
 function bindAudioEvent() {
@@ -478,8 +357,8 @@ function bindAudioEvent() {
             playNext();
         })
         audioDom.addEventListener('volumechange', function() {
-            if (audioVolumeBar.value && audio.value) {
-                volumeHeight.value = audio.value.volume * 100;
+            if (audio.value) {
+                audioVolume.value = audio.value.volume;
             }
         });
     }
@@ -489,36 +368,6 @@ function unbindAudioEvent() {
     if (audioDom) {
         audioDom.removeEventListener('timeupdate', updateAudioCurrentTime)
         audioDom.addEventListener('seeking', updateAudioCurrentTime);
-    }
-}
-// path 属性是 chrome 独有的, composedPath 是官方标准
-/** 点击音频进度条跳转 */
-function seekAudio(e: MouseEvent) {
-    // console.log(e)
-    // 点到加载的dot, 判断offsetX会有问题
-    if (e.composedPath().length > 11) {
-        return;
-    }
-    if (audioTimeBar.value && audio.value) {
-        let clickX = e.offsetX;
-        let totalWidth = audioTimeBar.value.offsetWidth;
-        let pre = Math.round(clickX / totalWidth * 100);
-        currentdWidth.value = pre;
-        audio.value.currentTime = pre / 100 * (audioInfo.value.duration / 1000);
-        // console.log(clickX, totalWidth, Math.round(clickX / totalWidth * 100),audioInfo.value.duration)
-    }
-}
-/** 点击音量条调整音量 */
-function seekVolume(e: MouseEvent) {
-    // console.log(e)
-    if ((e.target as HTMLElement).children.length < 1) return;
-    if (audioVolumeBar.value && audio.value) {
-        let clickY = e.offsetY;
-        let totalHeight = audioVolumeBar.value.offsetHeight;
-        let pre = Math.round(clickY / totalHeight * 100);
-        // volumeHeight.value = pre;
-        audio.value.volume = pre / 100;
-        // console.log(clickY, totalHeight, pre / 100, audio.value.volume)
     }
 }
 /** 静音或解除静音 */
@@ -535,13 +384,9 @@ function mutedAudio() {
 }
 /** 更新当前播放时间 */
 function updateAudioCurrentTime() {
-    if (lock.value) return;
-    if (audio.value && audioTimeBar.value) {
+    if (audio.value) {
         let currentTime = audio.value.currentTime
         audioCurrentTimeStr.value = formatAudioTime(currentTime);
-
-        let duration = audioInfo.value.duration / 1000;
-        currentdWidth.value = Math.round(currentTime / duration * 100); 
     }
 }
 /** 音频播放与暂停 */
@@ -599,70 +444,6 @@ function activatePlayinglistState() {
 /** 关闭播放列表 */
 function deactivatePlayinglistState() {
     activePlayinglist.value = false;
-}
-/** 拖动进度条或音量条 */
-function dragDot(e: MouseEvent, direction: 'x' | 'y') {
-    // console.log(e)
-    let positionInfo: DOMRect;
-    if (direction === 'x' && audioTimeBar.value) {
-        positionInfo = audioTimeBar.value.getBoundingClientRect();
-    }
-    else if (direction === 'y' && audioVolumeBar.value) {
-        positionInfo = audioVolumeBar.value.getBoundingClientRect();
-    }
-    else {
-        throw new Error('未知错误');
-    }
-    
-    // console.log(e.clientX)
-    // console.log(e.clientY)
-    // console.log(audioTimeBar.value?.getBoundingClientRect())
-    let eventHandle = computedMove.bind(undefined, direction, positionInfo);
-    let removeEventHandle = () => {
-        lock.value = false
-        document.removeEventListener('mousemove', eventHandle);
-        document.removeEventListener('mouseup', removeEventHandle);
-        if (audio.value) {
-            if (direction === 'x') audio.value.currentTime = audio.value.duration * (currentdWidth.value / 100);
-        }
-    }
-    document.addEventListener('mousemove', eventHandle);
-    document.addEventListener('mouseup', removeEventHandle);
-
-    
-    function computedMove(direction: 'x' | 'y', { x, y, width, height }: DOMRect, e: MouseEvent) {
-        lock.value = true;
-        let { clientX: moveX, clientY: moveY } = e;
-
-        if (direction === 'x') {
-            let maxX = x + width;
-            if (moveX < x) {
-                currentdWidth.value = 0;
-                return;
-            }
-            if (moveX > maxX) {
-                currentdWidth.value = 100;
-                return;
-            }
-
-            let nowX = moveX - x;
-            currentdWidth.value = Math.floor(nowX / width * 10000) / 100;
-        }
-        else if (direction === 'y') {
-            let maxY = y + height;
-            if (moveY < y) {
-                volumeHeight.value = 100;
-                return;
-            }
-            if (moveY > maxY) {
-                volumeHeight.value = 0;
-                return;
-            }
-
-            let nowY = moveY - y;
-            audio.value && (audio.value.volume = Number((1 - nowY / height).toFixed(2)));
-        }
-    }
 }
 </script>
 
