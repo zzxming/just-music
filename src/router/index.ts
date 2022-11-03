@@ -10,8 +10,13 @@ const routes: readonly RouteRecordRaw[] = [
         path: '/home',
         component: () => import("@/pages/Home/index.vue"),
     }, {
-        path: '/player',
-        component: () => import("@/pages/Player/index.vue"),
+        path: '/song',
+        component: () => import("@/pages/Song/index.vue"),
+        props(route) {
+            return {
+                ...route.query
+            }
+        }
     }, {
         path: '/playlist',
         component: () => import("@/pages/Playlist/index.vue"),

@@ -2,7 +2,8 @@
     <Popout 
         :show="popoutVisible" 
         :position="popoutPosition" 
-        @close="closePopout"
+        @close="() => closePopout(false)"
+        @click="() => closePopout(true)"
     >
         <PopoutItem @click="play">播放</PopoutItem>
         <PopoutItem @click="nextPlay">下一首播放</PopoutItem>
@@ -227,9 +228,9 @@ function deletefromPlaylist() {
     });
 }
 /** 关闭 popout */
-function closePopout() {
-    (popoutStore.popoutVisible as unknown as boolean) = false;
-    window.dispatchEvent(new Event(popoutCloseEvent));
+function closePopout(isItem: boolean) {
+    popoutStore.popoutVisible = false;
+    window.dispatchEvent(new CustomEvent(popoutCloseEvent, { detail: { isItem } }));
 }
 /** 将歌单上传值数据库 */
 async function uploadPlaylist() {

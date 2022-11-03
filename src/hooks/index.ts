@@ -1,7 +1,7 @@
 import { ref, onMounted, onUnmounted, watch, Ref, reactive } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
-/** 是否为小屏 */
+/** 是否为小屏 <550 */
 export function useIsSmallScreen(): Ref<boolean> {
     const smallScreen = ref(false);
 

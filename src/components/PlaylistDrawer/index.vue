@@ -1,6 +1,7 @@
 <template>
-    <div :class="`drawer ${show ? 'show' : ''}`" @click="close">
-        <div class="drawer_content">
+    <div :class="`drawer ${show ? 'show' : ''}`">
+        <div class="drawer_mask" @click="close"></div>
+        <div class="drawer_content" :style="{width: smallScreen ? '100%' : '400px'}">
             <div class="drawer_header">
                 <span class="drawer_header_title" @click="createPlaylistVisible = true">
                     创建的歌单
@@ -8,11 +9,11 @@
                         <el-icon><Plus /></el-icon>
                     </div>
                 </span>
-                <div class="drawer_header_close">
+                <div class="drawer_header_close" @click="close">
                     <el-icon><Close /></el-icon>
                 </div>
             </div>
-            <div class="drawer_body" :style="{width: smallScreen ? '100%' : '400px'}">
+            <div class="drawer_body" @click="close">
                 <PlaylistTitleList />
             </div>
         </div>
@@ -23,9 +24,8 @@
 .drawer {
     position: fixed;
     inset: 0;
-    background-color: var(--el-overlay-color-lighter);
     z-index: 11;
-    overflow: auto;
+    overflow: hidden;
     opacity: 0;
     transition: opacity .3s linear;
     visibility: hidden;
@@ -36,15 +36,22 @@
             right: 0;
         }
     }
+    &_mask {
+        width: 100%;
+        height: 100%;
+        background-color: var(--el-overlay-color-lighter);
+        z-index: 1;
+    }
     &_content {
         position: absolute;
-        right: -100%;
+        right: -400px;
         top: 0;
         bottom: 0;
         height: 100%;
         box-shadow: var(--el-box-shadow-dark);
         background-color: var(--el-bg-color);
         transition: all var(--el-transition-duration);
+        z-index: 2;
     }
     &_header {
         box-sizing: border-box;
@@ -85,43 +92,11 @@
     }
 }
 </style>
-<!-- <style lang="less">
-.drawer {
-    .el-drawer {
-        .el-drawer__close-btn {
-            &:hover {
-                .el-icon {
-                    color: var(--el-color-danger);
-                }
-            }
-        }
-    }
-    .el-drawer.ltr, 
-    .el-drawer.rtl {
-        position: static;
-        float: right;
-    }
-    .el-drawer__body {
-        &::-webkit-scrollbar {
-            width: 6px;
-            border-radius: 6px;
-            overflow: hidden;
-            background-color: var(--el-bg-color-page);
-        }
-        &::-webkit-scrollbar-button {
-            display: none;
-        }
-        &::-webkit-scrollbar-thumb {
-            border-radius: 6px;
-            background-color: var(--el-color-danger-light-5);
-        }
-    }
-}
-</style> -->
 
 <script lang="ts" setup>
-import { onMounted, onUnmounted } from 'vue';
+import { onMounted, onUnmounted, watch} from 'vue';
 import { storeToRefs } from 'pinia';
+import { useRouter } from 'vue-router';
 import { useIsSmallScreen } from '@/hooks';
 import { popoutCloseEvent, usePopoutStore } from '@/store/popout';
 import PlaylistTitleList from '@/components/PlaylistTitleList/index.vue';
@@ -132,21 +107,30 @@ const props = defineProps<{
 const emit = defineEmits<{
     (event: 'close'): void
 }>();
+const router = useRouter();
 const smallScreen = useIsSmallScreen();
 
 const popoutStore = usePopoutStore();
 const { createPlaylistVisible } = storeToRefs(popoutStore);
 
+watch(() => router, () => {
+    close();
+}, { deep: true })
 onMounted(() => {
-    window.addEventListener(popoutCloseEvent, close)
+    window.addEventListener(popoutCloseEvent, popoutClose)
 });
 onUnmounted(() => {
-    window.removeEventListener(popoutCloseEvent, close)
+    window.removeEventListener(popoutCloseEvent, popoutClose)
 });
 
 function close() {
     emit('close');
     (popoutStore.popoutVisible as unknown as boolean) = false;
+}
+function popoutClose(e: CustomEventInit<{isItem: boolean}>) {
+    if (e.detail) {
+        e.detail.isItem && close();
+    }
 }
 </script>
 

@@ -142,7 +142,7 @@ const progress = ref(props.isTime ? 0 : 70);
 watch(() => props.isTime, () => {
     if (props.isTime && audio.value) {
         audio.value.addEventListener('timeupdate', function() {
-            progress.value = Number(((this.currentTime / this.duration) * 100).toFixed(2));
+            progress.value = Number(((this.currentTime / (audioInfo.value.duration / 1000)) * 100).toFixed(2));
         })
     }
 }, { immediate: true })
@@ -246,7 +246,6 @@ function dragDot(e: MouseEvent) {
 
             let nowY = moveY - y;
             if(audio.value) {
-                console.log(1 - nowY /height)
                 let pre = Number((1 - nowY / height).toFixed(2));
                 progress.value = pre * 100;
                 audio.value.volume = pre;

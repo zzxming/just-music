@@ -41,6 +41,7 @@ export interface MusicInfo {
     } | null
     /** -200 表示歌曲下架不能听 */
     st: number
+    publishTime: number
     full: boolean
 } 
 /** 整合后的歌手信息 */
@@ -66,6 +67,7 @@ export interface LocalMusic {
     album: string
     duration: number
     fee: number
+    publishTime: number
 }
 /** 本地歌手信息 */
 export interface LocalSinger {
@@ -87,6 +89,7 @@ export interface CloudMusic {
     }
     /** -200 表示歌曲下架不能听 */
     st: number
+    publishTime: number
 }
 /** 网易云音乐歌手部分信息 */
 export interface CloudSingerShort {
@@ -109,6 +112,7 @@ export interface BiliMusic {
     cover: string
     duration: number
     album: string
+    publishTime: number
 }
 
 

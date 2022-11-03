@@ -63,6 +63,11 @@ export interface AxiosResultCode {
 }
 
 /** 静态资源路径 */
-export const mediaSrc = (src: string) => process.env.NODE_ENV === 'development' && !src.startsWith('http') ? `/api${src}` : src
+export const mediaSrc = (src: string) => {
+    if (src === '') {
+        return process.env.NODE_ENV === 'development' ? `/api${defaultMusicImg}` : defaultMusicImg
+    }
+    return process.env.NODE_ENV === 'development' && !src.startsWith('http') ? `/api${src}` : src
+}
 /** 默认的封面图片 */
 export const defaultMusicImg = '/imgs/music.jpg';

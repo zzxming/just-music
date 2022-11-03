@@ -33,7 +33,7 @@
         .borderVertical {
             box-sizing: border-box;
             display: block;
-            width: calc(100% - 20px);
+            width: 100%;
             height: 1px;
             background-color: var(--el-color-info-light-7);
         }

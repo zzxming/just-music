@@ -6,7 +6,7 @@
             <div v-if="playlistInfo" class="playlist_info">
                 <div class="playlist_info_left">
                     <div class="playlist_info_cover">
-                        <img :src="mediaSrc(playlistInfo.cover)" alt="歌单封面" />
+                        <img v-lazy="mediaSrc(playlistInfo.cover)" alt="歌单封面" :key="playlistInfo.cover" />
                     </div>
                 </div>
                 <div class="playlist_info_right">
@@ -14,7 +14,7 @@
                         <h3 class="playlist_info_title" :title="playlistInfo.title">{{playlistInfo.title}}</h3>
                     </div>
                     <div class="playlist_info_right_line">
-                        <el-avatar class="playlist_info_avatar" :size="28" :icon="UserFilled" :src="mediaSrc(playlistInfo.creator.avatarUrl)" />
+                        <el-avatar class="playlist_info_avatar" :size="28" :icon="UserFilled" v-lazy="mediaSrc(playlistInfo.creator.avatarUrl)" :key="playlistInfo.creator.avatarUrl" />
                         <span class="playlist_info_nickname">{{playlistInfo.creator.name}}</span>
                         <span class="playlist_info_createTime">{{new Date(playlistInfo.createTime).toLocaleDateString()}}</span>
                     </div>
@@ -103,6 +103,7 @@
             min-height: @coverHeight;
             border-radius: 8px;
             overflow: hidden;
+            user-select: none;
             img {
                 width: 100%;
             }
@@ -230,6 +231,7 @@ const loadingSongError = ref(false);
 const songsInfo = ref<MusicInfo[]>([]);
 const playlistInfo = ref<PlaylistInfo>();
 const descriptionOpen = ref(false);
+
 
 watch([() => props.id, () => props.t], () => {
     requestPlaylistData();

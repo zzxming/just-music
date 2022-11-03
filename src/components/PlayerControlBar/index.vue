@@ -10,8 +10,8 @@
             <el-icon class="botcontrol_btn-icon skipforward" @click="() => playNext(false)"><Skipforward /></el-icon>
         </div>
         <div class="botcontrol_info">
-            <div class="botcontrol_info_cover">
-                <img class="botcontrol_info_cover-img" :src="audioInfo.cover === '' ? mediaSrc(musicImg) : audioInfo.cover" @error.once="onErrorImg" />
+            <div class="botcontrol_info_cover" @click="() => router.push(jointQuery('/song', {id: audioInfo.id, t: audioInfo.type}))">
+                <img class="botcontrol_info_cover-img" v-lazy="mediaSrc(audioInfo.cover)" :key="audioInfo.cover" />
             </div>
             <div class="botcontrol_info_mid">
                 <div class="botcontrol_info_title">
@@ -59,6 +59,7 @@
     white-space: nowrap;
 }
 .botcontrol {
+    box-sizing: border-box;
     display: flex;
     align-items: center;
     justify-content: space-around;
@@ -67,6 +68,7 @@
     left: 0;
     width: 100%;
     height: 80px;
+    padding: 0 30px;
     background-color: var(--el-fill-color-blank);
     box-shadow: var(--el-box-shadow-dark);
     transition: bottom .3s linear;
@@ -159,6 +161,7 @@
             user-select: none;
             border-radius: 8px;
             overflow: hidden;
+            cursor: pointer;
             &-img {
                 width: 100%;
                 height: 100%;
@@ -178,11 +181,13 @@
         }
         &_song {
             .textOverflowEllipsis();
+            display: block;
             grid-area: song;
             margin-right: 10px;
         }
         &_singer {
             .textOverflowEllipsis();
+            display: block;
             grid-area: singer;
             color: var(--el-color-danger-light-5);
             &-name {
@@ -243,11 +248,6 @@
         }
         &_info {
             margin-left: 14px;
-            &_cover {
-                width: 50px;
-                height: 50px;
-                min-width: 50px;
-            }
             &_time {
                 display: none;
             }
@@ -259,16 +259,32 @@
         }
     }
 }
+@media screen and (max-width: 480px) {
+    .botcontrol {
+        &_info {
+            &_bar-time {
+                display: none;
+            }
+            &_title {
+                display: block;
+            }
+            &_singer {
+                font-size: 12px;
+            }
+        }
+    }
+}
 </style>
 
 <script lang="ts" setup>
 import { storeToRefs } from 'pinia';
 import { computed, ref, watch } from 'vue';
+import { useRouter } from 'vue-router';
 import { usePlayerStore } from '@/store/player';
 import { usePlaylistStore } from '@/store/playinglist';
 import { formatAudioTime } from '@/utils';
 import { PlayMode } from '@/interface';
-import { defaultMusicImg, mediaSrc } from '@/assets/api';
+import { jointQuery, mediaSrc } from '@/assets/api';
 import Volume from '@/assets/iconfont/volume.vue';
 import Pause from '@/assets/iconfont/pause.vue';
 import Play from '@/assets/iconfont/play.vue';
@@ -279,13 +295,13 @@ import AudioPlayType from '@/components/AudioPlayType/index.vue';
 import Playinglist from '@/components/Playinglist/index.vue';
 import ProgressControlBar from '@/components/ProgressControlBar/index.vue';
 
-const musicImg = ref(defaultMusicImg);
 
+const router = useRouter();
 const playerStore = usePlayerStore();
 const playlistStore = usePlaylistStore();
 const { audio, audioSrc, showPlayerControl, audioInfo, curPlayMode } = storeToRefs(playerStore);
 const { setAudioInfo, resetAudioInfo } = playerStore;
-const { playinglist } = playlistStore;
+const { playinglist } = storeToRefs(playlistStore);
 const { findPreMusic, findNextMusic } = playlistStore;
 
 
@@ -395,8 +411,8 @@ function playAudio() {
     if (audioDom && audioInfo.value.id) {
         if (audioDom.paused) {
             // 当播放路径为空且播放列表有歌曲时, 播放第一首
-            if (!audioSrc.value && playinglist.length > 0) {
-                setAudioInfo(playinglist[0]);
+            if (!audioSrc.value && playinglist.value.length > 0) {
+                setAudioInfo(playinglist.value[0]);
             }
             audioDom.play();
         }
@@ -432,10 +448,6 @@ function playNext(isAuto: boolean = true) {
         audio.value && audio.value.load();
     }
     setAudioInfo(next);
-}
-/** 图片加载失败 */
-function onErrorImg(e: Event) {
-    (e.target as HTMLImageElement).src = musicImg.value;
 }
 /** 显示播放列表 */
 function activatePlayinglistState() {

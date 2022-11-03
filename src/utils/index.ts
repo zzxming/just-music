@@ -41,7 +41,8 @@ export function formatSingleMusicInfo(
             type: number, 
             typeDesc: string
         } | null = null,
-        st: number = 0;
+        st: number = 0,
+        publishTime: number = 0;
     try {
         
         // console.log(info)
@@ -54,6 +55,7 @@ export function formatSingleMusicInfo(
             singers = info.singers.map(item => ({id: item.singer_id, name: item.singer_name}));
             fee = 0;
             album = info.album;
+            publishTime = info.publishTime;
         }
         else if (isType<CloudAudioInfo>(info) && (type === AudioInfoType.cloud || info.type === AudioInfoType.cloud)) {
             id = info.id;
@@ -65,6 +67,7 @@ export function formatSingleMusicInfo(
             album = info.al.name;
             noCopyrightRcmd = info.noCopyrightRcmd;
             st = info.st;
+            publishTime = info.publishTime;
         }
         else if (isType<BiliMusic>(info) && (type === AudioInfoType.bili || info?.type === AudioInfoType.bili)) {
             id = info.bvid;
@@ -75,6 +78,7 @@ export function formatSingleMusicInfo(
             singers = info.singers.map(item => ({id: item.id, name: item.name}));
             fee = 0;
             album = info.album;
+            publishTime = info.publishTime;
         }
         else {
             throw Error('function formatMusicInfo argument type error')
@@ -85,7 +89,7 @@ export function formatSingleMusicInfo(
     }
 
     return {
-        type: type || info.type, id, cid, title, cover, duration, singers, fee, album, noCopyrightRcmd, st, full: true
+        type: type || info.type, id, cid, title, cover, duration, singers, fee, album, noCopyrightRcmd, st, full: true, publishTime
     }
 }
 /** 格式化播放时间 */

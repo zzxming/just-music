@@ -6,9 +6,8 @@
         center 
         :destroy-on-close="true"
         :before-close="() => emit('close')"
-        v-loading="loading"
     >
-        <el-form ref="formRef" :model="playlistData" :rules="rules">
+        <el-form ref="formRef" :model="playlistData" :rules="rules" v-loading="loading">
             <el-form-item prop="title">
                 <el-input class="creator_input" v-model="playlistData.title" placeholder="请输入新建歌单标题" />
             </el-form-item>
@@ -89,7 +88,7 @@ function submitForm() {
             if (loading.value) return;
             loading.value = true;
             let result = await createPlaylist();
-            loading.value = false;
+            loading.value = false
             if (result.status) {
                 ElMessage({
                     type: 'success',
@@ -139,7 +138,7 @@ async function createPlaylist(): Promise<{status: boolean, message: string}> {
         if (err) {
             return {
                 status: false,
-                message: err.data.message
+                message: err.message
             }
         }
     }

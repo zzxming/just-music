@@ -19,7 +19,8 @@ const initAudioInfo = {
     fee: 0,
     noCopyrightRcmd: null,
     st: 0,
-    full: false
+    full: false,
+    publishTime: 0
 };
 export const usePlayerStore = defineStore('player', () => {
     const audio = ref<HTMLAudioElement>();
