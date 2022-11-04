@@ -10,8 +10,14 @@
             <div 
                 v-for="(song, index) in songs" 
                 :class="`songlist_item ${index % 2 === 0 ? 'stripe' : ''} ${activeId === song.id && activeCid === song.cid ? 'active' : ''} ${song.st === -200 ? 'disable' : ''}`"
+                :draggable="canDrag"
                 @dblclick="(e) => playSong(e, song)"
                 @contextmenu="(e) => showPopbox(e, song)"
+                
+                @dragstart="(e) => dragstart(e, index)"
+                @dragleave="(e) => dragleave(e)"
+                @dragover="(e) => dragover(e)"
+                @drop="(e) => drop(e, index)"
             >
                 <div class="songlist_index">
                     <span class="songlist_index-text">{{ twoDigitStr(index + 1) }}</span>
@@ -58,8 +64,8 @@
     justify-content: flex-start;
     box-sizing: border-box;
     width: 100%;
-    padding-bottom: 40px;
     border-radius: 10px;
+    overflow: hidden;
     cursor: default;
     background-color: var(--el-bg-color-overlay);
     &_header,
@@ -85,6 +91,7 @@
         }
     }
     &_item {
+        position: relative;
         height: 40px;
         font-size: 16px;
         color: var(--el-color-info-light-3);
@@ -118,6 +125,28 @@
         &:hover {
             background-color: var(--el-color-info-light-8);
         }
+        &.top::after {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            margin-left: -48%;
+            content: '';
+            display: block;
+            width: 96%;
+            height: 1px;
+            background-color: var(--el-color-danger);
+        }
+        &.bottom::before {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            margin-left: -48%;
+            content: '';
+            display: block;
+            width: 96%;
+            height: 1px;
+            background-color: var(--el-color-danger);
+        }
     }
     &_index,
     &_title,
@@ -145,6 +174,10 @@
             display: flex;
             align-items: center;
             justify-content: flex-start;
+        }
+        &-singer {
+            color: var(--el-color-info-light-3);
+            font-size: 14px;
         }
         &-text {
             .textOverflowEllipsis();
@@ -217,11 +250,16 @@ const props = withDefaults(defineProps<{
     songs: MusicInfo[]
     emptyText?: string
     canDeleteSong?: boolean
+    canDrag?: boolean
 }>(), {
     emptyText: '这里什么都没有',
-    canDeleteSong: false
+    canDeleteSong: false,
+    canDrag: false
 });
 const { songs, emptyText } = toRefs(props);
+const emit = defineEmits<{
+    (e: 'songOrder', song: MusicInfo[]): void
+}>()
 
 const activeId = ref(audioInfo.value.id);
 const activeCid = ref(audioInfo.value.cid);
@@ -258,5 +296,65 @@ function showPopbox(event: MouseEvent, song: MusicInfo) {
         popoutCanDelete: props.canDeleteSong
     })
 }
+
+
+function dragstart(e: DragEvent, index: number) {
+    if (!props.canDrag) return;
+    e.dataTransfer?.setData('data', JSON.stringify(index));
+}
+function dragleave(e: DragEvent) {
+    if (!props.canDrag) return;
+    if (e.target) {
+        (e.target as HTMLElement).classList.remove('top');
+        (e.target as HTMLElement).classList.remove('bottom');
+    }
+}
+function dragover(e: DragEvent) {
+    if (!props.canDrag) return;
+    e.preventDefault();
+    // console.log(e)
+    let el = e.composedPath().find(el => Array.from((el as HTMLElement).classList).includes('songlist_item')) as HTMLElement;
+    let h = el.offsetHeight;
+    let top = el.offsetTop;
+    let pageY = e.pageY;
+    if (pageY < top + h / 2) {
+        el.classList.add('top');
+        el.classList.remove('bottom');
+    }
+    else {
+        el.classList.remove('top');
+        el.classList.add('bottom');
+    }
+}
+function drop(e: DragEvent, index: number) {
+    if (!props.canDrag) return;
+    let el = e.composedPath().find(el => Array.from((el as HTMLElement).classList).includes('songlist_item')) as HTMLElement;
+    let classList = Array.from(el.classList);
+    let dataIndex = JSON.parse(e.dataTransfer?.getData('data') as string);
+    let toIndex = index;
+    
+    if (classList.includes('bottom')) toIndex += 1;
+    if (toIndex < 0) toIndex = 0;
+    if (toIndex === dataIndex) {
+        el.classList.remove('top');
+        el.classList.remove('bottom');
+        return;
+    }
+    let newList = [...songs.value];
+    let moveData = newList[dataIndex];
+    newList.splice(toIndex, 0, moveData);
+    if (toIndex < dataIndex) {
+        newList.splice(dataIndex + 1, 1);
+    }
+    else {
+        newList.splice(dataIndex, 1);
+    }
+
+    emit('songOrder', newList);
+
+    el.classList.remove('top');
+    el.classList.remove('bottom');
+}
+
 </script>
 

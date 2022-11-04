@@ -15,8 +15,8 @@
                     </div>
                     <div class="playlist_info_right_line">
                         <el-avatar class="playlist_info_avatar" :size="28" :icon="UserFilled" v-lazy="mediaSrc(playlistInfo.creator.avatarUrl)" :key="playlistInfo.creator.avatarUrl" />
-                        <span class="playlist_info_nickname">{{playlistInfo.creator.name}}</span>
-                        <span class="playlist_info_createTime">{{new Date(playlistInfo.createTime).toLocaleDateString()}}</span>
+                        <span class="playlist_info_nickname">{{ playlistInfo.creator.name }}</span>
+                        <span class="playlist_info_createTime">{{ playlistInfo.createTime === 0 ? '' : new Date(playlistInfo.createTime).toLocaleDateString() }}</span>
                     </div>
                     <div class="playlist_info_right_line">
                         <div class="playlise_info_playinfo">
@@ -45,6 +45,8 @@
                     v-if="!loadingSong && !loadingSongError" 
                     :songs="songsInfo" 
                     :canDeleteSong="playlistInfo?.type === PlaylistType.localStorage" 
+                    :canDrag="playlistInfo?.type === PlaylistType.localStorage"
+                    @songOrder="songOrder"
                 />
                 <LoadingErrorTip 
                     :style="{alignSelf: 'center'}" 
@@ -157,7 +159,6 @@
         box-sizing: border-box;
         width: 100%;
         padding: 0 40px;
-        min-height: calc(100vh - 64px - @coverHeight - @infoPaddingTop - @infoPaddingBot);
         margin-bottom: 200px;
     }
 }
@@ -205,16 +206,16 @@
 
 <script lang="ts" setup>
 import { ref, watch, onMounted, onUnmounted } from 'vue';
+import { useRouter } from 'vue-router';
 import { UserFilled } from '@element-plus/icons-vue';
 import { getCloudPlaylistDetail, getCloudPlaylistTrack } from '@/assets/cloudApi';
 import { getLocalPlaylistDetail, geLocalPlaylistTrack } from '@/assets/localApi';
 import { mediaSrc } from '@/assets/api';
-import { AudioInfoType, MusicInfo, PlaylistInfo, PlaylistType } from '@/interface';
+import { AudioInfoType, MusicInfo, PlaylistInfo, PlaylistType, CustomPlaylist } from '@/interface';
 import { formatMusicInfo, formatPlaylistInfo } from '@/utils';
+import { getAllCustomPlaylist, getCustomPlaylistWithId, localStoragePlaylistEvent, updateCustomPlaylist } from '@/utils/localStorage';
 import LoadingErrorTip from '@/components/LoadingErrorTip/index.vue';
 import Songlist from '@/components/Songlist/index.vue';
-import { getCustomPlaylistWithId, localStoragePlaylistEvent } from '@/utils/localStorage';
-import { useRouter } from 'vue-router';
 
 
 
@@ -310,5 +311,18 @@ async function getPlaylistTrackWithId(id: number, type: PlaylistType) {
 function switchDescriptionState() {
     descriptionOpen.value = !descriptionOpen.value;
 }
+/** 本地歌单歌曲排序 */
+function songOrder(songs: MusicInfo[]) {
+    if (!playlistInfo.value) return;
+    if (playlistInfo.value.type !== PlaylistType.localStorage) return;
 
+    let tempPlaylistInfo = { ...playlistInfo.value } as CustomPlaylist;
+    tempPlaylistInfo.tracks = songs;
+    
+    let allPlaylist = getAllCustomPlaylist();
+    let index = allPlaylist.findIndex(info => info.id === tempPlaylistInfo.id);
+    if (index === -1) return;
+    allPlaylist.splice(index, 1, tempPlaylistInfo);
+    updateCustomPlaylist(allPlaylist);
+}
 </script>

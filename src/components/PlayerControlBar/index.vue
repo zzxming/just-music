@@ -261,6 +261,7 @@
 }
 @media screen and (max-width: 480px) {
     .botcontrol {
+        width: 100vw;
         &_info {
             &_bar-time {
                 display: none;

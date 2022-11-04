@@ -10,8 +10,7 @@
         <PopoutItem topBoder :botBorder="popoutCanDelete" v-if="popoutIsMusic">
             收藏到歌单
             <template #second>
-                <PopoutItem botBorder @click="createPlaylist">创建新歌单</PopoutItem>
-                <PopoutItem v-for="playlist in customPlaylist" @click="() => collectMusic(playlist.id)">{{playlist.title}}</PopoutItem>
+                <CollectToPlaylistPopout />
             </template>
         </PopoutItem>
         <PopoutItem topBoder :botBorder="popoutCanDelete" v-if="!popoutIsMusic && !popoutCanDelete" @click="collectPlaylist">收藏</PopoutItem>
@@ -37,8 +36,9 @@ import { usePlaylistStore } from '@/store/playinglist';
 import { usePlayerStore } from '@/store/player';
 import { popoutCloseEvent, usePopoutStore } from '@/store/popout';
 import { formatMusicInfo } from '@/utils';
-import { getAllCustomPlaylist, getCustomPlaylistWithId, deleteCustomPlaylistWithId, updateCustomPlaylist, localStoragePlaylistEvent, setCustomPlaylist } from '@/utils/localStorage';
+import { getCustomPlaylistWithId, deleteCustomPlaylistWithId, getAllCustomPlaylist, updateCustomPlaylist, localStoragePlaylistEvent, setCustomPlaylist } from '@/utils/localStorage';
 import Popout from '@/components/Popout/index.vue';
+import CollectToPlaylistPopout from '@/components/Popout/CollectToPlaylistPopout.vue';
 import PopoutItem from '@/components/PopoutItem/index.vue';
 
 
@@ -47,7 +47,6 @@ const playlistStore = usePlaylistStore();
 const playerStore = usePlayerStore();
 const popoutStore = usePopoutStore();
 const { 
-    createPlaylistVisible,
     popoutVisible,
     popoutPosition,
     popoutHoldData,
@@ -67,6 +66,7 @@ onMounted(() => {
 onUnmounted(() => {
     window.removeEventListener(localStoragePlaylistEvent, getCustomPlaylist);
 });
+
 
 /** 获取用户自定义歌单 */
 function getCustomPlaylist() {
@@ -154,38 +154,6 @@ function deletePlaylist() {
     if (!data) return;
     deleteCustomPlaylistWithId(data.id);
 }
-/** 创建自定义歌单 */
-function createPlaylist() {
-    createPlaylistVisible.value = true;
-}
-/**
- * 收藏歌曲至歌单
- * @param playlistid 收藏至的歌单id
- */
-function collectMusic(playlistid: number) {
-    // 修改了哔哩哔哩的搜索, 现在不用存储在本地再发送, 即不存储再数据库里了, 数据结构要改
-    for (let i = 0; i < customPlaylist.value.length; i++) {
-        if (customPlaylist.value[i].id === playlistid) {
-            let result = customPlaylist.value[i].tracks.find(music => music.id === popoutHoldData.value?.id && music.type == popoutHoldData.value.type);
-            if (result) {
-                ElMessage({
-                    type: 'error',
-                    message: '歌单内歌曲重复'
-                });
-                return;
-            }
-            customPlaylist.value[i].tracks.unshift(popoutHoldData.value as MusicInfo);
-            customPlaylist.value[i].trackCount += 1;
-            customPlaylist.value[i].cover = customPlaylist.value[i].tracks[0].cover || defaultMusicImg;
-            break;
-        }
-    }
-    updateCustomPlaylist(customPlaylist.value);
-    ElMessage({
-        type: 'info',
-        message: '已收藏到歌单'
-    });
-}
 /** 收藏歌单到 localstorage */
 async function collectPlaylist() {
     let data = popoutHoldData.value as PlaylistInfo;
@@ -209,19 +177,20 @@ async function collectPlaylist() {
 /** 从歌单中删除选中的歌曲 */
 function deletefromPlaylist() {
     let curPlaylistId = Number(route.query.id);
-    for (let i = 0; i < customPlaylist.value.length; i++) {
-        if (customPlaylist.value[i].id === curPlaylistId) {
-            let index = customPlaylist.value[i].tracks.findIndex(song => song.id === popoutHoldData.value?.id);
+    let templist = [...customPlaylist.value];
+    for (let i = 0; i < templist.length; i++) {
+        if (templist[i].id === curPlaylistId) {
+            let index = templist[i].tracks.findIndex(song => song.id === popoutHoldData.value?.id);
             if (index === -1) {
                 break;
             }
-            customPlaylist.value[i].tracks.splice(index, 1);
-            customPlaylist.value[i].trackCount -= 1;
-            customPlaylist.value[i].cover = customPlaylist.value[i].tracks[0].cover || defaultMusicImg;
+            templist[i].tracks.splice(index, 1);
+            templist[i].trackCount -= 1;
+            templist[i].cover = templist[i].tracks[0].cover || defaultMusicImg;
             break;
         }
     }
-    updateCustomPlaylist(customPlaylist.value);
+    updateCustomPlaylist(templist);
     ElMessage({
         type: 'success',
         message: '删除成功'

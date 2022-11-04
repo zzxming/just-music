@@ -2,6 +2,7 @@
     <div class="search">
         <div class="search_type">
             <el-tabs 
+                class="search_header"
                 v-model="currentSearchType"
                 :stretch="true"
                 @tab-change="searchTypeChange"
@@ -34,6 +35,9 @@
 <style lang="less" scoped>
 .search {
     padding: 0 40px;
+    &_header {
+        background-color: var(--el-fill-color-blank);
+    }
     &_type {
         display: flex;
         flex-direction: column;
@@ -169,7 +173,8 @@ function observerLoad() {
         // 距离视口还有200px
         if (entries[0].isIntersecting && loadMore.value) {
             // console.log('load')
-            loadMore.value.loadFunc();
+            // console.log(fristLoading.value)
+            !fristLoading.value && loadMore.value.loadFunc();
         }
     }, {
         rootMargin: '0px 0px 200px 0px' // 监听视口距离向下多200px

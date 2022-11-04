@@ -78,7 +78,7 @@ export function formatSingleMusicInfo(
             singers = info.singers.map(item => ({id: item.id, name: item.name}));
             fee = 0;
             album = info.album;
-            publishTime = info.publishTime;
+            publishTime = info.pubdate;
         }
         else {
             throw Error('function formatMusicInfo argument type error')

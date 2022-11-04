@@ -139,8 +139,8 @@ function dragover(e: DragEvent, data: CustomPlaylist, index: number) {
         let el = e.target as HTMLElement;
         let h = el.offsetHeight;
         let top = el.offsetTop;
-        let clientY = e.clientY;
-        if (clientY < top + h / 2) {
+        let pageY = e.pageY;
+        if (pageY < top + h / 2) {
             el.classList.add('top');
             el.classList.remove('bottom');
         }
@@ -156,9 +156,9 @@ function drop(e: DragEvent, data: CustomPlaylist, index: number) {
         let classList = Array.from(el.classList);
         let dataIndex = JSON.parse(e.dataTransfer?.getData('data') as string);
         let toIndex = index;
+
         if (classList.includes('bottom')) toIndex += 1;
         if (toIndex < 0) toIndex = 0;
-        if (toIndex > playlist.value.length - 1) toIndex = playlist.value.length - 1;
         if (toIndex === dataIndex) {
             el.classList.remove('top');
             el.classList.remove('bottom');

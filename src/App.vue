@@ -1,34 +1,15 @@
 
 <template>
 	<HeaderBar></HeaderBar>
-	<Suspense>
-		<template #default>
-			<router-view></router-view>
-		</template>
 
-		<template #fallback>
-        	<div class="loading">Loading...</div>
-        </template>
-    </Suspense>
+	<router-view></router-view>
+
 	<PlayerControlBar></PlayerControlBar>
 	<AudioDom></AudioDom>
     <CreatePlaylist :visible="createPlaylistVisible" @close="createPlaylistVisible = false" />
 	<CloudLogin />
 	<MusicAndPlaylistPopout />
 </template>
-
-<style lang="less" scoped>
-.loading {
-	position: fixed;
-	inset: 0;
-	margin: auto;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	font-size: 30px;
-}
-</style>
-
 
 <script setup lang="ts">
 import { storeToRefs } from 'pinia';

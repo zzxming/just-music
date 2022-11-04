@@ -112,7 +112,7 @@ export interface BiliMusic {
     cover: string
     duration: number
     album: string
-    publishTime: number
+    pubdate: number
 }
 
 
