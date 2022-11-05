@@ -275,6 +275,7 @@ async function requestPlaylistData() {
         let customPlaylist = getCustomPlaylistWithId(Number(props.id));
         if (customPlaylist) {
             playlistInfo.value = customPlaylist;
+            songsInfo.length = 0;
             songsInfo.push(...customPlaylist.tracks);
         }
         else {

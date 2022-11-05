@@ -86,7 +86,8 @@ export const getCloudPersonalized = async (
                     id: item.id,
                     title: item.name,
                     cover: item.picUrl,
-                    playCount: item.playCount
+                    playCount: item.playCount,
+                    trackCount: item.trackCount
                 }))
             }
         }

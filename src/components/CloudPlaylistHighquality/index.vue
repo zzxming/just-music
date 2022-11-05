@@ -24,7 +24,7 @@ import { getCloudPlaylistHighquality, PlaylistVal } from '@/assets/cloudApi';
 import LoadingErrorTip from '@/components/LoadingErrorTip/index.vue'
 import LoadingMore, { ExposeVar } from '@/components/LoadingMore/index.vue'
 import PlaylistList from '@/components/PlaylistList/index.vue';
-import { formatPlaylistPartial, formatPlaylistInfo } from '@/utils';
+import { formatPlaylistInfo } from '@/utils';
 
 
 const { isTopList } = defineProps({

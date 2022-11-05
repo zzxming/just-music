@@ -124,29 +124,36 @@ async function createPlaylist(): Promise<{status: boolean, message: string}> {
     // console.log(id)
     let songs: MusicInfo[] = [];
     if (id && !isNaN(Number(id))) {
-        let [err, result] = await getCloudPlaylistTrack({id: Number(id)});
-        if (!err && result) {
-            let data = result.data.data;
-            // 排除云端音乐
-            for (let i = 0; i < data.length; i++) {
-                if (data[i].name === null || data[i].ar[0].id === 0 || data[i].al.id === 0) {
-                    continue;
+
+        let count = 1;
+        while(true) {
+            let [err, result] = await getCloudPlaylistTrack({id: Number(id), limit: count++});
+            if (err) {
+                return {
+                    status: false,
+                    message: err.message
                 }
-                songs.push(formatMusicInfo(data[i], AudioInfoType.cloud));
             }
-        }
-        if (err) {
-            return {
-                status: false,
-                message: err.message
+            else {
+                if (result) {
+                    let data = result.data.data;
+                    for (let i = 0; i < data.length; i++) {
+                        if (data[i].name === null || data[i].ar[0].id === 0 || data[i].al.id === 0) {
+                            continue;
+                        }
+                        songs.push(formatMusicInfo(data[i], AudioInfoType.cloud));
+                    }
+                    if (data.length < 500) break;
+                }
             }
         }
     }
+    
     setCustomPlaylist(playlistData.value.title, songs);
     return {
         status: true,
         message: '创建成功'
-    };
+    }
 }
 
 </script>

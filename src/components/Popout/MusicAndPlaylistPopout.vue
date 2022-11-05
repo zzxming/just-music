@@ -96,20 +96,22 @@ async function play() {
         }
         else {
             // let [err, result] = data.type === PlaylistType.cloud ? await getCloudPlaylistTrack() : await ();
-            let [err, result] = await getCloudPlaylistTrack({id: data.id});
-            if (!err && result) {
-                resetAudioInfo();
-                playinglistReplace(formatMusicInfo(result.data.data, AudioInfoType.cloud));
-                ElMessage({
-                    type: 'success',
-                    message: '已开始播放'
-                });
-            }
-            if (err) {
+
+            let musics = await getAllMusicInCloudPlaylist()
+            .catch(err => {
                 ElMessage({
                     type: 'error',
                     message: 'NETWORK TIMEOUT'
                 })
+            });
+            if(musics) {
+                console.log(musics)
+                resetAudioInfo();
+                playinglistReplace(musics);
+                ElMessage({
+                    type: 'success',
+                    message: '已开始播放'
+                });
             }
         }
     }
@@ -133,15 +135,16 @@ async function nextPlay() {
         }
         else {
             // let [err, result] = data.type === PlaylistType.cloud ? await getCloudPlaylistTrack() : await ();
-            let [err, result] = await getCloudPlaylistTrack({id: data.id});
-            if (!err && result) {
-                addToNextPlay(formatMusicInfo(result.data.data, AudioInfoType.cloud));
-            }
-            if (err) {
+
+            let musics = await getAllMusicInCloudPlaylist()
+            .catch(err => {
                 ElMessage({
                     type: 'error',
                     message: 'NETWORK TIMEOUT'
                 })
+            });
+            if(musics) {
+                addToNextPlay(musics);
             }
         }
     }
@@ -153,26 +156,32 @@ function deletePlaylist() {
     let data = popoutHoldData.value as PlaylistInfo;
     if (!data) return;
     deleteCustomPlaylistWithId(data.id);
+    ElMessage({
+        type: 'success',
+        message: '删除成功'
+    });
 }
 /** 收藏歌单到 localstorage */
 async function collectPlaylist() {
     let data = popoutHoldData.value as PlaylistInfo;
     if (data) {
         // let [err, result] = data.type === PlaylistType.cloud ? await getCloudPlaylistTrack
-        let [err, result] = await getCloudPlaylistTrack({id: data.id});
-        if (!err && result) {
-            setCustomPlaylist(data.title, formatMusicInfo(result.data.data, data.type === PlaylistType.cloud ? AudioInfoType.cloud : AudioInfoType.local))
+            
+        let musics = await getAllMusicInCloudPlaylist()
+        .catch(err => {
+            ElMessage({
+                type: 'error',
+                message: '错误操作, 无法获取数据'
+            })
+        });
+        if(musics) {
+            setCustomPlaylist(data.title, musics);
             ElMessage({
                 type: 'success',
                 message: '收藏成功'
             });
-            return;
         }
     }
-    ElMessage({
-        type: 'error',
-        message: '错误操作, 无法获取数据'
-    })
 }
 /** 从歌单中删除选中的歌曲 */
 function deletefromPlaylist() {
@@ -201,6 +210,44 @@ function closePopout(isItem: boolean) {
     popoutStore.popoutVisible = false;
     window.dispatchEvent(new CustomEvent(popoutCloseEvent, { detail: { isItem } }));
 }
+/** 获取网易云歌单内所有歌曲并格式化为 MusicInfo 再返回 */
+async function getAllMusicInCloudPlaylist(): Promise<MusicInfo[]> {
+    if (!popoutHoldData.value) {
+        return Promise.reject([]);
+    }
+    let data = popoutHoldData.value as PlaylistInfo;
+    let waitPromise = [];
+    for (let i = 0; i < data.trackCount; i += 500) {
+        waitPromise.push(getCloudPlaylistTrack({id: data.id, limit: i + 1}));
+    }
+
+    ElMessage({
+        message: '请稍候',
+        duration: 0
+    })
+    return await Promise.all(waitPromise)
+    .then(res => {
+        let musicInfo: MusicInfo[] = [];
+        res.map(([err, result]) => {
+            if (!err && result) {
+                musicInfo.push(...formatMusicInfo(result.data.data, data.type === PlaylistType.cloud ? AudioInfoType.cloud : AudioInfoType.local))
+            }
+        })
+        return musicInfo
+    })
+    .catch(err => {
+        console.log(err)
+        // ElMessage({
+        //     type: 'error',
+        //     message: 'NETWORK TIMEOUT'
+        // })
+        return []
+    })
+    .finally(() => {
+        ElMessage.closeAll();
+    });
+}
+
 /** 将歌单上传值数据库 */
 async function uploadPlaylist() {
     // 服务器没有设置用户接口, 不能对上传的歌单进行信息修改, 不能知道是谁上传的, 此功能屏蔽

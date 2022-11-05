@@ -233,7 +233,8 @@ function formatSinglePlaylistPartial(info:PlaylistInfoPartial |  PlaylistInfo, t
     let id: number = 0,
         title: string = '',
         cover: string = '',
-        playCount: number = 0;
+        playCount: number = 0,
+        trackCount: number = 0;
 
     try {
         if (isType<PlaylistInfo>(info) && type === PlaylistType.cloud) {
@@ -241,12 +242,14 @@ function formatSinglePlaylistPartial(info:PlaylistInfoPartial |  PlaylistInfo, t
             title = info.title;
             cover = info.cover;
             playCount = info.playCount;
+            trackCount = info.trackCount;
         }
         else if (isType<PlaylistInfo>(info) && type === PlaylistType.local) {
             id = info.id;
             title = info.title;
             cover = info.cover;
             playCount = info.playCount;
+            trackCount = info.trackCount;
         }
         else {
             throw Error('function formatPlaylistPartial argument type error')
@@ -256,7 +259,7 @@ function formatSinglePlaylistPartial(info:PlaylistInfoPartial |  PlaylistInfo, t
         throw e;
     }
     return {
-        id, title, cover, playCount, type
+        id, title, cover, playCount, type, trackCount
     }
 }
 

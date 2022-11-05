@@ -128,7 +128,6 @@ export interface PlaylistInfo extends PlaylistInfoPartial {
     description: string
     playCount: number
     // tracks: MusicInfo[]
-    trackCount: number
     creator: {
         userId: number
         name: string
@@ -138,20 +137,7 @@ export interface PlaylistInfo extends PlaylistInfoPartial {
 /** 自定义创建歌单 */
 export interface CustomPlaylist extends PlaylistInfo {
     type: PlaylistType.localStorage
-    id: number
-    title: string
-    updateTime: number
-    createTime: number
-    cover: string
-    description: string
-    playCount: number
     tracks: MusicInfo[]
-    trackCount: number
-    creator: {
-        userId: number
-        name: string
-        avatarUrl: string
-    },
 }
 /** 网易云歌单信息 */
 export interface CloudPlaylist {
@@ -183,6 +169,7 @@ export interface PlaylistInfoPartial {
     title: string
     cover: string
     playCount: number
+    trackCount: number
 }
 /** 播放模式 */
 export enum PlayMode {
