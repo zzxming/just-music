@@ -7,8 +7,9 @@
                 :stretch="true"
                 @tab-change="searchTypeChange"
             >
+            <template v-for="sType in AudioInfoType">
                 <el-tab-pane 
-                    v-for="sType in AudioInfoType" 
+                    v-if="sType !== AudioInfoType.local"
                     :label="SearchTypeTxt[sType]" 
                     :name="sType"
                 >
@@ -16,6 +17,7 @@
                         <div class="search_type_item">{{SearchTypeTxt[sType]}}</div>
                     </template>
                 </el-tab-pane>
+            </template>
             </el-tabs>
         </div>
         <div v-loading="fristLoading && !loadingError" class="search_result">
@@ -65,6 +67,7 @@
         flex-direction: column;
         align-items: center;
         justify-content: flex-start;
+        background-color: var(--el-bg-color-overlay);
     }
 }
 .load {

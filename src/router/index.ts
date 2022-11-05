@@ -1,5 +1,5 @@
 import { jointQuery } from "@/assets/api";
-import { createRouter, createWebHashHistory, RouteRecordRaw } from "vue-router"
+import { createRouter, createWebHistory, RouteRecordRaw } from "vue-router"
 
 
 const routes: readonly RouteRecordRaw[] = [
@@ -57,7 +57,7 @@ const routes: readonly RouteRecordRaw[] = [
 ];
 
 const router = createRouter({
-    history: createWebHashHistory(),
+    history: createWebHistory(),
     routes
 })
 
