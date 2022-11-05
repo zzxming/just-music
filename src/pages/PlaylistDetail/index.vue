@@ -40,19 +40,15 @@
                     </div>
                 </div>
             </div>
-            <div class="playlist_song" v-loading="loadingSong" v-show="playlistInfo">
+            <div class="playlist_song" v-show="playlistInfo">
                 <Songlist 
-                    v-if="!loadingSong && !loadingSongError" 
+                    v-if="songsInfo" 
                     :songs="songsInfo" 
                     :canDeleteSong="playlistInfo?.type === PlaylistType.localStorage" 
                     :canDrag="playlistInfo?.type === PlaylistType.localStorage"
                     @songOrder="songOrder"
                 />
-                <LoadingErrorTip 
-                    :style="{alignSelf: 'center'}" 
-                    :isError="!loadingSong && loadingSongError" 
-                    :requestFunc="getPlaylistTrackWithId.bind(undefined, Number(props.id), props.t)" 
-                />
+                <LoadingMore v-if="props.t !== PlaylistType.localStorage && playlistInfo" key="loadingSong" ref="loadMore" :requestFunc="getPlaylistTrackWithId.bind(undefined, Number(props.id), props.t, true)" />
             </div>
         </div>
     </div>
@@ -205,7 +201,7 @@
 </style>
 
 <script lang="ts" setup>
-import { ref, watch, onMounted, onUnmounted } from 'vue';
+import { ref, reactive, watch, onMounted, onUnmounted, nextTick } from 'vue';
 import { useRouter } from 'vue-router';
 import { UserFilled } from '@element-plus/icons-vue';
 import { getCloudPlaylistDetail, getCloudPlaylistTrack } from '@/assets/cloudApi';
@@ -215,6 +211,7 @@ import { AudioInfoType, MusicInfo, PlaylistInfo, PlaylistType, CustomPlaylist } 
 import { formatMusicInfo, formatPlaylistInfo } from '@/utils';
 import { getAllCustomPlaylist, getCustomPlaylistWithId, localStoragePlaylistEvent, updateCustomPlaylist } from '@/utils/localStorage';
 import LoadingErrorTip from '@/components/LoadingErrorTip/index.vue';
+import LoadingMore, { ExposeVar } from '@/components/LoadingMore/index.vue';
 import Songlist from '@/components/Songlist/index.vue';
 
 
@@ -226,17 +223,40 @@ const props = defineProps<{
 const router = useRouter();
 
 const loading = ref(true);
-const loadingSong = ref(true);
 const loadingError = ref(false);
 const loadingSongError = ref(false);
-const songsInfo = ref<MusicInfo[]>([]);
+const songsInfo = reactive<MusicInfo[]>([]);
 const playlistInfo = ref<PlaylistInfo>();
 const descriptionOpen = ref(false);
+const limit = ref(1);
+
+const loadMore = ref<ExposeVar>();
+
+/** 监听动态加载歌单 */
+function observerLoad() {
+    if (!loadMore.value?.loadMore) return;
+    let loadIO = new IntersectionObserver(function (entries) {
+        // console.log(entries[0].isIntersecting)
+        // 距离视口还有200px
+        if (entries[0].isIntersecting && loadMore.value) {
+            loadMore.value.loadFunc();
+        }
+    }, {
+        rootMargin: '0px 0px 400px 0px' // 监听视口距离向下多200px
+    });
+    loadIO.observe(loadMore.value.loadMore);
+}
 
 
 watch([() => props.id, () => props.t], () => {
+    songsInfo.length = 0;
     requestPlaylistData();
 }, { immediate: true });
+
+watch(playlistInfo, () => {
+    /** 滚动动态加载 */
+    nextTick(() => observerLoad());
+})
 
 onMounted(() => {
     if (props.t === PlaylistType.localStorage) {
@@ -250,25 +270,22 @@ onUnmounted(() => {
 
 /** 请求歌单信息 */
 async function requestPlaylistData() {
-
     if (props.t === PlaylistType.localStorage) {
         loading.value = true;
-        loadingSong.value = true;
         let customPlaylist = getCustomPlaylistWithId(Number(props.id));
         if (customPlaylist) {
             playlistInfo.value = customPlaylist;
-            songsInfo.value = customPlaylist.tracks;
+            songsInfo.push(...customPlaylist.tracks);
         }
         else {
             router.replace('/404');
         }
         loading.value = false;
-        loadingSong.value = false;
         return;
     }
 
     getPlaylistDetailWithId(Number(props.id), props.t);
-    getPlaylistTrackWithId(Number(props.id), props.t);
+    // getPlaylistTrackWithId(Number(props.id), props.t);
 }
 /** 获取歌单信息 */
 async function getPlaylistDetailWithId(id: number, type: PlaylistType) {
@@ -289,22 +306,27 @@ async function getPlaylistDetailWithId(id: number, type: PlaylistType) {
         return false;
     }
 }
-/** 获取歌单内歌曲 */
-async function getPlaylistTrackWithId(id: number, type: PlaylistType) {
-    loadingSong.value = true;
+/**
+ * 获取歌单内歌曲
+ * @param loadMore 是否为加载更多
+ */
+async function getPlaylistTrackWithId(id: number, type: PlaylistType, loadMore: boolean = false) {
     loadingSongError.value = false;
-    let [err, result] = type === PlaylistType.local ? await geLocalPlaylistTrack({id}) : await getCloudPlaylistTrack({id});
-    loadingSong.value = false;
+    let [err, result] = type === PlaylistType.local ? await geLocalPlaylistTrack({id, limit: limit.value}) : await getCloudPlaylistTrack({id, limit: limit.value});
 
     if (!err && result) {
         // console.log(result)
         let { code, data } = result.data;
-        songsInfo.value = formatMusicInfo(data, type === PlaylistType.cloud ? AudioInfoType.cloud : AudioInfoType.local);
-        return true;
+        if (!loadMore) {
+            songsInfo.length = 0;
+        }
+        songsInfo.push(...formatMusicInfo(data, type === PlaylistType.cloud ? AudioInfoType.cloud : AudioInfoType.local));
+        limit.value += 1;
+        return data.length;
     }
     else {
         loadingSongError.value = true;
-        return false;
+        return -1;
     }
 }
 /** 改变描述的展示状态 */

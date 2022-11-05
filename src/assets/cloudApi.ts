@@ -115,7 +115,8 @@ export const searchCloudMusic = async (
 /** 获取网易云歌单中的歌曲信息 */
 export const getCloudPlaylistTrack = async (
     query: {
-        id: number
+        id: number,
+        limit: number
     }
 ) => await to<AxiosResponse<AxiosResult<CloudMusic[]>>, AxiosResultError>(
     axios.get(jointQuery(`/music/cloud/playlist/track`, query))

@@ -75,7 +75,8 @@ export const getLocalPlaylistDetail = async (
 /** 根据 id 获取本地歌单内歌曲信息 */
 export const geLocalPlaylistTrack = async (
     query: {
-        id: number
+        id: number,
+        limit: number
     }
 ) => await to<AxiosResponse<AxiosResult<LocalAudioInfo[] | CloudAudioInfo[]>>, AxiosResultError>(
     axios.get(jointQuery('/music/local/playlist/track', query))

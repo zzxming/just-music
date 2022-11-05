@@ -52,6 +52,7 @@ defineExpose({loadMore, loadFunc});
 
 /** 返回 0 表示没有更多数据, 返回 -1 表示报错, 返回其他为数据长度 */
 async function loadFunc() {
+    loadingError.value = false;
     loading.value = true;
     let state = await props.requestFunc();
     loading.value = false;
