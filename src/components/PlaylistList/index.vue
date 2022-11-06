@@ -1,5 +1,5 @@
 <template>
-    <ul class="playlist_list">
+    <ul class="playlist_list" :style="{height: playlist.length < 1 ? '200px' : 'auto'}">
         <el-row :gutter="20" :class="`playlist_list_row ${isTopList ? 'toplist' : ''}`">
             <el-col 
                 v-for="item in playlist" 
@@ -12,7 +12,7 @@
                 >
                     <div class="playlist_list_item-cover">
                         <el-icon class="playlist_list_item-icon play"><IconEpVideoPlay /></el-icon>
-                        <span class="playlist_list_item-playcount">
+                        <span class="playlist_list_item-playcount" v-if="playCountVisible">
                             <el-icon class="playlist_list_item-icon allow-right"><IconEpCaretRight /></el-icon>
                             {{formatPlayCount(item.playCount)}}
                         </span>
@@ -33,7 +33,6 @@
     display: inline-block;
     width: 100%;
     height: 100%;
-    min-height: 200px;
     &_row {
         justify-content: space-around;
         &::-webkit-scrollbar {
@@ -73,6 +72,8 @@
             overflow: hidden;
             cursor: pointer;
             &:hover {
+                transition: background-color 0.2s linear;
+                background-color: var(--el-overlay-color-lighter);
                 .playlist_list_item-icon {
                     opacity: 1;
                 }
@@ -81,8 +82,9 @@
         &-img {
             position: absolute;
             width: 100%;
-            top: 0;
-            left: 0;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
             z-index: 1;
         }
         &-icon {
@@ -96,7 +98,7 @@
                 bottom: 8px;
                 right: 8px;
                 font-size: 40px;
-                background: rgba(121,121,121,.5);
+                background: rgba(121, 121, 121, .5);
                 border-radius: 50%;
             }
         }
@@ -159,6 +161,11 @@
     }
 }
 @media screen and (max-width: 550px) {
+    .playlist_list_item {
+        &-playcount {
+            display: none;
+        }
+    }
     .toplist {
         .playlist_list_wrap {
             max-width: 50%;
@@ -190,10 +197,15 @@ import { mediaSrc } from '@/assets/api';
 
 const musicImg = ref('/api/imgs/music.jpg');
 
-const { isTopList, playlist } = defineProps<{
-    isTopList: boolean
-    playlist: PlaylistInfoPartial[]
-}>();
+const { isTopList, playlist } = withDefaults(
+    defineProps<{
+        isTopList: boolean
+        playlist: PlaylistInfoPartial[],
+        playCountVisible?: boolean
+    }>(), {
+        playCountVisible: true
+    }
+);
 const router = useRouter();
 const popoutStore = usePopoutStore();
 const { setPopoutState } = popoutStore;

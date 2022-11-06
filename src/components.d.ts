@@ -10,6 +10,7 @@ declare module '@vue/runtime-core' {
     AudioDom: typeof import('./components/AudioDom/index.vue')['default']
     AudioPlayType: typeof import('./components/AudioPlayType/index.vue')['default']
     BackRoute: typeof import('./components/BackRoute/index.vue')['default']
+    BiliPlaylistRecommend: typeof import('./components/BiliPlaylistRecommend/index.vue')['default']
     CloudLogin: typeof import('./components/CloudLogin/index.vue')['default']
     CloudPlaylistHighquality: typeof import('./components/CloudPlaylistHighquality/index.vue')['default']
     CloudPlaylistRecommend: typeof import('./components/CloudPlaylistRecommend/index.vue')['default']

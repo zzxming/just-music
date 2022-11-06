@@ -1,7 +1,7 @@
 <template>
     <div class="content">
         <div class="content_header">
-            <div class="content_title" @click="linkTo">
+            <div class="content_title" @click="linkTo" :style="{cursor: href ? 'pointer' : 'default'}">
                 <span class="content_title_text">{{ title }}</span>
                 <el-icon class="content_title_icon"><IconEpArrowRightBold /></el-icon>
             </div>

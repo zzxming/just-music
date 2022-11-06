@@ -7,7 +7,8 @@ export enum AudioInfoType {
 export enum PlaylistType {
     local = 'local',
     cloud = 'cloud',
-    localStorage = 'localStorage'
+    localStorage = 'localStorage',
+    bili = 'bili'
 }
 /** 整合后的歌曲信息 */
 export interface MusicInfo {

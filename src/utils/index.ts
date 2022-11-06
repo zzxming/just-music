@@ -126,19 +126,6 @@ export function formatSinglePlaylistInfo(
     playlist: CloudPlaylist | PlaylistInfo,
     type: PlaylistType
 ): PlaylistInfo {
-    // 当前已经是 PlaylistInfo 类型直接返回
-    if (
-        isType<PlaylistInfo>(playlist) && 
-        playlist.type && playlist.id &&  playlist.title &&
-        playlist.updateTime && playlist.createTime &&
-        playlist.cover && playlist.description &&
-        playlist.playCount && playlist.trackCount &&
-        playlist.creator
-        // playlist.tracks &&
-    ) {
-        return playlist
-    }
-
 
     let id: number = 0,
         title: string = '',
@@ -178,7 +165,7 @@ export function formatSinglePlaylistInfo(
                 avatarUrl: playlist.creator.avatarUrl
             }
         }
-        else if (isType<LocalPlaylist>(playlist) && type === PlaylistType.local) {
+        else if (isType<LocalPlaylist>(playlist) && (type === PlaylistType.local || type === PlaylistType.bili)) {
             id = playlist.id;
             title = playlist.title;
             updateTime = playlist.updateTime;

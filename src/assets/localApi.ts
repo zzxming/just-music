@@ -18,6 +18,11 @@ export const searchMusicInfoWIthBvid = async (bvid: string) =>
         axios.get(jointQuery('/bili/info', { bv: bvid }))
     )
 
+/** 根据 bvid 获取哔哩哔哩的视频信息, 并以 PlaylistInfo 结构返回 */
+export const getBiliAudioForPlaylist = async (bvid: string) =>
+    await to<AxiosResponse<AxiosResult<PlaylistInfo>>, AxiosResultError>(
+        axios.get(jointQuery('/bili/playlist', { bv: bvid }))
+    )
 
 /** 搜索本地音乐资源 */
 export const searchLocalMusic = async (query: {

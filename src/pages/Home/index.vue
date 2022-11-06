@@ -5,6 +5,9 @@
     <!-- <DataContent title="just推荐歌单">
         <LocalPlaylistRandom />
     </DataContent> -->
+    <DataContent title="推荐哔哩哔哩歌单" :style="{marginBottom: '100px'}">
+        <BiliPlaylistRecommend />
+    </DataContent>
 </template>
 
 <script lang="ts" setup>

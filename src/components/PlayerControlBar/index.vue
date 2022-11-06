@@ -392,11 +392,9 @@ function mutedAudio() {
     if (audio.value) {
         if (audio.value.volume !== 0) {
             audioMuteVolume.value = audio.value.volume;
-            console.log(audio.value.volume)
             audio.value.volume = 0;
         }
         else {
-            console.log(audioMuteVolume.value)
             audio.value.volume = audioMuteVolume.value;
         }
     }

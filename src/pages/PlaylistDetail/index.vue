@@ -52,7 +52,7 @@
                     :canDrag="playlistInfo?.type === PlaylistType.localStorage"
                     @songOrder="songOrder"
                 />
-                <LoadingMore v-if="props.t !== PlaylistType.localStorage && playlistInfo" key="loadingSong" ref="loadMore" :requestFunc="getPlaylistTrackWithId.bind(undefined, Number(props.id), props.t, true)" />
+                <LoadingMore v-if="props.t !== PlaylistType.localStorage && playlistInfo" key="loadingSong" ref="loadMore" :requestFunc="getPlaylistTrackWithId.bind(undefined, props.id, props.t, true)" />
             </div>
         </div>
     </div>
@@ -102,7 +102,6 @@
             display: flex;
             width: 100%;
             height: 100%;
-            min-height: @coverHeight;
             border-radius: 8px;
             overflow: hidden;
             user-select: none;
@@ -185,9 +184,6 @@
                     }
                 }
             }
-            &_cover {
-                min-height: @coverHeight;
-            }
             &_title {
                 line-height: 30px;
                 font-size: 20px;
@@ -206,7 +202,7 @@
 
 <script lang="ts" setup>
 import { getCloudPlaylistDetail, getCloudPlaylistTrack } from '@/assets/cloudApi';
-import { getLocalPlaylistDetail, geLocalPlaylistTrack } from '@/assets/localApi';
+import { getLocalPlaylistDetail, geLocalPlaylistTrack, getBiliAudioForPlaylist, searchMusicInfoWIthBvid } from '@/assets/localApi';
 import { mediaSrc } from '@/assets/api';
 import { AudioInfoType, MusicInfo, PlaylistInfo, PlaylistType, CustomPlaylist } from '@/interface';
 import { formatMusicInfo, formatPlaylistInfo } from '@/utils';
@@ -216,7 +212,7 @@ import { ExposeVar } from '@/components/LoadingMore/index.vue';
 
 
 const props = defineProps<{
-    id: string
+    id: string 
     t: PlaylistType
 }>();
 const router = useRouter();
@@ -284,14 +280,33 @@ async function requestPlaylistData() {
         return;
     }
 
-    getPlaylistDetailWithId(Number(props.id), props.t);
-    // getPlaylistTrackWithId(Number(props.id), props.t);
+    getPlaylistDetailWithId(props.id, props.t);
+    // getPlaylistTrackWithId(props.id, props.t);
 }
 /** 获取歌单信息 */
-async function getPlaylistDetailWithId(id: number, type: PlaylistType) {
+async function getPlaylistDetailWithId(id: number | string, type: PlaylistType) {
     loading.value = true;
     loadingError.value = false;
-    let [err, result] = type === PlaylistType.local ? await getLocalPlaylistDetail({id}) : await getCloudPlaylistDetail({id});
+
+    // let [err, result] = type === PlaylistType.local ? await getLocalPlaylistDetail({id}) : await getCloudPlaylistDetail({id});
+    let err, result;
+    switch(type) {
+        case PlaylistType.local: {
+            [err, result] = await getLocalPlaylistDetail({id: Number(id)})
+            break;
+        }
+        case PlaylistType.cloud: {
+            [err, result] = await getCloudPlaylistDetail({id: Number(id)})
+            break;
+        }
+        case PlaylistType.bili: {
+            [err, result] = await getBiliAudioForPlaylist(String(id))
+            break;
+        }
+        default: {
+            break;
+        }
+    }
     loading.value = false;
 
     if (!err && result) {
@@ -310,9 +325,28 @@ async function getPlaylistDetailWithId(id: number, type: PlaylistType) {
  * 获取歌单内歌曲
  * @param loadMore 是否为加载更多
  */
-async function getPlaylistTrackWithId(id: number, type: PlaylistType, loadMore: boolean = false) {
+async function getPlaylistTrackWithId(id: number | string, type: PlaylistType, loadMore: boolean = false) {
     loadingSongError.value = false;
-    let [err, result] = type === PlaylistType.local ? await geLocalPlaylistTrack({id, limit: limit.value}) : await getCloudPlaylistTrack({id, limit: limit.value});
+
+    // let [err, result] = type === PlaylistType.local ? await geLocalPlaylistTrack({id, limit: limit.value}) : await getCloudPlaylistTrack({id, limit: limit.value});
+    let err, result;
+    switch(type) {
+        case PlaylistType.local: {
+            [err, result] = await geLocalPlaylistTrack({id: Number(id), limit: limit.value})
+            break;
+        }
+        case PlaylistType.cloud: {
+            [err, result] = await getCloudPlaylistTrack({id: Number(id), limit: limit.value})
+            break;
+        }
+        case PlaylistType.bili: {
+            [err, result] = await searchMusicInfoWIthBvid(String(id))
+            break;
+        }
+        default: {
+            break;
+        }
+    }
 
     if (!err && result) {
         // console.log(result)
