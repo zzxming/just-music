@@ -3,7 +3,7 @@
         <div class="content_header">
             <div class="content_title" @click="linkTo">
                 <span class="content_title_text">{{ title }}</span>
-                <el-icon class="content_title_icon"><ArrowRightBold /></el-icon>
+                <el-icon class="content_title_icon"><IconEpArrowRightBold /></el-icon>
             </div>
         </div>
         <div class="content_body">
@@ -56,7 +56,6 @@
 </style>
 
 <script lang="ts" setup>
-import { useRouter } from 'vue-router';
 
 
 const props = defineProps<{

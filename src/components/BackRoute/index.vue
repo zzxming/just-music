@@ -1,6 +1,6 @@
 <template>
     <el-button plain class="back" @click="goBack">
-        <el-icon><ArrowLeft /></el-icon>
+        <el-icon><IconEpArrowLeft /></el-icon>
     </el-button>
 </template>
 

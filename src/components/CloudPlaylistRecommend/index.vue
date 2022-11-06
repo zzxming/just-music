@@ -18,12 +18,9 @@
 
 
 <script lang="ts" setup>
-import { ref, reactive, onMounted, watch, nextTick } from 'vue';
 import { PlaylistType, PlaylistInfoPartial } from '@/interface'
 import { getCloudPersonalized } from '@/assets/cloudApi';
-import LoadingErrorTip from '@/components/LoadingErrorTip/index.vue'
-import LoadingMore, { ExposeVar } from '@/components/LoadingMore/index.vue'
-import PlaylistList from '@/components/PlaylistList/index.vue';
+import { ExposeVar } from '@/components/LoadingMore/index.vue'
 import { formatPlaylistPartial } from '@/utils';
 
 

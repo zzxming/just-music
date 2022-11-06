@@ -78,10 +78,6 @@
 </style>
 
 <script lang="ts" setup>
-import { computed } from 'vue';
-import { useRouter } from 'vue-router';
-import CloudPlaylistHighquality from '@/components/CloudPlaylistHighquality/index.vue';
-import CloudPlaylistRecommend from '@/components/CloudPlaylistRecommend/index.vue';
 import { jointQuery } from '@/assets/api';
 
 const router = useRouter();

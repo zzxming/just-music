@@ -1,5 +1,3 @@
-import { defineStore } from "pinia";
-import { ref } from "vue";
 import { PopoutPosition } from '@/components/Popout/index.vue';
 import { MusicInfo, PlaylistInfoPartial } from "@/interface";
 

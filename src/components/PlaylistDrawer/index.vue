@@ -6,11 +6,11 @@
                 <span class="drawer_header_title" @click="createPlaylistVisible = true">
                     创建的歌单
                     <div class="drawer_btn">
-                        <el-icon><Plus /></el-icon>
+                        <el-icon><IconEpPlus /></el-icon>
                     </div>
                 </span>
                 <div class="drawer_header_close" @click="close">
-                    <el-icon><Close /></el-icon>
+                    <el-icon><IconEpClose /></el-icon>
                 </div>
             </div>
             <div class="drawer_body" @click="close">
@@ -94,12 +94,8 @@
 </style>
 
 <script lang="ts" setup>
-import { onMounted, onUnmounted, watch} from 'vue';
-import { storeToRefs } from 'pinia';
-import { useRouter } from 'vue-router';
 import { useIsSmallScreen } from '@/hooks';
 import { popoutCloseEvent, usePopoutStore } from '@/store/popout';
-import PlaylistTitleList from '@/components/PlaylistTitleList/index.vue';
 
 const props = defineProps<{
     show: boolean

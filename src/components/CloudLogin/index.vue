@@ -35,11 +35,9 @@
 </style>
 
 <script lang="ts" setup>
-import { ref, reactive } from 'vue';
 import { FormInstance, ElMessage } from 'element-plus';
 import { postCloudLogin } from '@/assets/cloudApi';
 import { usePopoutStore } from '@/store/popout';
-import { storeToRefs } from 'pinia';
 
 const popoutStore = usePopoutStore();
 const { cloudLoginVisible } = storeToRefs(popoutStore);

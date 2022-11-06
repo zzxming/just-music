@@ -214,8 +214,6 @@
 
 
 <script lang="ts" setup>
-import { ref, watch } from 'vue';
-import { storeToRefs } from 'pinia';
 import { ElMessage } from 'element-plus';
 import { mediaSrc } from '@/assets/api';
 import { usePlayerStore } from '@/store/player';
@@ -225,9 +223,7 @@ import { AudioInfoType, MusicInfo } from '@/interface';
 import { getCloudMusicInfoWithId } from '@/assets/cloudApi';
 import { getLocalMusicInfoWithId, searchMusicInfoWIthBvid } from '@/assets/localApi';
 import { formatMusicInfo } from '@/utils';
-import Songlist from '@/components/Songlist/index.vue';
-import Popout, { PopoutPosition } from '@/components/Popout/index.vue';
-import CollectToPlaylistPopout from '@/components/Popout/CollectToPlaylistPopout.vue';
+import { PopoutPosition } from '@/components/Popout/index.vue';
 
 
 const props = defineProps<{

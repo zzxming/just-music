@@ -1,5 +1,3 @@
-import { defineStore, storeToRefs } from "pinia";
-import { reactive } from "vue";
 import { isArray } from 'lodash';
 import { AudioInfoType, MusicInfo, PlayMode } from "@/interface";
 import { usePlayerStore } from '@/store/player';

@@ -1,7 +1,7 @@
 <template>
     <div :class="`input ${focusInput ? 'is-focus' : ''}`">
         <span class="input_icon" @click="submitInput">
-            <el-icon><Search /></el-icon>
+            <el-icon><IconEpSearch /></el-icon>
         </span>
         <el-input class="input_input" 
             v-model="input" 
@@ -53,7 +53,6 @@
 </style>
 
 <script lang="ts" setup>
-import { ref, watch, toRefs } from 'vue';
 
 
 const props = defineProps({

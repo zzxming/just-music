@@ -24,8 +24,6 @@
 </style>
 
 <script lang="ts" setup>
-import { ref, watch, nextTick, toRefs } from 'vue';
-
 
 export interface PopoutPosition {
     top: number | string

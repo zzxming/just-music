@@ -1,9 +1,8 @@
 
 import to from 'await-to-js';
 import { AxiosResponse } from 'axios'
-import { AudioInfoType, BiliMusic, CloudAudioInfo, LocalAudioInfo, LocalMusic, MusicInfo, PlaylistInfo, LocalPlaylist } from "@/interface";
+import { BiliMusic, CloudAudioInfo, LocalAudioInfo, LocalMusic, MusicInfo, PlaylistInfo, LocalPlaylist } from "@/interface";
 import { axios, mediaSrc, jointQuery, AxiosResult, AxiosResultError } from './api';
-import { formatMusicInfo } from '@/utils';
 
 /** 根据数据库 music_id 获取歌曲的歌曲 */
 export const staticMusicWithid = (id: number) => mediaSrc(`/music/local/${id}`);

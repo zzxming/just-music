@@ -3,7 +3,7 @@
         <div class="control_bar_bg" v-if="isTime" :style="{[isTime ? 'width' : 'height']: `${backProgress}%`}"></div>
         <div class="control_bar_progress" :style="{[isTime ? 'width' : 'height']: `${progress}%`}">
             <div class="control_bar_dot" @mousedown="dragDot">
-                <el-icon v-show="props.loading"><Loading /></el-icon>
+                <el-icon v-show="props.loading"><IconEpLoading /></el-icon>
             </div>
         </div>
     </div>
@@ -120,16 +120,14 @@
 </style>
 
 <script lang="ts" setup>
-import { ref, watch } from 'vue';
 import { usePlayerStore } from '@/store/player';
-import { storeToRefs } from 'pinia';
 
 const props = withDefaults(defineProps<{
     loading: boolean
     isTime: boolean
 }>(), {
     loading: false,
-    isTime: true
+    isTime: true    // 不是时间就自动为音量, true为横, false为竖
 });
 const playerStore = usePlayerStore();
 const { audio, audioInfo } = storeToRefs(playerStore);
@@ -143,6 +141,11 @@ watch(() => props.isTime, () => {
     if (props.isTime && audio.value) {
         audio.value.addEventListener('timeupdate', function() {
             progress.value = Number(((this.currentTime / (audioInfo.value.duration / 1000)) * 100).toFixed(2));
+        })
+    }
+    if (!props.isTime && audio.value) {
+        audio.value.addEventListener('volumechange', function() {
+            progress.value = Number(this.volume * 100);
         })
     }
 }, { immediate: true })

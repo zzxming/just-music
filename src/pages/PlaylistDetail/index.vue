@@ -14,7 +14,11 @@
                         <h3 class="playlist_info_title" :title="playlistInfo.title">{{playlistInfo.title}}</h3>
                     </div>
                     <div class="playlist_info_right_line">
-                        <el-avatar class="playlist_info_avatar" :size="28" :icon="UserFilled" v-lazy="mediaSrc(playlistInfo.creator.avatarUrl)" :key="playlistInfo.creator.avatarUrl" />
+                        <el-avatar class="playlist_info_avatar" :size="36" :src="mediaSrc(playlistInfo.creator.avatarUrl)" :key="playlistInfo.creator.avatarUrl">
+                            <template #default>
+                                <icon-ep-user-filled />
+                            </template>
+                        </el-avatar>
                         <span class="playlist_info_nickname">{{ playlistInfo.creator.name }}</span>
                         <span class="playlist_info_createTime">{{ playlistInfo.createTime === 0 ? '' : new Date(playlistInfo.createTime).toLocaleDateString() }}</span>
                     </div>
@@ -31,8 +35,8 @@
                                 <span class="playlist_info_description-title" v-show="!descriptionOpen">{{playlistInfo.description}}</span>
                                 <span class="playlist_info_description-full" v-show="descriptionOpen">{{playlistInfo.description}}</span>
                                 <span class="playlist_info_description-arrow" @click="switchDescriptionState">
-                                    <el-icon v-show="descriptionOpen"><CaretTop /></el-icon>
-                                    <el-icon v-show="!descriptionOpen"><CaretBottom /></el-icon>
+                                    <el-icon v-show="descriptionOpen"><IconEpCaretTop /></el-icon>
+                                    <el-icon v-show="!descriptionOpen"><IconEpCaretBottom /></el-icon>
                                 </span>
                             </template>
 
@@ -201,18 +205,13 @@
 </style>
 
 <script lang="ts" setup>
-import { ref, reactive, watch, onMounted, onUnmounted, nextTick } from 'vue';
-import { useRouter } from 'vue-router';
-import { UserFilled } from '@element-plus/icons-vue';
 import { getCloudPlaylistDetail, getCloudPlaylistTrack } from '@/assets/cloudApi';
 import { getLocalPlaylistDetail, geLocalPlaylistTrack } from '@/assets/localApi';
 import { mediaSrc } from '@/assets/api';
 import { AudioInfoType, MusicInfo, PlaylistInfo, PlaylistType, CustomPlaylist } from '@/interface';
 import { formatMusicInfo, formatPlaylistInfo } from '@/utils';
 import { getAllCustomPlaylist, getCustomPlaylistWithId, localStoragePlaylistEvent, updateCustomPlaylist } from '@/utils/localStorage';
-import LoadingErrorTip from '@/components/LoadingErrorTip/index.vue';
-import LoadingMore, { ExposeVar } from '@/components/LoadingMore/index.vue';
-import Songlist from '@/components/Songlist/index.vue';
+import { ExposeVar } from '@/components/LoadingMore/index.vue';
 
 
 

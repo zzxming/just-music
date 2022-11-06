@@ -11,9 +11,9 @@
                     @contextmenu="(e) => showPopbox(e, item)"
                 >
                     <div class="playlist_list_item-cover">
-                        <el-icon class="playlist_list_item-icon play"><VideoPlay /></el-icon>
+                        <el-icon class="playlist_list_item-icon play"><IconEpVideoPlay /></el-icon>
                         <span class="playlist_list_item-playcount">
-                            <el-icon class="playlist_list_item-icon allow-right"><CaretRight /></el-icon>
+                            <el-icon class="playlist_list_item-icon allow-right"><IconEpCaretRight /></el-icon>
                             {{formatPlayCount(item.playCount)}}
                         </span>
                         <img class="playlist_list_item-img" :src="item.type === PlaylistType.local ? mediaSrc(item.cover) : item.cover"  @error="throttle(onErrorImg, 3000)" />
@@ -184,8 +184,6 @@
 
 <script lang="ts" setup>
 import { throttle } from 'lodash';
-import { ref } from 'vue';
-import { useRouter } from 'vue-router';
 import { PlaylistType, PlaylistInfoPartial } from '@/interface';
 import { usePopoutStore } from '@/store/popout';
 import { mediaSrc } from '@/assets/api';

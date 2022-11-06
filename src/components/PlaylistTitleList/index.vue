@@ -66,8 +66,6 @@
 </style>
 
 <script lang="ts" setup>
-import { ref, onMounted, onUnmounted } from 'vue';
-import { useRouter } from 'vue-router';
 import { CustomPlaylist, PlaylistType } from '@/interface';
 import { jointQuery } from '@/assets/api';
 import { getAllCustomPlaylist, localStoragePlaylistEvent, updateCustomPlaylist } from '@/utils/localStorage';

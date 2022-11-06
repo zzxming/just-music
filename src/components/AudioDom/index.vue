@@ -3,8 +3,6 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, watch } from 'vue'
-import { storeToRefs } from 'pinia'
 import { usePlayerStore } from '@/store/player'
 
 const audioMedia = ref<HTMLAudioElement>();

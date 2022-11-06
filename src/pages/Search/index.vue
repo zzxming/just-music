@@ -5,19 +5,19 @@
                 class="search_header"
                 v-model="currentSearchType"
                 :stretch="true"
-                @tab-change="searchTypeChange"
+                @tab-change="(name: TabPaneName) => searchTypeChange(name)"
             >
-            <template v-for="sType in AudioInfoType">
-                <el-tab-pane 
-                    v-if="sType !== AudioInfoType.local"
-                    :label="SearchTypeTxt[sType]" 
-                    :name="sType"
-                >
-                    <template #label>
-                        <div class="search_type_item">{{SearchTypeTxt[sType]}}</div>
-                    </template>
-                </el-tab-pane>
-            </template>
+                <template v-for="sType in AudioInfoType">
+                    <el-tab-pane 
+                        v-if="sType !== AudioInfoType.local"
+                        :label="SearchTypeTxt[sType]" 
+                        :name="sType"
+                    >
+                        <template #label>
+                            <div class="search_type_item">{{SearchTypeTxt[sType]}}</div>
+                        </template>
+                    </el-tab-pane>
+                </template>
             </el-tabs>
         </div>
         <div v-loading="fristLoading && !loadingError" class="search_result">
@@ -108,16 +108,13 @@
 </style>
 
 <script lang="ts" setup>
-import { nextTick, onMounted, reactive, ref, watch } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
 import { AudioInfoType, MusicInfo } from '@/interface'
 import { formatMusicInfo, isType } from '@/utils'
 import { searchCloudMusic, SearchCloudResult } from '@/assets/cloudApi'
 import { searchLocalMusic, searchMusicInfoWIthBvid } from '@/assets/localApi'
 import { jointQuery } from '@/assets/api';
-import LoadingErrorTip from '@/components/LoadingErrorTip/index.vue';
-import Songlist from '@/components/Songlist/index.vue'
-import LoadingMore, { ExposeVar } from '@/components/LoadingMore/index.vue';
+import { ExposeVar } from '@/components/LoadingMore/index.vue';
+import { TabPaneName } from 'element-plus'
 
 enum SearchTypeTxt {
     bili = '哔哩哔哩',
@@ -189,8 +186,8 @@ function observerLoad() {
 
 
 /** 搜索类型改变 */
-function searchTypeChange(tabName: AudioInfoType) {
-    currentSearchType.value = AudioInfoType[tabName];
+function searchTypeChange(tabName: TabPaneName) {
+    currentSearchType.value = tabName as AudioInfoType;
     limit.value = 1;
     fristLoading.value = true;
     loadingError.value = false;

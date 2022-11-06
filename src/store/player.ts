@@ -1,5 +1,3 @@
-import { defineStore } from "pinia"
-import { computed, reactive, ref } from "vue"
 import { jointQuery, mediaSrc } from "@/assets/api";
 import { getMusicSrcWithCloudId } from "@/assets/cloudApi";
 import { AudioInfoType, LocalAudioInfo, CloudAudioInfo, MusicInfo, PlayMode } from "@/interface"

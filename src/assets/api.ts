@@ -1,4 +1,4 @@
-import OriginAxios, { AxiosError, AxiosResponse } from "axios"
+import OriginAxios, { AxiosError } from "axios"
 import { ElMessage } from "element-plus";
 
 export const axios = OriginAxios.create({

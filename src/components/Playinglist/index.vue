@@ -6,7 +6,7 @@
 
                 </div>
                 <div class="playinglist_header_right">
-                    <el-icon class="playinglist_header_btn clear" @click="clearPlayinglist"><Delete /></el-icon>
+                    <el-icon class="playinglist_header_btn clear" @click="clearPlayinglist"><IconEpDelete /></el-icon>
                 </div>
             </div>
             <ul class="playinglist_list">
@@ -15,14 +15,14 @@
                     :class="`playinglist_list_item ${audioInfo.id === songInfo.id && audioInfo.cid === songInfo.cid ? 'playing' : ''}`"
                     @click="() => playMusic(songInfo)"
                 >
-                    <span v-if="audioInfo.id === songInfo.id" class="el-icon playinglist_list_item-icon playing"><Playing  /></span>
-                    <span v-if="songInfo.fee === 1" class="el-icon playinglist_list_item-icon vip"><Vip  /></span>
+                    <span v-if="audioInfo.id === songInfo.id" class="el-icon playinglist_list_item-icon playing"><IconCusPlaying  /></span>
+                    <span v-if="songInfo.fee === 1" class="el-icon playinglist_list_item-icon vip"><IconCusVip  /></span>
                     <span class="playinglist_list_item-title" :title="songInfo.title">{{ songInfo.title }}</span>
                     <span class="playinglist_list_item-singer" :title="songInfo.singers.map(item => item.name).join('/')">
                         <span class="break">-</span>
                         {{ songInfo.singers.map(item => item.name).join('/') }}
                     </span>
-                    <el-icon class="playinglist_list_item-delete" @click.stop="() => deleteFromPlayinglist(songInfo)"><Close /></el-icon>
+                    <el-icon class="playinglist_list_item-delete" @click.stop="() => deleteFromPlayinglist(songInfo)"><IconEpClose /></el-icon>
                 </li>
             </ul>
         </div>
@@ -153,12 +153,9 @@
 
 <script lang="ts" setup>
 import { ElMessage } from 'element-plus'
-import { storeToRefs } from 'pinia';
 import { usePlaylistStore } from '@/store/playinglist'
 import { usePlayerStore } from '@/store/player'
 import { MusicInfo } from '@/interface'
-import Playing from '@/assets/iconfont/playing.vue'
-import Vip from '@/assets/iconfont/vip.vue'
 
 const { active } = defineProps<{
     active: boolean

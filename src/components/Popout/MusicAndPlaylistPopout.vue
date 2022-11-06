@@ -24,10 +24,7 @@
 </style>
 
 <script lang="ts" setup>
-import { onMounted, onUnmounted, ref } from 'vue';
-import { storeToRefs } from 'pinia';
 import { ElMessage } from 'element-plus';
-import { useRoute } from 'vue-router';
 import { PlaylistInfo, PlaylistType, MusicInfo, CustomPlaylist, AudioInfoType } from '@/interface';
 import { getCloudPlaylistTrack } from '@/assets/cloudApi';
 import { postCreatePlaylist } from '@/assets/localApi';
@@ -37,9 +34,6 @@ import { usePlayerStore } from '@/store/player';
 import { popoutCloseEvent, usePopoutStore } from '@/store/popout';
 import { formatMusicInfo } from '@/utils';
 import { getCustomPlaylistWithId, deleteCustomPlaylistWithId, getAllCustomPlaylist, updateCustomPlaylist, localStoragePlaylistEvent, setCustomPlaylist } from '@/utils/localStorage';
-import Popout from '@/components/Popout/index.vue';
-import CollectToPlaylistPopout from '@/components/Popout/CollectToPlaylistPopout.vue';
-import PopoutItem from '@/components/PopoutItem/index.vue';
 
 
 const route = useRoute();

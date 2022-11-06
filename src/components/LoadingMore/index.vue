@@ -33,8 +33,6 @@
 </style>
 
 <script lang="ts" setup>
-import LoadingErrorTip from '@/components/LoadingErrorTip/index.vue'
-import { ref } from 'vue'
 
 export interface ExposeVar {
     loadMore: HTMLDListElement

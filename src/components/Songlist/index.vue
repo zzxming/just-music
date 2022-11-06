@@ -21,12 +21,12 @@
             >
                 <div class="songlist_index">
                     <span class="songlist_index-text">{{ twoDigitStr(index + 1) }}</span>
-                    <span class="el-icon songlist_index-icon playing"><Playing /></span>
+                    <span class="el-icon songlist_index-icon playing"><IconCusPlaying /></span>
                 </div>
                 <div class="songlist_title">
                     <div class="songlist_title-title">
                         <span class="songlist_title-text" :title="song.title">{{song.title}}</span>
-                        <span v-if="song.fee === 1" class="el-icon songlist_title-icon"><Vip /></span>
+                        <span v-if="song.fee === 1" class="el-icon songlist_title-icon"><IconCusVip /></span>
                     </div>
                     <div v-if="smallScreen" class="songlist_title-singer" :title="song.singers.map((s: Singer) => s.name).join(' / ')">
                         <span class="songlist_singer">
@@ -225,10 +225,6 @@
 
 
 <script lang="ts" setup>
-import { storeToRefs } from 'pinia';
-import { ref, watch, toRefs } from 'vue';
-import Vip from '@/assets/iconfont/vip.vue';
-import Playing from '@/assets/iconfont/playing.vue';
 import { AudioInfoType, MusicInfo, Singer } from '@/interface';
 import { usePlayerStore } from '@/store/player';
 import { usePlaylistStore } from '@/store/playinglist';

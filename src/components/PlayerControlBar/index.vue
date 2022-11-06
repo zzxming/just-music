@@ -2,12 +2,12 @@
 <template>
     <div v-if="audio" v-show="showPlayerControl" class="botcontrol">
         <div class="botcontrol_left">
-            <el-icon class="botcontrol_btn-icon skipback" @click="playPre"><Skipback /></el-icon>
+            <el-icon class="botcontrol_btn-icon skipback" @click="playPre"><IconCusSkipback /></el-icon>
             <div class="botcontrol_btn_play" @click="playAudio">
-                <el-icon class="botcontrol_btn-icon play" v-show="audioIsPaused"><Play /></el-icon>
-                <el-icon class="botcontrol_btn-icon pause" v-show="!audioIsPaused"><Pause /></el-icon>
+                <el-icon class="botcontrol_btn-icon play" v-show="audioIsPaused"><IconCusPlay /></el-icon>
+                <el-icon class="botcontrol_btn-icon pause" v-show="!audioIsPaused"><IconCusPause /></el-icon>
             </div>
-            <el-icon class="botcontrol_btn-icon skipforward" @click="() => playNext(false)"><Skipforward /></el-icon>
+            <el-icon class="botcontrol_btn-icon skipforward" @click="() => playNext(false)"><IconCusSkipforward /></el-icon>
         </div>
         <div class="botcontrol_info">
             <div class="botcontrol_info_cover" @click="() => router.push(jointQuery('/song', {id: audioInfo.id, t: audioInfo.type}))">
@@ -35,18 +35,18 @@
         <div class="botcontrol_right">
             <AudioPlayType class="botcontrol_btn-icon" />
             <div class="botcontrol_btn_play" @click="playAudio">
-                <el-icon class="botcontrol_btn-icon play" v-show="audio.paused"><Play /></el-icon>
-                <el-icon class="botcontrol_btn-icon pause" v-show="!audio.paused"><Pause /></el-icon>    
+                <el-icon class="botcontrol_btn-icon play" v-show="audio.paused"><IconCusPlay /></el-icon>
+                <el-icon class="botcontrol_btn-icon pause" v-show="!audio.paused"><IconCusPause /></el-icon>    
             </div>
             <div class="botcontrol_btn_volume" @mouseenter="volumeShow = true" @mouseleave="volumeShow = false">
-                <el-icon class="botcontrol_btn-icon volume" v-show="audio.volume !== 0" @click="mutedAudio"><Volume /></el-icon>
-                <el-icon class="botcontrol_btn-icon mute" v-show="audio.volume === 0" @click="mutedAudio"><Volume_mute /></el-icon>
+                <el-icon class="botcontrol_btn-icon volume" v-show="audio.volume !== 0" @click="mutedAudio"><IconCusVolume /></el-icon>
+                <el-icon class="botcontrol_btn-icon mute" v-show="audio.volume === 0" @click="mutedAudio"><IconCusVolumeMute /></el-icon>
                 <div class="botcontrol_volume_bar">
                     <div class="botcontrol_volume_text">{{ Math.floor(audioVolume * 100) }}</div>
                     <ProgressControlBar v-show="volumeShow" :isTime="false" :loading="false" />
                 </div>
             </div>
-            <el-icon class="botcontrol_btn-icon list" @click="activatePlayinglistState"><Expand /></el-icon>
+            <el-icon class="botcontrol_btn-icon list" @click="activatePlayinglistState"><IconEpExpand /></el-icon>
         </div>
     </div>
     <Playinglist :active="activePlayinglist" @close="deactivatePlayinglistState" />
@@ -288,23 +288,11 @@
 </style>
 
 <script lang="ts" setup>
-import { storeToRefs } from 'pinia';
-import { computed, ref, watch } from 'vue';
-import { useRouter } from 'vue-router';
 import { usePlayerStore } from '@/store/player';
 import { usePlaylistStore } from '@/store/playinglist';
 import { formatAudioTime } from '@/utils';
 import { PlayMode } from '@/interface';
 import { jointQuery, mediaSrc } from '@/assets/api';
-import Volume from '@/assets/iconfont/volume.vue';
-import Pause from '@/assets/iconfont/pause.vue';
-import Play from '@/assets/iconfont/play.vue';
-import Skipback from '@/assets/iconfont/skipback.vue';
-import Skipforward from '@/assets/iconfont/skipforward.vue';
-import Volume_mute from '@/assets/iconfont/volume_mute.vue';
-import AudioPlayType from '@/components/AudioPlayType/index.vue';
-import Playinglist from '@/components/Playinglist/index.vue';
-import ProgressControlBar from '@/components/ProgressControlBar/index.vue';
 
 
 const router = useRouter();
@@ -322,6 +310,7 @@ const audioCurrentTimeStr = ref('00:00');
 const audioIsPaused = ref(true);
 const audioLoading = ref(false);
 const audioVolume = ref(0.7);
+const audioMuteVolume = ref(0.7);
 const activePlayinglist = ref(false);
 const volumeShow = ref(false);
 
@@ -343,6 +332,7 @@ watch(audioInfo, () => {
 function bindAudioEvent() {
     let audioDom = audio.value;
     if (audioDom) {
+        audioDom.volume = audioVolume.value;
         // 加载过程中点暂停播放是没用的
         audioDom.addEventListener('timeupdate', updateAudioCurrentTime);
         audioDom.addEventListener('seeking', updateAudioCurrentTime);
@@ -401,11 +391,13 @@ function unbindAudioEvent() {
 function mutedAudio() {
     if (audio.value) {
         if (audio.value.volume !== 0) {
-            audioVolume.value = audio.value.volume;
+            audioMuteVolume.value = audio.value.volume;
+            console.log(audio.value.volume)
             audio.value.volume = 0;
         }
         else {
-            audio.value.volume = audioVolume.value;
+            console.log(audioMuteVolume.value)
+            audio.value.volume = audioMuteVolume.value;
         }
     }
 }

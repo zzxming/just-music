@@ -9,7 +9,7 @@
         <div class="header_right">
             <div class="header_login" v-if="!cloudIsLogin" @click="cloudLoginVisible = true">登录</div>
             <el-button class="header_drawer" plain @click="drawer = true">
-                <el-icon><List /></el-icon>
+                <el-icon><IconCusList /></el-icon>
             </el-button>
         </div>
     </div>
@@ -82,17 +82,10 @@
 </style>
 
 <script lang="ts" setup>
-import { watch, ref, onMounted } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
 import { jointQuery } from '@/assets/api';
 import { getCloudUserState } from '@/assets/cloudApi';
 import { AudioInfoType } from '@/interface';
 import { usePopoutStore } from '@/store/popout';
-import IconInput from '@/components/IconInput/index.vue';
-import BackRoute from '@/components/BackRoute/index.vue';
-import PlaylistDrawer from '@/components/PlaylistDrawer/index.vue';
-import List from '@/assets/iconfont/list.vue';
-import { storeToRefs } from 'pinia';
 
 
 const route = useRoute();

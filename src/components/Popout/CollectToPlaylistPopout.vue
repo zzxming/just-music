@@ -5,14 +5,11 @@
 
 
 <script lang="ts" setup>
-import { onMounted, onUnmounted, ref } from 'vue';
-import { storeToRefs } from 'pinia';
 import { ElMessage } from 'element-plus';
 import { defaultMusicImg } from "@/assets/api";
 import { usePopoutStore } from '@/store/popout';
 import { MusicInfo, CustomPlaylist, AudioInfoType } from '@/interface';
 import { getAllCustomPlaylist, updateCustomPlaylist, localStoragePlaylistEvent } from '@/utils/localStorage';
-import PopoutItem from '@/components/PopoutItem/index.vue';
 
 const popoutStore = usePopoutStore();
 const { 
