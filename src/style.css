@@ -7,6 +7,9 @@
   color-scheme: light dark;
   color: rgba(255, 255, 255, 0.87);
   background-color: #242424;
+  
+  color: #213547;
+  background-color: #ffffff;
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -22,7 +25,7 @@ body {
   align-items: flex-start;
   justify-content: center;
   min-height: 100vh;
-    background: var(--el-color-info-light-8);
+  background: var(--el-color-info-light-8);
 }
 #app {
   position: relative;

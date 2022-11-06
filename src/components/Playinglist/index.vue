@@ -72,7 +72,7 @@
         height: 400px;
         padding: 20px;
         border-radius: 8px;
-        background: var(--el-overlay-color-lighter);
+        background: var(--el-overlay-color-light);
         color: var(--el-bg-color-page);
         overflow-y: auto;
         &::-webkit-scrollbar {
@@ -184,7 +184,7 @@ function playMusic(info: MusicInfo) {
 }
 /** 从播放列表删除歌曲 */
 function deleteFromPlayinglist(info: MusicInfo) {
-    let switchSong = playinglistSplice(info.id, audioInfo.value);
+    let switchSong = playinglistSplice(info, audioInfo.value);
     if (switchSong) {
         setAudioInfo(switchSong)
     }

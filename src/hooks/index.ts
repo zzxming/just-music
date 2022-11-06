@@ -39,9 +39,12 @@ export function useRouteHistory() {
             // 如果路径小于2, 说明是直接进入的404, 刚才删的是根路径, 补回去
             routeHistory.splice(routeHistory.length - 1, 1);
         }
-        // 如果和上次路由的路径不同再添加
+        // 如果和上次路由的路径不同再添加, 相同则替换
         if (val.path !== routeHistory[routeHistory.length - 1].path) {
             routeHistory.push({fullPath, path: val.path});
+        }
+        else {
+            routeHistory[routeHistory.length - 1] = {fullPath, path: val.path};
         }
     }, { deep: true, immediate: true });
 

@@ -24,7 +24,7 @@
 .drawer {
     position: fixed;
     inset: 0;
-    z-index: 11;
+    z-index: 2001;
     overflow: hidden;
     opacity: 0;
     transition: opacity .3s linear;

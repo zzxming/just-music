@@ -7,7 +7,7 @@ export const axios = OriginAxios.create({
 
 
 axios.interceptors.response.use((response) => {
-    console.log(response)
+    // console.log(response)
     if (response.data.code !== 1 && response.data.code !== 200) {
         ElMessage({
             type: 'error',

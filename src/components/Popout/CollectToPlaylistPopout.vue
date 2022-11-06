@@ -10,7 +10,7 @@ import { storeToRefs } from 'pinia';
 import { ElMessage } from 'element-plus';
 import { defaultMusicImg } from "@/assets/api";
 import { usePopoutStore } from '@/store/popout';
-import { MusicInfo, CustomPlaylist } from '@/interface';
+import { MusicInfo, CustomPlaylist, AudioInfoType } from '@/interface';
 import { getAllCustomPlaylist, updateCustomPlaylist, localStoragePlaylistEvent } from '@/utils/localStorage';
 import PopoutItem from '@/components/PopoutItem/index.vue';
 
@@ -45,10 +45,15 @@ function createPlaylist() {
  * @param playlistid 收藏至的歌单id
  */
 function collectMusic(playlistid: number) {
-    // 修改了哔哩哔哩的搜索, 现在不用存储在本地再发送, 即不存储再数据库里了, 数据结构要改
     for (let i = 0; i < customPlaylist.value.length; i++) {
         if (customPlaylist.value[i].id === playlistid) {
-            let result = customPlaylist.value[i].tracks.find(music => music.id === popoutHoldData.value?.id && music.type == popoutHoldData.value.type);
+            // 是否存在重复歌曲
+            let result = customPlaylist.value[i].tracks.find(music => {
+                if (popoutHoldData.value?.type === AudioInfoType.bili) {
+                    return popoutHoldData.value.cid === music.cid;
+                }
+                return popoutHoldData.value?.id === music.id && popoutHoldData.value.type === music.type;
+            });
             if (result) {
                 ElMessage({
                     type: 'error',

@@ -1,7 +1,7 @@
 import { defineStore, storeToRefs } from "pinia";
 import { reactive } from "vue";
 import { isArray } from 'lodash';
-import { MusicInfo, PlayMode } from "@/interface";
+import { AudioInfoType, MusicInfo, PlayMode } from "@/interface";
 import { usePlayerStore } from '@/store/player';
 import { ElMessage } from "element-plus";
 
@@ -31,17 +31,25 @@ export const usePlaylistStore = defineStore('playlist', () => {
      * @param curPlaying 当前播放歌曲信息
      * @returns null表示没有歌曲能够切换, 其他返回表示切换至的歌曲信息
      */
-    function playinglistSplice(id: number | string, curPlaying: MusicInfo): MusicInfo | null {
-        let index = playinglist.findIndex(song => song.id === id);
+    function playinglistSplice(info: MusicInfo, curPlaying: MusicInfo): MusicInfo | null {
+        let index = playinglist.findIndex(music => {
+            if (info.type === AudioInfoType.bili) {
+                return  music.cid === info.cid;
+            }
+            return music.id === info.id && music.type === info.type;
+        });
         let returnSong = null;
         if (index !== -1) {
             // 在外部无法使用 usePlayerStore 获取到 playerStore 里的变量, 用传参的方式判断是否为当前播放歌曲
             let switchSong = null;
-            if (id === curPlaying.id) {
+            if (info.type === curPlaying.type && info.id === curPlaying.id && info.cid === curPlaying.cid) {
                 // 如果删除是当前播放歌曲, 切换当前播放歌曲, 获取清除当前播放歌曲
                 if (playinglist[index + 1] || playinglist[index - 1]) {
                     switchSong = playinglist[index + 1] ?? playinglist[index - 1];
                 }
+            }
+            else {
+                switchSong = curPlaying
             }
             playinglist.splice(index, 1);
 
@@ -60,7 +68,8 @@ export const usePlaylistStore = defineStore('playlist', () => {
      */
     function addToPlaylist(musicInfo: MusicInfo): boolean {
         // 重复不再添加
-        if (!haveMusic(musicInfo)) {
+        let { info } = haveMusic(musicInfo);
+        if (!info) {
             let index = playinglist.findIndex(music => audioInfo.value.id === music.id);
             if (index === -1) {
                 playinglist.push(musicInfo);
@@ -68,9 +77,9 @@ export const usePlaylistStore = defineStore('playlist', () => {
             else {
                 playinglist.splice(index + 1, 0, musicInfo);
             }
-            setAudioInfo(musicInfo);
         }
-
+        // 播放添加的歌曲
+        setAudioInfo(musicInfo);
         ElMessage({
             type: 'success',
             message: '已开始播放'
@@ -83,14 +92,26 @@ export const usePlaylistStore = defineStore('playlist', () => {
      * @returns 是否添加成功
      */
     function addToNextPlay(musicInfo: MusicInfo | MusicInfo[]): boolean {
-        let index = playinglist.findIndex(music => audioInfo.value.id === music.id);
+        // 获得当前播放歌曲在播放列表的下标
+        let { index, info } = haveMusic(audioInfo.value);
         if (!isArray(musicInfo)) {
             musicInfo = [musicInfo];
         }
-        // 去除重复歌曲
-        for (let i = 0; i < musicInfo.length; i++) {
-            if (haveMusic(musicInfo[i])) {
-                musicInfo.splice(i--, 1);
+        // 删除播放列表中的重复歌曲, 然后再添加
+        for (let i = 0; i < playinglist.length; i++) {
+            let allReadyHave = false;
+            let now = playinglist[i];
+            if (musicInfo.find(info => {
+                if (now.type === AudioInfoType.bili) {
+                    return info.cid === now.cid
+                }
+                return info.id === now.id
+            })) {
+                allReadyHave = true
+            }
+            if (allReadyHave) {
+                if (i < index) index--;
+                playinglist.splice(i--, 1);
             }
         }
 
@@ -110,12 +131,21 @@ export const usePlaylistStore = defineStore('playlist', () => {
         return true;
     }
     /** 播放列表中是否有这首歌 */
-    function haveMusic(findMusic: MusicInfo) {
-        return !!playinglist.find(music => music.id === findMusic.id && music.type === findMusic.type);
+    function haveMusic(findMusic: MusicInfo): { index: number, info: MusicInfo }  {
+        let index = playinglist.findIndex(music => {
+            if (findMusic.type === AudioInfoType.bili) {
+                return  music.cid === findMusic.cid;
+            }
+            return music.id === findMusic.id && music.type === findMusic.type;
+        });
+        return {
+            index,
+            info: playinglist[index]
+        }
     }
     /** 返回播放列表中当前播放歌曲的上一首播放的歌曲信息 */
     function findPreMusic(): MusicInfo | null {
-        let index = playinglist.findIndex(music => audioInfo.value.id === music.id);
+        let { index } = haveMusic(audioInfo.value);
         if (index === -1) {
             return null;
         }
@@ -131,7 +161,7 @@ export const usePlaylistStore = defineStore('playlist', () => {
         let curMusic = audioInfo.value;
         switch(mode) {
             case PlayMode.loop: {
-                let index = playinglist.findIndex(music => curMusic.id === music.id);
+                let { index } = haveMusic(audioInfo.value);
                 if (index === -1) {
                     return null;
                 }
@@ -141,7 +171,7 @@ export const usePlaylistStore = defineStore('playlist', () => {
                 return curMusic;
             }
             case PlayMode.sequential: {
-                let index = playinglist.findIndex(music => curMusic.id === music.id);
+                let { index } = haveMusic(curMusic);
                 if (index === -1) {
                     return null;
                 }
@@ -164,6 +194,7 @@ export const usePlaylistStore = defineStore('playlist', () => {
         addToNextPlay,
         findPreMusic,
         findNextMusic,
+        haveMusic,
     }
 });
 

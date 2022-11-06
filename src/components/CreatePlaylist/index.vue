@@ -2,7 +2,6 @@
     <el-dialog 
         class="creator" 
         v-model="visible" 
-        width="400px" 
         center 
         :destroy-on-close="true"
         :before-close="() => emit('close')"
@@ -41,12 +40,20 @@
 </style>
 <style lang="less">
 .creator {
+    width: 400px;
     .el-dialog__headerbtn {
         &:hover,
         &:focus {
             .el-dialog__close {
                 color: var(--el-color-danger);
             }
+        }
+    }
+}
+@media screen and (max-width: 550px) {
+    .creator {
+        &.el-dialog {
+            width: 90%;
         }
     }
 }

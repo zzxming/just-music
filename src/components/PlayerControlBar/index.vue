@@ -259,6 +259,16 @@
         }
     }
 }
+@media screen and (max-width: 550px) {
+    .botcontrol {
+        height: 60px;
+        &_info {
+            &_cover {
+                transform: translateY(-10px);
+            }
+        }
+    }
+}
 @media screen and (max-width: 480px) {
     .botcontrol {
         width: 100vw;
@@ -338,39 +348,39 @@ function bindAudioEvent() {
         audioDom.addEventListener('seeking', updateAudioCurrentTime);
 
         audioDom.addEventListener('loadeddata', function() {
-            console.log('loadeddata')
+            // console.log('loadeddata')
             // 加载完成就播放
             this.play()
         })
         audioDom.addEventListener('emptied', function() {
-            console.log('emptied', !audioSrc.value)
+            // console.log('emptied', !audioSrc.value)
             if (!!audioSrc.value) {
                 audioLoading.value = true;
             }
         })
         audioDom.addEventListener('canplay', function() {
-            console.log('canplay')
+            // console.log('canplay')
             audioLoading.value = false;
         })
         audioDom.addEventListener('waiting', function() {
-            console.log('waiting')
+            // console.log('waiting')
             audioLoading.value = true;
         })
         audioDom.addEventListener('playing', function() {
-            console.log('playing')
+            // console.log('playing')
             audioLoading.value = false;
             audioIsPaused.value = this.paused;
         })
         audioDom.addEventListener('pause', function() {
-            console.log('pause')
+            // console.log('pause')
             audioIsPaused.value = this.paused;
         })
         audioDom.addEventListener('play', function() {
-            console.log('play')
+            // console.log('play')
             audioIsPaused.value = this.paused;
         })
         audioDom.addEventListener('ended', function() {
-            console.log('end')
+            // console.log('end')
             playNext();
         })
         audioDom.addEventListener('volumechange', function() {
