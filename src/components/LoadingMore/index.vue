@@ -36,7 +36,7 @@
 
 export interface ExposeVar {
     loadMore: HTMLDListElement
-    loadFunc: () => void
+    loadFunc: (...arg: any) => number | Promise<number>;
 } 
 const props = defineProps<{
     requestFunc: (...arg: any) => number | Promise<number>;
@@ -50,6 +50,7 @@ defineExpose({loadMore, loadFunc});
 
 /** 返回 0 表示没有更多数据, 返回 -1 表示报错, 返回其他为数据长度 */
 async function loadFunc() {
+    if (!haveMore.value) return 0;
     loadingError.value = false;
     loading.value = true;
     let state = await props.requestFunc();
@@ -64,6 +65,7 @@ async function loadFunc() {
         haveMore.value = true;
         loadingError.value = false;
     }
+    return state;
 }
 
 

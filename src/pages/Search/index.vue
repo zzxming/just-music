@@ -20,15 +20,16 @@
                 </template>
             </el-tabs>
         </div>
-        <div v-loading="fristLoading && !loadingError" class="search_result">
+        <div class="search_result">
             <Songlist 
-                v-if="!fristLoading || !loadingError" 
                 :songs="songsData" 
                 :emptyText="currentSearchType === AudioInfoType.bili ? '请输入正确的bv号' : '没有搜索到相关歌曲'" 
+                :isStatic="currentSearchType === AudioInfoType.bili"
+                :loadMoreFunc="requestSearch"
             />
         </div>
-        <LoadingErrorTip :isError="fristLoading && loadingError" :requestFunc="() => requestSearch(true)" />
-        <LoadingMore v-if="currentSearchType !== AudioInfoType.bili" :key="currentSearchType" v-show="!fristLoading" ref="loadMore" :requestFunc="requestSearch" />
+        <!-- <LoadingErrorTip :isError="fristLoading && loadingError" :requestFunc="() => requestSearch(true)" /> -->
+        <!-- <LoadingMore v-if="currentSearchType !== AudioInfoType.bili" :key="currentSearchType" v-show="!fristLoading" ref="loadMore" :requestFunc="requestSearch" /> -->
     </div>
 </template>
 
@@ -158,7 +159,7 @@ watch(() => props, (val) => {
     fristLoading.value = true;
     loadingError.value = false;
     songsData.length = 0;
-    requestSearch(true);
+    // requestSearch();
 }, {
     deep: true,
     immediate: true
@@ -212,7 +213,6 @@ async function requestSearch(loadMore: boolean = false) {
                 limit: limit.value,
                 t: type.value
             });
-            limit.value += 1;
             break;
         }
         case AudioInfoType.cloud: {
@@ -221,7 +221,6 @@ async function requestSearch(loadMore: boolean = false) {
                 limit: limit.value,
                 t: type.value
             });
-            limit.value += 1;
             break;
         }
         default: {
@@ -236,6 +235,7 @@ async function requestSearch(loadMore: boolean = false) {
         // console.log(result)
         let data = result.data;
 
+        limit.value += 1;
         songsData.push(...formatMusicInfo(data.data, currentSearchType.value));
         if (data.data.length < 1 || (isType<SearchCloudResult>(data) && songsData.length >= data.count)) {
             return 0;

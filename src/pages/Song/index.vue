@@ -53,6 +53,7 @@
         >
             <CollectToPlaylistPopout />
         </Popout>
+        <LoadingErrorTip :isError="loadError" :style="{height: '100%'}" :requestFunc="requesSongData" />
     </div>
 </template>
 
@@ -240,6 +241,7 @@ const popoutStore = usePopoutStore();
 const songInfo = ref<MusicInfo>();
 const songList = ref<MusicInfo[]>();
 const loadingInfo = ref(false);
+const loadError = ref(false);
 const popoutVisible = ref(false);
 const popoutPosition = ref<PopoutPosition>({
     left: 0,
@@ -264,6 +266,7 @@ function playAudio() {
 }
 /** 获取音频信息 */
 async function requesSongData() {
+    loadError.value = false;
     if (props.t === AudioInfoType.bili) {
         loadingInfo.value = true;
         let [err, result] = await searchMusicInfoWIthBvid(String(props.id));
@@ -276,6 +279,7 @@ async function requesSongData() {
             songList.value = musicInfo;
         }
         else {
+            loadError.value = true;
             ElMessage({
                 type: 'error',
                 message: err?.message 
@@ -297,6 +301,7 @@ async function requesSongData() {
         // console.log(songInfo.value)
     }
     else {
+        loadError.value = true;
         ElMessage({
             type: 'error',
             message: err?.message 

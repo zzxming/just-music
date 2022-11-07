@@ -46,13 +46,13 @@
             </div>
             <div class="playlist_song" v-show="playlistInfo">
                 <Songlist 
-                    v-if="songsInfo" 
                     :songs="songsInfo" 
                     :canDeleteSong="playlistInfo?.type === PlaylistType.localStorage" 
                     :canDrag="playlistInfo?.type === PlaylistType.localStorage"
+                    :isStatic="(playlistInfo?.type === PlaylistType.localStorage) || (playlistInfo?.type === PlaylistType.bili)"
+                    :loadMoreFunc="getPlaylistTrackWithId.bind(undefined, props.id, props.t, true)"
                     @songOrder="songOrder"
                 />
-                <LoadingMore v-if="props.t !== PlaylistType.localStorage && playlistInfo" key="loadingSong" ref="loadMore" :requestFunc="getPlaylistTrackWithId.bind(undefined, props.id, props.t, true)" />
             </div>
         </div>
     </div>
@@ -207,7 +207,6 @@ import { mediaSrc } from '@/assets/api';
 import { AudioInfoType, MusicInfo, PlaylistInfo, PlaylistType, CustomPlaylist } from '@/interface';
 import { formatMusicInfo, formatPlaylistInfo } from '@/utils';
 import { getAllCustomPlaylist, getCustomPlaylistWithId, localStoragePlaylistEvent, updateCustomPlaylist } from '@/utils/localStorage';
-import { ExposeVar } from '@/components/LoadingMore/index.vue';
 
 
 
@@ -225,33 +224,12 @@ const playlistInfo = ref<PlaylistInfo>();
 const descriptionOpen = ref(false);
 const limit = ref(1);
 
-const loadMore = ref<ExposeVar>();
-
-/** 监听动态加载歌单 */
-function observerLoad() {
-    if (!loadMore.value?.loadMore) return;
-    let loadIO = new IntersectionObserver(function (entries) {
-        // console.log(entries[0].isIntersecting)
-        // 距离视口还有200px
-        if (entries[0].isIntersecting && loadMore.value) {
-            loadMore.value.loadFunc();
-        }
-    }, {
-        rootMargin: '0px 0px 400px 0px' // 监听视口距离向下多200px
-    });
-    loadIO.observe(loadMore.value.loadMore);
-}
-
 
 watch([() => props.id, () => props.t], () => {
     songsInfo.length = 0;
     requestPlaylistData();
 }, { immediate: true });
 
-watch(playlistInfo, () => {
-    /** 滚动动态加载 */
-    nextTick(() => observerLoad());
-})
 
 onMounted(() => {
     if (props.t === PlaylistType.localStorage) {

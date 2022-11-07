@@ -13,7 +13,6 @@
                 :draggable="canDrag"
                 @dblclick="(e) => playSong(e, song)"
                 @contextmenu="(e) => showPopbox(e, song)"
-                
                 @dragstart="(e) => dragstart(e, index)"
                 @dragleave="(e) => dragleave(e)"
                 @dragover="(e) => dragover(e)"
@@ -49,11 +48,13 @@
                     <span class="songlist_duration">{{ formatAudioTime(song.duration / 1000) }}</span>
                 </div>
             </div>
-            <div v-if="songs.length < 1" class="songlist_empty">{{ emptyText }}</div>
+            <div v-if="songs.length < 1 && !loadError" class="songlist_empty">{{ loading ? '加载中...' : emptyText }}</div>
         </div>
     </div>
-
+    <LoadingMore v-if="!isStatic" key="loadingSong" ref="loadMore" :requestFunc="loadMoreFunc" />
 </template>
+
+<!-- 滚动加载对 search 页有问题, 当第一次加载失败后, 滚动加载会失效, 需要手动点一次加载更多才能生效 -->
 
 
 <style lang="less" scoped>
@@ -231,6 +232,7 @@ import { usePlaylistStore } from '@/store/playinglist';
 import { usePopoutStore } from '@/store/popout';
 import { formatAudioTime, twoDigitStr } from '@/utils';
 import { useIsSmallScreen } from '@/hooks';
+import { ExposeVar } from '@/components/LoadingMore/index.vue';
 
 
 const smallScreen = useIsSmallScreen();
@@ -242,17 +244,23 @@ const { setAudioInfo } = playerStore;
 const { playinglistReplace } = playlistStore;
 const { setPopoutState } = popoutStore;
 
-const props = withDefaults(defineProps<{
-    songs: MusicInfo[]
-    emptyText?: string
-    canDeleteSong?: boolean
-    canDrag?: boolean
-}>(), {
-    emptyText: '这里什么都没有',
-    canDeleteSong: false,
-    canDrag: false
-});
-const { songs, emptyText } = toRefs(props);
+const props = withDefaults(
+    defineProps<{
+        songs: MusicInfo[]
+        emptyText?: string
+        canDeleteSong?: boolean
+        canDrag?: boolean
+        isStatic?: boolean
+        loadMoreFunc?: (...arg: any[]) => number | Promise<number>
+    }>(), {
+        emptyText: '这里什么都没有',
+        canDeleteSong: false,
+        canDrag: false,
+        isStatic: true,
+        loadMoreFunc: () => 0
+    }
+);
+
 const emit = defineEmits<{
     (e: 'songOrder', song: MusicInfo[]): void
 }>()
@@ -266,6 +274,45 @@ watch(audioInfo, (val) => {
     activeCid.value = val.cid
 });
 
+const loading = ref(true);
+const loadError = ref(false);
+const loadMore = ref<ExposeVar>();
+/** 监听动态加载歌单 */
+function observerLoad() {
+    if (!loadMore.value?.loadMore) return;
+    let loadIO = new IntersectionObserver(async (entries) => {
+        // 距离视口还有200px
+        // console.log(entries[0].isIntersecting, !!loadMore.value)
+        if (entries[0].isIntersecting && loadMore.value) {
+            loadError.value = false;
+            loading.value = true;
+            let num = await loadMore.value.loadFunc();
+            loading.value = false;
+            if (num === -1) {
+                loadError.value = true;
+            }
+        }
+    }, {
+        rootMargin: '0px 0px 400px 0px' // 监听视口距离向下多200px
+    });
+    loadIO.observe(loadMore.value.loadMore);
+}
+watchEffect(async () => {
+    // isStatic 表示不会动态加载
+    if (!props.isStatic) {
+        // 滚动动态加载
+        nextTick(() => observerLoad());
+    }
+    else {
+        loadError.value = false;
+        loading.value = true;
+        let num = await props.loadMoreFunc()
+        loading.value = false;
+        if (num === -1) {
+            loadError.value = true;
+        }
+    }
+})
 
 /** 双击播放歌曲 */
 async function playSong(event: MouseEvent, song: MusicInfo) {
@@ -273,7 +320,7 @@ async function playSong(event: MouseEvent, song: MusicInfo) {
         activeId.value = song.id;
         activeId.value = song.cid
         setAudioInfo(song);
-        playinglistReplace(songs.value);
+        playinglistReplace(props.songs);
     }
 }
 /** 展示弹出框 */
@@ -336,7 +383,7 @@ function drop(e: DragEvent, index: number) {
         el.classList.remove('bottom');
         return;
     }
-    let newList = [...songs.value];
+    let newList = [...props.songs];
     let moveData = newList[dataIndex];
     newList.splice(toIndex, 0, moveData);
     if (toIndex < dataIndex) {
