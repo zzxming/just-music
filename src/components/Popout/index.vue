@@ -18,7 +18,7 @@
     background-color: var(--el-color-white);
     // elementplus 的 drawer 的 z-index 是 2004
     // PlaylistDrawer 的 z-index 2001
-    z-index: 2001;      
+    z-index: 2003;      
 }
 
 </style>

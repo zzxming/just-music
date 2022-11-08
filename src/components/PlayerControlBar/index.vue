@@ -35,8 +35,9 @@
         <div class="botcontrol_right">
             <AudioPlayType class="botcontrol_btn-icon" />
             <div class="botcontrol_btn_play" @click="playAudio">
-                <el-icon class="botcontrol_btn-icon play" v-show="audio.paused"><IconCusPlay /></el-icon>
-                <el-icon class="botcontrol_btn-icon pause" v-show="!audio.paused"><IconCusPause /></el-icon>    
+                <el-icon v-show="audioLoading" class="botcontrol_btn-icon load"><IconEpLoading /></el-icon>
+                <el-icon class="botcontrol_btn-icon play" v-show="!audioLoading && audio.paused"><IconCusPlay /></el-icon>
+                <el-icon class="botcontrol_btn-icon pause" v-show="!audioLoading && !audio.paused"><IconCusPause /></el-icon> 
             </div>
             <div class="botcontrol_btn_volume" @mouseenter="volumeShow = true" @mouseleave="volumeShow = false">
                 <el-icon class="botcontrol_btn-icon volume" v-show="audio.volume !== 0" @click="mutedAudio"><IconCusVolume /></el-icon>
@@ -72,7 +73,7 @@
     background-color: var(--el-fill-color-blank);
     box-shadow: var(--el-box-shadow-dark);
     transition: bottom .3s linear;
-    z-index: 10;
+    z-index: 2001;
     &_left {
         display: flex;
         align-items: center;
@@ -131,6 +132,9 @@
             &.pause {
                 font-size: 50px;
             }
+            &.load {
+                animation: rotate360 linear 2s infinite;
+            }
         }
     }
     .progressBar(@color) {
@@ -162,6 +166,7 @@
             border-radius: 8px;
             overflow: hidden;
             cursor: pointer;
+            box-shadow: var(--el-box-shadow-light);
             &-img {
                 width: 100%;
                 height: 100%;
@@ -273,6 +278,7 @@
     .botcontrol {
         width: 100vw;
         &_info {
+            margin-left: 0;
             &_bar-time {
                 display: none;
             }
@@ -283,6 +289,18 @@
                 font-size: 12px;
             }
         }
+    }
+}
+
+@keyframes rotate360 {
+    0% {
+        transform: rotateZ(0deg);
+    }
+    50% {
+        transform: rotateZ(180deg);
+    }
+    100% {
+        transform: rotateZ(360deg);
     }
 }
 </style>
@@ -325,6 +343,7 @@ watch(audio, (val) => {
 watch(audioInfo, () => {
     if (audioInfo.value.id) {
         audioLoading.value = true;
+        audio.value?.load()
     }
 });
 
@@ -336,9 +355,14 @@ function bindAudioEvent() {
         // 加载过程中点暂停播放是没用的
         audioDom.addEventListener('timeupdate', updateAudioCurrentTime);
         audioDom.addEventListener('seeking', updateAudioCurrentTime);
-
+        // 在手机 ios 的 safari，audio 不会自动加载音频，preload 无效，canplay 不会执行，用这个判断是否加载完成
+        audioDom.addEventListener('durationchange', function() {
+            if (this.duration !== 0) {
+                audioLoading.value = false;
+            }
+        })
         audioDom.addEventListener('loadeddata', function() {
-            // console.log('loadeddata')
+            console.log('loadeddata')
             // 加载完成就播放
             this.play()
         })

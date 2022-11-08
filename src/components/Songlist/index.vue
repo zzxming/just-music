@@ -398,6 +398,5 @@ function drop(e: DragEvent, index: number) {
     el.classList.remove('top');
     el.classList.remove('bottom');
 }
-
 </script>
 
