@@ -14,7 +14,7 @@
                 <img class="botcontrol_info_cover-img" v-lazy="mediaSrc(audioInfo.cover)" :key="audioInfo.cover" />
             </div>
             <div class="botcontrol_info_mid">
-                <div class="botcontrol_info_title">
+                <div class="botcontrol_info_title" @click="() => router.push('/player')">
                     <span class="botcontrol_info_song" :title="audioInfo.title">{{audioInfo.title}}</span>
                     <span class="botcontrol_info_singer" :title="audioInfo.singers.map(s => s.name).join(' / ')">
                         <template v-for="(singer, index) in audioInfo.singers">
@@ -24,33 +24,34 @@
                     </span>
                 </div>
                 <div class="botcontrol_info_bar-time">
-                    <ProgressControlBar :isTime="true" :loading="audioLoading" />
+                    <ProgressControlBar :isTime="true" />
                 </div>
             </div>
             <div class="botcontrol_info_time">
                 <span class="botcontrol_info_time-current">{{audioCurrentTimeStr}}</span>
-                <span class="botcontrol_info_time-duration"> / {{audioDuration}}</span>
+                <span class="botcontrol_info_time-duration"> / {{audioDurationStr}}</span>
             </div>
         </div>
         <div class="botcontrol_right">
-            <AudioPlayType class="botcontrol_btn-icon" />
+            <AudioPlayType class="botcontrol_btn-icon type" />
             <div class="botcontrol_btn_play" @click="playAudio">
                 <el-icon v-show="audioLoading" class="botcontrol_btn-icon load"><IconEpLoading /></el-icon>
                 <el-icon class="botcontrol_btn-icon play" v-show="!audioLoading && audio.paused"><IconCusPlay /></el-icon>
                 <el-icon class="botcontrol_btn-icon pause" v-show="!audioLoading && !audio.paused"><IconCusPause /></el-icon> 
             </div>
             <div class="botcontrol_btn_volume" @mouseenter="volumeShow = true" @mouseleave="volumeShow = false">
-                <el-icon class="botcontrol_btn-icon volume" v-show="audio.volume !== 0" @click="mutedAudio"><IconCusVolume /></el-icon>
-                <el-icon class="botcontrol_btn-icon mute" v-show="audio.volume === 0" @click="mutedAudio"><IconCusVolumeMute /></el-icon>
+                <div @click="mutedAudio">
+                    <el-icon class="botcontrol_btn-icon volume" v-show="audioVolume !== 0"><IconCusVolume /></el-icon>
+                    <el-icon class="botcontrol_btn-icon mute" v-show="audioVolume === 0"><IconCusVolumeMute /></el-icon>
+                </div>
                 <div class="botcontrol_volume_bar">
                     <div class="botcontrol_volume_text">{{ Math.floor(audioVolume * 100) }}</div>
-                    <ProgressControlBar v-show="volumeShow" :isTime="false" :loading="false" />
+                    <ProgressControlBar v-show="volumeShow" :isTime="false" :horizental="false" />
                 </div>
             </div>
-            <el-icon class="botcontrol_btn-icon list" @click="activatePlayinglistState"><IconEpExpand /></el-icon>
+            <el-icon class="botcontrol_btn-icon list" @click="() => changePlayinglistState(true)"><IconEpExpand /></el-icon>
         </div>
     </div>
-    <Playinglist :active="activePlayinglist" @close="deactivatePlayinglistState" />
 </template>
 
 <style lang="less" scoped>
@@ -271,6 +272,19 @@
             &_cover {
                 transform: translateY(-10px);
             }
+            &_title {
+                display: block;
+            }
+            &_bar-time {
+                display: none;
+            }
+        }
+        &_btn {
+            &-icon {
+                &.type {
+                    display: none;
+                }
+            }
         }
     }
 }
@@ -279,12 +293,6 @@
         width: 100vw;
         &_info {
             margin-left: 0;
-            &_bar-time {
-                display: none;
-            }
-            &_title {
-                display: block;
-            }
             &_singer {
                 font-size: 12px;
             }
@@ -296,9 +304,6 @@
     0% {
         transform: rotateZ(0deg);
     }
-    50% {
-        transform: rotateZ(180deg);
-    }
     100% {
         transform: rotateZ(360deg);
     }
@@ -306,111 +311,25 @@
 </style>
 
 <script lang="ts" setup>
-import { usePlayerStore } from '@/store/player';
-import { usePlaylistStore } from '@/store/playinglist';
-import { formatAudioTime } from '@/utils';
-import { PlayMode } from '@/interface';
+import { usePlayerStore, useAudioContorlStore, useComponentStateStore } from '@/store';
 import { jointQuery, mediaSrc } from '@/assets/api';
 
 
 const router = useRouter();
 const playerStore = usePlayerStore();
-const playlistStore = usePlaylistStore();
-const { audio, audioSrc, showPlayerControl, audioInfo, curPlayMode } = storeToRefs(playerStore);
-const { setAudioInfo, resetAudioInfo } = playerStore;
-const { playinglist } = storeToRefs(playlistStore);
-const { findPreMusic, findNextMusic } = playlistStore;
+const { audio, audioInfo } = storeToRefs(playerStore);
+const audioControlStore = useAudioContorlStore();
+const { audioIsPaused, audioLoading, audioCurrentTimeStr, audioDurationStr, audioVolume } = storeToRefs(audioControlStore);
+const { playNext, playPre, playAudio } = audioControlStore;
+const componentStateStore = useComponentStateStore();
+const { showPlayerControl } = storeToRefs(componentStateStore);
+const { changePlayinglistState } = componentStateStore;
 
 
-
-const audioDuration = computed<string>(() => formatAudioTime(audioInfo.value.duration / 1000));
-const audioCurrentTimeStr = ref('00:00');
-const audioIsPaused = ref(true);
-const audioLoading = ref(false);
-const audioVolume = ref(0.7);
 const audioMuteVolume = ref(0.7);
-const activePlayinglist = ref(false);
 const volumeShow = ref(false);
 
 
-/** 初始值 */
-watch(audio, (val) => {
-    unbindAudioEvent();
-    if (val) {
-        bindAudioEvent();
-    }
-});
-watch(audioInfo, () => {
-    if (audioInfo.value.id) {
-        audioLoading.value = true;
-        audio.value?.load()
-    }
-});
-
-
-function bindAudioEvent() {
-    let audioDom = audio.value;
-    if (audioDom) {
-        audioDom.volume = audioVolume.value;
-        // 加载过程中点暂停播放是没用的
-        audioDom.addEventListener('timeupdate', updateAudioCurrentTime);
-        audioDom.addEventListener('seeking', updateAudioCurrentTime);
-        // 在手机 ios 的 safari，audio 不会自动加载音频，preload 无效，canplay 不会执行，用这个判断是否加载完成
-        audioDom.addEventListener('durationchange', function() {
-            if (this.duration !== 0) {
-                audioLoading.value = false;
-            }
-        })
-        audioDom.addEventListener('loadeddata', function() {
-            console.log('loadeddata')
-            // 加载完成就播放
-            this.play()
-        })
-        audioDom.addEventListener('emptied', function() {
-            // console.log('emptied', !audioSrc.value)
-            if (!!audioSrc.value) {
-                audioLoading.value = true;
-            }
-        })
-        audioDom.addEventListener('canplay', function() {
-            // console.log('canplay')
-            audioLoading.value = false;
-        })
-        audioDom.addEventListener('waiting', function() {
-            // console.log('waiting')
-            audioLoading.value = true;
-        })
-        audioDom.addEventListener('playing', function() {
-            // console.log('playing')
-            audioLoading.value = false;
-            audioIsPaused.value = this.paused;
-        })
-        audioDom.addEventListener('pause', function() {
-            // console.log('pause')
-            audioIsPaused.value = this.paused;
-        })
-        audioDom.addEventListener('play', function() {
-            // console.log('play')
-            audioIsPaused.value = this.paused;
-        })
-        audioDom.addEventListener('ended', function() {
-            // console.log('end')
-            playNext();
-        })
-        audioDom.addEventListener('volumechange', function() {
-            if (audio.value) {
-                audioVolume.value = audio.value.volume;
-            }
-        });
-    }
-}
-function unbindAudioEvent() {
-    let audioDom = audio.value;
-    if (audioDom) {
-        audioDom.removeEventListener('timeupdate', updateAudioCurrentTime)
-        audioDom.addEventListener('seeking', updateAudioCurrentTime);
-    }
-}
 /** 静音或解除静音 */
 function mutedAudio() {
     if (audio.value) {
@@ -422,65 +341,6 @@ function mutedAudio() {
             audio.value.volume = audioMuteVolume.value;
         }
     }
-}
-/** 更新当前播放时间 */
-function updateAudioCurrentTime() {
-    if (audio.value) {
-        let currentTime = audio.value.currentTime
-        audioCurrentTimeStr.value = formatAudioTime(currentTime);
-    }
-}
-/** 音频播放与暂停 */
-function playAudio() {
-    let audioDom = audio.value;
-    if (audioDom && audioInfo.value.id) {
-        if (audioDom.paused) {
-            // 当播放路径为空且播放列表有歌曲时, 播放第一首
-            if (!audioSrc.value && playinglist.value.length > 0) {
-                setAudioInfo(playinglist.value[0]);
-            }
-            audioDom.play();
-        }
-        else{
-            audioDom.pause()
-        }
-    }
-}
-/** 播放上一首歌曲 */
-function playPre() {
-    let pre = findPreMusic();
-    if (!pre) {
-        resetAudioInfo();
-        return;
-    }
-    setAudioInfo(pre);
-}
-/** 根据播放模式播放下一首歌曲 */
-function playNext(isAuto: boolean = true) {
-    let mode = curPlayMode.value;
-    // 手动切换时自动循环歌单
-    if (!isAuto) {
-        if (mode === PlayMode.single || mode === PlayMode.sequential) {
-            mode = PlayMode.loop;
-        }
-    }
-    let next = findNextMusic(mode);
-    if (!next) {
-        resetAudioInfo();
-        return;
-    }
-    if (next === audioInfo.value) {
-        audio.value && audio.value.load();
-    }
-    setAudioInfo(next);
-}
-/** 显示播放列表 */
-function activatePlayinglistState() {
-    activePlayinglist.value = true;
-}
-/** 关闭播放列表 */
-function deactivatePlayinglistState() {
-    activePlayinglist.value = false;
 }
 </script>
 

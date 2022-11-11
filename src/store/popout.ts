@@ -22,7 +22,6 @@ export const usePopoutStore = defineStore('popout', () => {
     const popoutHoldData = ref<MusicInfo | PlaylistInfoPartial>();
     const popoutCanDelete = ref(false);
     const popoutIsMusic = ref(false);
-    /** MusicAndPlaylistPopout 组件的状态 end */
     /** 设置 MusicAndPlaylistPopout 组件的状态 */
     function setPopoutState(state: {
         popoutVisible: boolean
@@ -37,7 +36,10 @@ export const usePopoutStore = defineStore('popout', () => {
         popoutIsMusic.value = state.popoutIsMusic;
         popoutVisible.value = state.popoutVisible;
     }
+    /** MusicAndPlaylistPopout 组件的状态 end */
 
+
+    
     return {
         createPlaylistVisible,
         cloudLoginVisible,

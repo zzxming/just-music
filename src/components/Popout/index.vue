@@ -1,5 +1,5 @@
 <template>
-    <div class="pop" v-show="show" ref="pop" :style="popoutPosition">
+    <div class="pop" v-show="show" ref="pop" :style="{...popoutPosition, position: isSmallScreen ? 'fixed' : 'absolute'}">
         <slot class="pop_item"></slot>
     </div>
 </template>
@@ -12,18 +12,39 @@
     justify-content: center;
     position: absolute;
     width: 240px;
+    max-height: 50vh;
     padding: 10px 0;
     border-radius: 8px;
     box-shadow: var(--el-box-shadow-light);
     background-color: var(--el-color-white);
     // elementplus 的 drawer 的 z-index 是 2004
     // PlaylistDrawer 的 z-index 2001
-    z-index: 2003;      
+    z-index: 2003;
+    &::-webkit-scrollbar {
+        width: 6px;
+        border-radius: 6px;
+        overflow: hidden;
+        background-color: var(--el-bg-color-page);
+    }
+    &::-webkit-scrollbar-button {
+        display: none;
+    }
+    &::-webkit-scrollbar-thumb {
+        border-radius: 6px;
+        background-color: var(--el-color-info-light-3);
+    }
 }
+@media screen and (max-width: 550px) {
+    .pop {
+        width: 100%;
+    }
+} 
 
 </style>
 
 <script lang="ts" setup>
+import { useIsSmallScreen } from '@/hooks';
+
 
 export interface PopoutPosition {
     top: number | string
@@ -44,6 +65,8 @@ const emit = defineEmits<{
     (event: 'close'): void
 }>();
 
+const isSmallScreen = useIsSmallScreen();
+
 const { show, position, limitPosition } = toRefs(props);
 const pop = ref<HTMLDivElement>();
 const popoutPosition = ref<PopoutPosition>(props.position);
@@ -62,6 +85,14 @@ watch(() => props.show, (val) => {
 });
 /** 防止 popout 超时视口 */
 watch(() => props.position, (val) => {
+    if (isSmallScreen.value) {
+        popoutPosition.value = {
+            left: 0,
+            top: 'auto',
+            bottom: '10px'
+        }
+        return;
+    }
     if (!limitPosition.value){
         popoutPosition.value = { ...val }
         return;

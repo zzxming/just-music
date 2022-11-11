@@ -1,8 +1,8 @@
 <template>
     <el-dialog
+        class="cloud_login" 
         v-model="cloudLoginVisible"
         title="网易云音乐登录"
-        width="400px"
         :destroy-on-close="true"
     >
         <el-form
@@ -30,14 +30,21 @@
     </el-dialog>
 </template>
 
-<style lang="less" scoped>
-
+<style lang="less">
+@media screen and (max-width: 550px) {
+    .cloud_login {
+        width: 400px;
+        &.el-dialog {
+            width: 90%;
+        }
+    }
+}
 </style>
 
 <script lang="ts" setup>
 import { FormInstance, ElMessage } from 'element-plus';
 import { postCloudLogin } from '@/assets/cloudApi';
-import { usePopoutStore } from '@/store/popout';
+import { usePopoutStore } from '@/store';
 
 const popoutStore = usePopoutStore();
 const { cloudLoginVisible } = storeToRefs(popoutStore);

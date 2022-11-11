@@ -217,13 +217,11 @@
 <script lang="ts" setup>
 import { ElMessage } from 'element-plus';
 import { mediaSrc } from '@/assets/api';
-import { usePlayerStore } from '@/store/player';
-import { usePlaylistStore } from '@/store/playinglist';
-import { usePopoutStore } from '@/store/popout';
+import { usePlayerStore, usePlaylistStore, usePopoutStore } from '@/store';
 import { AudioInfoType, MusicInfo } from '@/interface';
 import { getCloudMusicInfoWithId } from '@/assets/cloudApi';
 import { getLocalMusicInfoWithId, searchMusicInfoWIthBvid } from '@/assets/localApi';
-import { formatMusicInfo } from '@/utils';
+import { formatMusicInfo } from '@/utils/format';
 import { PopoutPosition } from '@/components/Popout/index.vue';
 
 

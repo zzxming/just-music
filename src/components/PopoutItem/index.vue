@@ -1,13 +1,21 @@
 <template>
     <div 
         :class="`pop_item ${botBorder ? 'border-bot' : ''} ${topBorder ? 'border-top' : ''}`" 
-        @click="(e) => emit('click', e)" 
-        @mouseenter="show = true" 
-        @mouseleave="show = false"
+        @click="clickItem" 
+        @mouseenter="() => {
+            if (!isSmallScreen) {
+                show = true
+            }
+        }" 
+        @mouseleave="() => {
+            if (!isSmallScreen) {
+                show = false
+            }
+        }"
     >
         <slot></slot>
-        <Popout ref="pop" v-if="slot.second" :show="show" :position="position" :limitPosition="false">
-            <slot  name="second"></slot>
+        <Popout ref="pop" v-if="slot.second" :show="show" :position="position" :limitPosition="false" @close="show = false">
+            <slot name="second"></slot>
         </Popout>
     </div>
 </template>
@@ -55,6 +63,7 @@
 
 <script lang="ts" setup>
 import { PopoutPosition } from '@/components/Popout/index.vue';
+import { useIsSmallScreen } from '@/hooks';
 
 const { botBorder } = defineProps({
     botBorder: {
@@ -69,6 +78,8 @@ const { botBorder } = defineProps({
 const emit = defineEmits<{
     (e: 'click', event: MouseEvent): void;
 }>();
+
+const isSmallScreen = useIsSmallScreen();
 
 const pop = ref<{pop: HTMLDivElement}>();
 const slot = useSlots();
@@ -115,6 +126,16 @@ watch(show, () => {
         }
     })
 })
+
+function clickItem(e: MouseEvent) {
+    emit('click', e);
+    // 小屏且有子节点点击时显示子节点
+    if (slot.second && isSmallScreen.value) {
+        show.value = !show.value;
+        // 如果子节点开启则要停止冒泡, 否则会导致子节点直接关闭
+        show.value && e.stopPropagation();
+    }
+}
 
 
 </script>

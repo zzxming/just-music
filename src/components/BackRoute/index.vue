@@ -14,10 +14,10 @@
 </style>
 
 <script lang="ts" setup>
-import { useRouteHistory } from '@/hooks';
+import { useComponentStateStore } from '@/store';
 
-const { goBack } = useRouteHistory();
-
+const componentStateStore = useComponentStateStore();
+const { goBack } = componentStateStore;
 
 
 </script>

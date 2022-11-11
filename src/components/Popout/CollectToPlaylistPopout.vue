@@ -7,7 +7,7 @@
 <script lang="ts" setup>
 import { ElMessage } from 'element-plus';
 import { defaultMusicImg } from "@/assets/api";
-import { usePopoutStore } from '@/store/popout';
+import { usePopoutStore } from '@/store';
 import { MusicInfo, CustomPlaylist, AudioInfoType } from '@/interface';
 import { getAllCustomPlaylist, updateCustomPlaylist, localStoragePlaylistEvent } from '@/utils/localStorage';
 

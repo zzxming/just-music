@@ -1,16 +1,18 @@
 <template>
         <div class="songlist">
-        <div class="songlist_header">
+        <div class="songlist_header" v-if="!isSmallScreen">
             <div class="songlist_index"></div>
             <div class="songlist_title">标题</div>
-            <div class="songlist_singer" v-if="!smallScreen">歌手</div>
-            <div class="songlist_duration">时间</div>
+            <div class="songlist_singer" v-if="!isSmallScreen">歌手</div>
+            <div class="songlist_duration" v-if="!isSmallScreen">时间</div>
+            <div class="songlist_option" v-if="isSmallScreen"></div>
         </div>
         <div class="songlist_body">
             <div 
                 v-for="(song, index) in songs" 
                 :class="`songlist_item ${index % 2 === 0 ? 'stripe' : ''} ${activeId === song.id && activeCid === song.cid ? 'active' : ''} ${song.st === -200 ? 'disable' : ''}`"
                 :draggable="canDrag"
+                @click="(e) => isSmallScreen && playSong(e, song)"
                 @dblclick="(e) => playSong(e, song)"
                 @contextmenu="(e) => showPopbox(e, song)"
                 @dragstart="(e) => dragstart(e, index)"
@@ -27,7 +29,7 @@
                         <span class="songlist_title-text" :title="song.title">{{song.title}}</span>
                         <span v-if="song.fee === 1" class="el-icon songlist_title-icon"><IconCusVip /></span>
                     </div>
-                    <div v-if="smallScreen" class="songlist_title-singer" :title="song.singers.map((s: Singer) => s.name).join(' / ')">
+                    <div v-if="isSmallScreen" class="songlist_title-singer" :title="song.singers.map((s: Singer) => s.name).join(' / ')">
                         <span class="songlist_singer">
                             <template v-for="(singer, index) in song.singers">
                                 <span class="songlist_singer_item">{{ singer.name }}</span>
@@ -36,7 +38,7 @@
                         </span>
                     </div>
                 </div>
-                <div v-if="!smallScreen" class="songlist_singer" :title="song.singers.map((s: Singer) => s.name).join(' / ')">
+                <div class="songlist_singer" v-if="!isSmallScreen" :title="song.singers.map((s: Singer) => s.name).join(' / ')">
                     <span class="songlist_singer">
                         <template v-for="(singer, index) in song.singers">
                             <span class="songlist_singer_item">{{ singer.name }}</span>
@@ -44,8 +46,11 @@
                         </template>
                     </span>
                 </div>
-                <div class="songlist_duration">
+                <div class="songlist_duration" v-if="!isSmallScreen">
                     <span class="songlist_duration">{{ formatAudioTime(song.duration / 1000) }}</span>
+                </div>
+                <div class="songlist_option" v-if="isSmallScreen">
+                    <el-icon class="" @click.stop="(e: MouseEvent) => showPopbox(e, song)"><IconAntDesignMoreOutlined /></el-icon>
                 </div>
             </div>
             <div v-if="songs.length < 1 && !loadError" class="songlist_empty">{{ loading ? '加载中...' : emptyText }}</div>
@@ -74,7 +79,7 @@
         display: grid;
         align-items: center;
         justify-content: center;
-        grid-template-areas: 'index title singer duration';
+        grid-template-areas: 'index title singer duration option';
         grid-template-columns: minmax(auto, 1fr) 6fr 4fr minmax(auto, 1fr);
         grid-gap: 10px;
         width: 100%;
@@ -152,7 +157,8 @@
     &_index,
     &_title,
     &_singer,
-    &_duration {
+    &_duration,
+    &_option {
         margin-right: 6px;
         padding: 0 4px;
     }
@@ -195,6 +201,10 @@
     &_duration {
         grid-area: duration;
     }
+    &_option {
+        grid-area: option;
+        font-size: 24px;
+    }
     &_empty {
         display: flex;
         align-items: center;
@@ -208,7 +218,7 @@
     .songlist {
         &_header,
         &_item {
-            grid-template-areas: 'index title duration';
+            grid-template-areas: 'index title option';
             grid-template-columns: minmax(auto, 1fr) 6fr minmax(auto, 1fr);
         }
         &_item {
@@ -227,19 +237,18 @@
 
 <script lang="ts" setup>
 import { AudioInfoType, MusicInfo, Singer } from '@/interface';
-import { usePlayerStore } from '@/store/player';
-import { usePlaylistStore } from '@/store/playinglist';
-import { usePopoutStore } from '@/store/popout';
-import { formatAudioTime, twoDigitStr } from '@/utils';
+import { usePlayerStore, usePlaylistStore, usePopoutStore } from '@/store';
+import { formatAudioTime, twoDigitStr } from '@/utils/format';
 import { useIsSmallScreen } from '@/hooks';
 import { ExposeVar } from '@/components/LoadingMore/index.vue';
 
 
-const smallScreen = useIsSmallScreen();
+const router = useRouter();
+const isSmallScreen = useIsSmallScreen();
 const playerStore = usePlayerStore();
 const playlistStore = usePlaylistStore();
 const popoutStore = usePopoutStore();
-const { audioInfo }  = storeToRefs(playerStore);
+const { audio, audioInfo }  = storeToRefs(playerStore);
 const { setAudioInfo } = playerStore;
 const { playinglistReplace } = playlistStore;
 const { setPopoutState } = popoutStore;
@@ -321,6 +330,8 @@ async function playSong(event: MouseEvent, song: MusicInfo) {
         activeId.value = song.cid
         setAudioInfo(song);
         playinglistReplace(props.songs);
+        audio.value?.load();
+        router.push('/player');
     }
 }
 /** 展示弹出框 */

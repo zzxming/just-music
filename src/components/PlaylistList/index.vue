@@ -78,6 +78,18 @@
                     opacity: 1;
                 }
             }
+            &::before {
+                content: '';
+                display: block;
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 28px;
+                background: linear-gradient(to bottom, rgba(0, 0, 0, .5), transparent);
+                filter: blur(10px);
+                z-index: 2;
+            }
         }
         &-img {
             position: absolute;
@@ -192,7 +204,7 @@
 <script lang="ts" setup>
 import { throttle } from 'lodash';
 import { PlaylistType, PlaylistInfoPartial } from '@/interface';
-import { usePopoutStore } from '@/store/popout';
+import { usePopoutStore } from '@/store';
 import { mediaSrc } from '@/assets/api';
 
 const musicImg = ref('/api/imgs/music.jpg');

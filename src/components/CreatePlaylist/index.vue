@@ -63,7 +63,7 @@
 import { ElMessage, FormInstance } from 'element-plus';
 import { getCloudPlaylistTrack } from '@/assets/cloudApi';
 import { MusicInfo, AudioInfoType } from '@/interface';
-import { formatMusicInfo } from '@/utils';
+import { formatMusicInfo } from '@/utils/format';
 import { setCustomPlaylist } from '@/utils/localStorage';
 
 const { visible } = defineProps<{

@@ -205,7 +205,7 @@ import { getCloudPlaylistDetail, getCloudPlaylistTrack } from '@/assets/cloudApi
 import { getLocalPlaylistDetail, geLocalPlaylistTrack, getBiliAudioForPlaylist, searchMusicInfoWIthBvid } from '@/assets/localApi';
 import { mediaSrc } from '@/assets/api';
 import { AudioInfoType, MusicInfo, PlaylistInfo, PlaylistType, CustomPlaylist } from '@/interface';
-import { formatMusicInfo, formatPlaylistInfo } from '@/utils';
+import { formatMusicInfo, formatPlaylistInfo } from '@/utils/format';
 import { getAllCustomPlaylist, getCustomPlaylistWithId, localStoragePlaylistEvent, updateCustomPlaylist } from '@/utils/localStorage';
 
 

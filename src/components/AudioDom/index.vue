@@ -3,18 +3,21 @@
 </template>
 
 <script lang="ts" setup>
-import { usePlayerStore } from '@/store/player'
+import { useAudioContorlStore, usePlayerStore } from '@/store'
 
 const audioMedia = ref<HTMLAudioElement>();
 const playerStore = usePlayerStore();
 const { audioInfo, audioSrc } = storeToRefs(playerStore);
 const { setAudio, setAudioInfo } = playerStore;
+const audioControlStore = useAudioContorlStore();
+const { bindAudioEvent } = audioControlStore;
 
 
 // audioMedia 最初可能不显示, 当显示时再进行绑定
-watch(audioMedia, (val, preVal) => {
-    if (val) {
-        setAudio(val)
+watch(audioMedia, () => {
+    if (audioMedia.value) {
+        setAudio(audioMedia.value);
+        bindAudioEvent(audioMedia.value);
     }
 });
 // 更换 src 时需要 load audio

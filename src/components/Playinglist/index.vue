@@ -1,5 +1,5 @@
 <template>
-    <div :class="`playinglist ${active ? 'active' : ''}`">
+    <div :class="`playinglist ${activePlayinglist ? 'active' : ''}`">
         <div class="playinglist_content">
             <div class="playinglist_header">
                 <div class="playinglist_header_left">
@@ -13,7 +13,7 @@
                 <li 
                     v-for="songInfo in playinglist" 
                     :class="`playinglist_list_item ${audioInfo.id === songInfo.id && audioInfo.cid === songInfo.cid ? 'playing' : ''}`"
-                    @click="() => playMusic(songInfo)"
+                    @click="() => clickItem(songInfo)"
                 >
                     <span v-if="audioInfo.id === songInfo.id" class="el-icon playinglist_list_item-icon playing"><IconCusPlaying  /></span>
                     <span v-if="songInfo.fee === 1" class="el-icon playinglist_list_item-icon vip"><IconCusVip  /></span>
@@ -27,7 +27,7 @@
             </ul>
         </div>
     </div>
-    <div v-show="active" class="mask" @click="maskClick"></div>
+    <div v-show="activePlayinglist" class="mask" @click="() => changePlayinglistState(false)"></div>
 </template>
 
 <style lang="less" scoped>
@@ -41,7 +41,7 @@
     position: fixed;
     right: 30px;
     bottom: -420px;
-    z-index: 11;
+    z-index: 2002;
     transition: bottom linear .1s;
     &.active {
         bottom: 100px;
@@ -129,7 +129,7 @@
 .mask {
     position: fixed;
     inset: 0;
-    z-index: 10;
+    z-index: 2001;
     background-color: var(--el-mask-color-extra-light);
 }
 .break {
@@ -152,27 +152,25 @@
 </style>
 
 <script lang="ts" setup>
-import { ElMessage } from 'element-plus'
-import { usePlaylistStore } from '@/store/playinglist'
-import { usePlayerStore } from '@/store/player'
-import { MusicInfo } from '@/interface'
+import { ElMessage } from 'element-plus';
+import { usePlayerStore, usePlaylistStore, useComponentStateStore } from '@/store';
+import { MusicInfo } from '@/interface';
 
-const { active } = defineProps<{
-    active: boolean
-}>();
-const emit = defineEmits<{
-    (e: 'close'): void
-}>();
+
 const playerStore = usePlayerStore();
-const playlistStore = usePlaylistStore();
 const { audioInfo } = storeToRefs(playerStore);
-const { playinglist } = storeToRefs(playlistStore);
 const { setAudioInfo, resetAudioInfo } = playerStore;
+const playlistStore = usePlaylistStore();
+const { playinglist } = storeToRefs(playlistStore);
 const { playinglistSplice, playinglistReplace } = playlistStore;
+const componentStateStore = useComponentStateStore();
+const { activePlayinglist } = storeToRefs(componentStateStore);
+const { changePlayinglistState} = componentStateStore;
 
-/** 点击蒙层关闭播放列表 */
-function maskClick() {
-    emit('close');
+
+function clickItem(songInfo: MusicInfo) {
+    playMusic(songInfo);
+    changePlayinglistState(false);
 }
 /** 播放列表点击切换歌曲 */
 function playMusic(info: MusicInfo) {

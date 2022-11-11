@@ -3,7 +3,7 @@ import vue from '@vitejs/plugin-vue'
 import { resolve } from 'path'
 import AutoImport from 'unplugin-auto-import/vite'
 import Components from 'unplugin-vue-components/vite'
-import { ElementPlusResolver } from 'unplugin-vue-components/resolvers'
+import { ElementPlusResolver, AntDesignVueResolver } from 'unplugin-vue-components/resolvers'
 import { createStyleImportPlugin } from 'vite-plugin-style-import'
 import Icons from 'unplugin-icons/vite'
 import IconsResolver from 'unplugin-icons/resolver'
@@ -20,7 +20,9 @@ export default defineConfig({
         'pinia',
       ],
       dts: 'src/auto-imports.d.ts',
-      resolvers: [ElementPlusResolver()],
+      resolvers: [
+        ElementPlusResolver(),
+      ],
     }),
     Components({
       // 查找路径
@@ -34,7 +36,7 @@ export default defineConfig({
         // 自动注册图标组件
         IconsResolver({ 
           prefix: 'icon',
-          enabledCollections: ['ep'],
+          enabledCollections: ['ep', 'ant-design'],
           customCollections: ['cus']
         }),
       ],
@@ -46,7 +48,7 @@ export default defineConfig({
       autoInstall: true,
       compiler: 'vue3',
       customCollections: {
-        'cus': FileSystemIconLoader('src/assets/svg')
+        'cus': FileSystemIconLoader('src/assets/svg', svg => svg.replace(/^<svg / , '<svg fill="currentColor" '))
       }
     }),
     createStyleImportPlugin({

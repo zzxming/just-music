@@ -69,7 +69,9 @@
 import { CustomPlaylist, PlaylistType } from '@/interface';
 import { jointQuery } from '@/assets/api';
 import { getAllCustomPlaylist, localStoragePlaylistEvent, updateCustomPlaylist } from '@/utils/localStorage';
-import { usePopoutStore, popoutCloseEvent } from '@/store/popout';
+import { usePopoutStore } from '@/store';
+import { popoutCloseEvent } from '@/store/popout';
+
 
 const router = useRouter();
 const { canOperate } = withDefaults(defineProps<{

@@ -17,10 +17,10 @@
 </style>
 
 <script lang="ts" setup>
-import { PlaylistType, PlaylistInfoPartial } from '@/interface'
+import { PlaylistType, PlaylistInfoPartial } from '@/interface';
 import { getLocalPlaylistRandom } from '@/assets/localApi';
-import { ExposeVar } from '@/components/LoadingMore/index.vue'
-import { formatPlaylistPartial } from '@/utils';
+import { ExposeVar } from '@/components/LoadingMore/index.vue';
+import { formatPlaylistPartial } from '@/utils/format';
 
 
 const { isTopList } = defineProps({

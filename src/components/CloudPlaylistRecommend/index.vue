@@ -21,7 +21,7 @@
 import { PlaylistType, PlaylistInfoPartial } from '@/interface'
 import { getCloudPersonalized } from '@/assets/cloudApi';
 import { ExposeVar } from '@/components/LoadingMore/index.vue'
-import { formatPlaylistPartial } from '@/utils';
+import { formatPlaylistPartial } from '@/utils/format';
 
 
 const { isTopList } = defineProps({

@@ -1,5 +1,5 @@
 <template>
-    <div class="header">
+    <div class="header" v-show="showHeader">
         <div class="header_left">
             <BackRoute class="header_back" v-show="route.path !== '/home'" />
         </div>
@@ -85,7 +85,7 @@
 import { jointQuery } from '@/assets/api';
 import { getCloudUserState } from '@/assets/cloudApi';
 import { AudioInfoType } from '@/interface';
-import { usePopoutStore } from '@/store/popout';
+import { usePopoutStore, useComponentStateStore } from '@/store';
 
 
 const route = useRoute();
@@ -94,6 +94,9 @@ const inputTxt = ref<string>((route.query.kw as string) ?? '');
 
 const popoutStore = usePopoutStore();
 const { cloudLoginVisible, cloudIsLogin } = storeToRefs(popoutStore);
+const componentStateStore = useComponentStateStore();
+const { showHeader } = storeToRefs(componentStateStore);
+
 
 const drawer = ref(false);
 

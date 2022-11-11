@@ -29,11 +29,11 @@ import { PlaylistInfo, PlaylistType, MusicInfo, CustomPlaylist, AudioInfoType } 
 import { getCloudPlaylistTrack } from '@/assets/cloudApi';
 import { postCreatePlaylist } from '@/assets/localApi';
 import { defaultMusicImg } from "@/assets/api";
-import { usePlaylistStore } from '@/store/playinglist';
-import { usePlayerStore } from '@/store/player';
-import { popoutCloseEvent, usePopoutStore } from '@/store/popout';
-import { formatMusicInfo } from '@/utils';
+import { usePlayerStore, usePlaylistStore, usePopoutStore } from '@/store';
+import { popoutCloseEvent } from '@/store/popout';
+import { formatMusicInfo } from '@/utils/format';
 import { getCustomPlaylistWithId, deleteCustomPlaylistWithId, getAllCustomPlaylist, updateCustomPlaylist, localStoragePlaylistEvent, setCustomPlaylist } from '@/utils/localStorage';
+import { useIsSmallScreen } from '@/hooks';
 
 
 const route = useRoute();
@@ -49,6 +49,8 @@ const {
 } = storeToRefs(popoutStore);
 const { playinglistReplace, addToNextPlay, addToPlaylist } = playlistStore;
 const { resetAudioInfo } = playerStore;
+
+const isSmallScreen = useIsSmallScreen();
 
 const customPlaylist = ref<CustomPlaylist[]>([]);
 
@@ -241,6 +243,10 @@ async function getAllMusicInCloudPlaylist(): Promise<MusicInfo[]> {
         ElMessage.closeAll();
     });
 }
+
+
+
+
 
 /** 将歌单上传值数据库 */
 async function uploadPlaylist() {

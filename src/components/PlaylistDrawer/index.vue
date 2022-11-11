@@ -95,7 +95,8 @@
 
 <script lang="ts" setup>
 import { useIsSmallScreen } from '@/hooks';
-import { popoutCloseEvent, usePopoutStore } from '@/store/popout';
+import { usePopoutStore } from '@/store';
+import { popoutCloseEvent } from '@/store/popout';
 
 const props = defineProps<{
     show: boolean

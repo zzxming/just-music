@@ -1,9 +1,10 @@
 import { jointQuery, mediaSrc } from "@/assets/api";
 import { getMusicSrcWithCloudId } from "@/assets/cloudApi";
 import { AudioInfoType, LocalAudioInfo, CloudAudioInfo, MusicInfo, PlayMode } from "@/interface"
-import { formatMusicInfo, isType } from "@/utils"
+import { formatMusicInfo, isType } from "@/utils/format"
 import { ElMessageBox, MessageBoxData, ElMessage } from "element-plus";
-import { usePlaylistStore } from "@/store/playinglist";
+import { usePlaylistStore, useComponentStateStore, useAudioContorlStore } from "@/store";
+
 
 const initAudioInfo = {
     type: AudioInfoType.local,
@@ -23,7 +24,6 @@ const initAudioInfo = {
 export const usePlayerStore = defineStore('player', () => {
     const audio = ref<HTMLAudioElement>();
     const audioSrc = ref<string | null>(``);    // 部分网易云 vip 歌曲不让试听, 给的路径就是 null
-    const showPlayerControl = ref(false);
     const audioInfo = ref<MusicInfo>(initAudioInfo);
     const playMode = reactive<PlayMode[]>([PlayMode.loop, PlayMode.single, PlayMode.random, PlayMode.sequential]);
     const playModeIndex = ref(0);
@@ -35,9 +35,9 @@ export const usePlayerStore = defineStore('player', () => {
 
     /** 设置 audio 元素 */
     function setAudio(media: HTMLAudioElement) {
-        if (audio) {
-            audio.value = media
-        }
+        audio.value = media;
+        const audioControlStore = useAudioContorlStore();
+        audio.value.volume = audioControlStore.audioVolume;
     }
     /** 设置音频播放路径 */
     function setAudioSrc(src: string | null) {
@@ -63,10 +63,6 @@ export const usePlayerStore = defineStore('player', () => {
             }, 2000);
         }        
     }
-    /** 改变全局音频显示状态 */
-    function changePlayerControlState(visible: boolean) {
-        showPlayerControl.value = visible;
-    }
     /** 设置当前没有播放歌曲 */
     function resetAudioInfo() {
         audioSrc.value = '';
@@ -77,6 +73,9 @@ export const usePlayerStore = defineStore('player', () => {
     async function setAudioInfo(info: LocalAudioInfo | CloudAudioInfo | MusicInfo) {
         if (info !== audioInfo.value) retryCount.value = 0;
         if (timer.value) clearTimeout(timer.value);
+        // 之后是否自动显示contronlbar
+        let show = false;
+        if (audioInfo.value.id === 0) show = true;
         // 因为 isType 是通过 ts 的 is 进行判断, 在执行过程中, ts 以及不存在, 所以需要额外的判断
         if (isType<MusicInfo>(info) && info.title) {
             audioInfo.value = info;
@@ -85,7 +84,10 @@ export const usePlayerStore = defineStore('player', () => {
             let result = formatMusicInfo(info, info.type);
             audioInfo.value = result;
         }
-        showPlayerControl.value = true;
+        if(show) {
+            const audioControlStore = useComponentStateStore();
+            audioControlStore.changePlayerControlState(true)
+        }
 
         let src: string | null;
         let audioInfoCur = audioInfo.value;
@@ -178,12 +180,10 @@ export const usePlayerStore = defineStore('player', () => {
     return {
         audio,
         audioSrc,
-        showPlayerControl,
         audioInfo,
         curPlayMode,
         setAudio,
         setAudioSrc,
-        changePlayerControlState,
         resetAudioInfo,
         setAudioInfo,
         changePlayMode,

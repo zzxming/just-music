@@ -1,21 +1,22 @@
 <template>
-    <div ref="progressBar" :class="`control_bar ${isTime ? `time` : `volume`}`" @click="seekBar">
-        <div class="control_bar_bg" v-if="isTime" :style="{[isTime ? 'width' : 'height']: `${backProgress}%`}"></div>
-        <div class="control_bar_progress" :style="{[isTime ? 'width' : 'height']: `${progress}%`}">
+    <div ref="progressBar" :class="`control_bar ${horizental ? `horizental` : `vertical`}`" @click="seekBar">
+        <div class="control_bar_bg" v-if="isTime" :style="{[horizental ? 'width' : 'height']: `${backProgress}%`}"></div>
+        <div class="control_bar_progress" :style="{[horizental ? 'width' : 'height']: `${progress}%`, backgroundColor: progressColor}">
             <div class="control_bar_dot" @mousedown="dragDot">
-                <el-icon v-show="props.loading"><IconEpLoading /></el-icon>
+                <el-icon v-if="props.isTime" v-show="audioLoading"><IconEpLoading /></el-icon>
             </div>
         </div>
     </div>
 </template>
 
 <style lang="less" setup>
+
 .control_bar {
     .progressBar(@color) {
         border-radius: 6px;
         background-color: @color;
     }
-    &.time {
+    &.horizental {
         cursor: pointer;
         position: relative;
         height: 100%;
@@ -28,24 +29,7 @@
             .progressBar(var(--el-color-danger-light-5));
             height: 100%;
             z-index: 3;
-            &::before {
-                content: '';
-                box-sizing: border-box;
-                display: flex;
-                position: absolute;
-                top: -4px;
-                right: -10px;
-                width: 20px;
-                height: 20px;
-                border-radius: 50%;
-                border: 2px solid var(--el-color-info);
-                background-color: var(--el-color-info-light-9);
-                z-index: 4;
-                cursor: pointer;
-                &:hover {
-                    border: 2px solid var(--el-color-info-dark-2);
-                }
-            }
+            
         }
         .control_bar_bg {
             .progressBar(var(--el-color-info-light-3));
@@ -75,7 +59,7 @@
         }
         
     }
-    &.volume {
+    &.vertical {
         position: relative;    
         width: 8px;
         height: 100px;
@@ -120,48 +104,38 @@
 </style>
 
 <script lang="ts" setup>
-import { usePlayerStore } from '@/store/player';
+import { usePlayerStore, useAudioContorlStore } from '@/store';
 
 const props = withDefaults(defineProps<{
-    loading: boolean
-    isTime: boolean
+    isTime?: boolean
+    horizental?: boolean
+    progressColor?: string
 }>(), {
-    loading: false,
-    isTime: true    // 不是时间就自动为音量, true为横, false为竖
+    isTime: true,
+    horizental: true,
+    progressColor: 'var(--el-color-danger-light-5)'
 });
 const playerStore = usePlayerStore();
 const { audio, audioInfo } = storeToRefs(playerStore);
+const audioControlStroe = useAudioContorlStore();
+const { audioLoading, audioVolume, audioCurrentTimeStr } = storeToRefs(audioControlStroe);
 
 const progressBar = ref<HTMLDivElement>();
 
 const backProgress = ref(0);
 const progress = ref(props.isTime ? 0 : 70);
 
-watch(() => props.isTime, () => {
-    if (props.isTime && audio.value) {
-        audio.value.addEventListener('timeupdate', function() {
-            progress.value = Number(((this.currentTime / (audioInfo.value.duration / 1000)) * 100).toFixed(2));
-        })
-    }
-    if (!props.isTime && audio.value) {
-        audio.value.addEventListener('volumechange', function() {
-            progress.value = Number(this.volume * 100);
-        })
+
+watch(audioVolume, (val) => {
+    if (!props.isTime) {
+        progress.value = Number(val * 100);
     }
 }, { immediate: true })
-/** 初始值 */
-watch(audio, (val) => {
-    if (val) {
-        if (!props.isTime) {
-            progress.value = 70;
-            val.volume = progress.value / 100;
-        }
-        else {
-            progress.value = 0;
-        }
+watch(audioCurrentTimeStr, () => {
+    if (props.isTime && audio.value) {
+        progress.value = Number(((audio.value.currentTime / (audio.value.duration)) * 100).toFixed(2));
     }
-});
-
+}, { immediate: true })
 
 // path 属性是 chrome 独有的, composedPath 是官方标准
 /** 点击音频进度条跳转 */
@@ -171,33 +145,41 @@ function seekBar(e: MouseEvent) {
     if (e.composedPath().length > 11) {
         return;
     }
-    if (props.isTime) {
-        seekTime(e);
+    if (props.horizental) {
+        seekHorizental(e);
     }
     else {
-        seekVolume(e);
+        seekVertical(e);
     }
 }
 /** 点击进度条调整当前播放进度 */
-function seekTime(e: MouseEvent) {
+function seekHorizental(e: MouseEvent) {
     if (progressBar.value && audio.value) {
         let clickX = e.offsetX;
         let totalWidth = progressBar.value.offsetWidth;
         let pre = Math.round(clickX / totalWidth * 100);
-        progress.value = pre;
-        audio.value.currentTime = pre / 100 * (audioInfo.value.duration / 1000);
+        if (props.isTime) {
+            audio.value.currentTime = pre / 100 * (audioInfo.value.duration / 1000);
+        }
+        else {
+            audio.value.volume = pre / 100;
+        }
     }
 }
 /** 点击音量条调整音量 */
-function seekVolume(e: MouseEvent) {
+function seekVertical(e: MouseEvent) {
     // console.log(e)
     if ((e.target as HTMLElement).children.length < 1) return;
     if (progressBar.value && audio.value) {
         let clickY = e.offsetY;
         let totalHeight = progressBar.value.offsetHeight;
         let pre = Math.round(clickY / totalHeight * 100);
-        progress.value = pre;
-        audio.value.volume = pre / 100;
+        if (props.isTime) {
+            audio.value.currentTime = pre / 100 * (audioInfo.value.duration / 1000);
+        }
+        else {
+            audio.value.volume = pre / 100;
+        }
     }
 }
 /** 拖拽 */
@@ -211,7 +193,10 @@ function dragDot(e: MouseEvent) {
         document.removeEventListener('mousemove', eventHandle);
         document.removeEventListener('mouseup', removeEventHandle);
         if (audio.value) {
-            if (props.isTime) audio.value.currentTime = audio.value.duration * (progress.value / 100);
+            if (props.isTime) {
+                console.log(progress.value)
+                audio.value.currentTime = audio.value.duration * (progress.value / 100);
+            }
         }
     }
     document.addEventListener('mousemove', eventHandle);
@@ -220,7 +205,7 @@ function dragDot(e: MouseEvent) {
     
     function computedMove({ x, width, y, height }: DOMRect, e: MouseEvent) {
         let { clientX: moveX, clientY: moveY } = e;
-        if (props.isTime) {
+        if (props.horizental) {
             let maxX = x + width;
             if (moveX < x) {
                 progress.value = 0;

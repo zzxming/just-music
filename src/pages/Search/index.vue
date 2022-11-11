@@ -110,7 +110,7 @@
 
 <script lang="ts" setup>
 import { AudioInfoType, MusicInfo } from '@/interface'
-import { formatMusicInfo, isType } from '@/utils'
+import { formatMusicInfo, isType } from '@/utils/format'
 import { searchCloudMusic, SearchCloudResult } from '@/assets/cloudApi'
 import { searchLocalMusic, searchMusicInfoWIthBvid } from '@/assets/localApi'
 import { jointQuery } from '@/assets/api';

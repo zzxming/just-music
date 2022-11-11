@@ -5,7 +5,10 @@ import { createRouter, createWebHistory, RouteRecordRaw } from "vue-router"
 const routes: readonly RouteRecordRaw[] = [
     {
         path: '/',
-        redirect: '/home'
+        redirect: '/home',
+        meta: {
+            keepAlive: true
+        }
     }, {
         path: '/home',
         component: () => import("@/pages/Home/index.vue"),
@@ -20,7 +23,7 @@ const routes: readonly RouteRecordRaw[] = [
     }, {
         path: '/playlist',
         component: () => import("@/pages/Playlist/index.vue"),
-        beforeEnter(to, from) {
+        beforeEnter(to) {
             if (!to.query.id) {
                 return jointQuery(`/playlist`, { id: 1 });
             }
@@ -46,6 +49,12 @@ const routes: readonly RouteRecordRaw[] = [
             return {
                 ...route.query
             }
+        }
+    },{
+        path: '/player',
+        component: () => import("@/pages/Player/index.vue"),
+        meta: {
+            keepAlive: true
         }
     }, {
         path: '/404',
