@@ -33,7 +33,6 @@ import { usePlayerStore, usePlaylistStore, usePopoutStore } from '@/store';
 import { popoutCloseEvent } from '@/store/popout';
 import { formatMusicInfo } from '@/utils/format';
 import { getCustomPlaylistWithId, deleteCustomPlaylistWithId, getAllCustomPlaylist, updateCustomPlaylist, localStoragePlaylistEvent, setCustomPlaylist } from '@/utils/localStorage';
-import { useIsSmallScreen } from '@/hooks';
 
 
 const route = useRoute();
@@ -50,7 +49,6 @@ const {
 const { playinglistReplace, addToNextPlay, addToPlaylist } = playlistStore;
 const { resetAudioInfo } = playerStore;
 
-const isSmallScreen = useIsSmallScreen();
 
 const customPlaylist = ref<CustomPlaylist[]>([]);
 
@@ -71,6 +69,13 @@ function getCustomPlaylist() {
 /** 播放列表替换 */
 async function play() {
     if (popoutHoldData.value) {
+        if (!(popoutHoldData.value instanceof Array) && popoutHoldData.value.id === 0) {
+            ElMessage({
+                type: 'error',
+                message: '歌曲信息错误'
+            })
+            return;
+        }
         // 歌曲
         if (popoutIsMusic.value) {
             let result = addToPlaylist(popoutHoldData.value as MusicInfo);
@@ -115,6 +120,13 @@ async function play() {
 /** 歌单添加到下一首播放 */
 async function nextPlay() {
     if (popoutHoldData.value) {
+        if (!(popoutHoldData.value instanceof Array) && popoutHoldData.value.id === 0) {
+            ElMessage({
+                type: 'error',
+                message: '歌曲信息错误'
+            })
+            return;
+        }
         // 歌曲
         if (popoutIsMusic.value) {
             let result = addToNextPlay(popoutHoldData.value as MusicInfo);
@@ -129,7 +141,7 @@ async function nextPlay() {
                 addToNextPlay(playlistInfo.tracks);
             }
         }
-        else {
+        else if (data.type === PlaylistType.cloud) {
             // let [err, result] = data.type === PlaylistType.cloud ? await getCloudPlaylistTrack() : await ();
 
             let musics = await getAllMusicInCloudPlaylist()
@@ -183,16 +195,49 @@ async function collectPlaylist() {
 function deletefromPlaylist() {
     let curPlaylistId = Number(route.query.id);
     let templist = [...customPlaylist.value];
-    for (let i = 0; i < templist.length; i++) {
-        if (templist[i].id === curPlaylistId) {
-            let index = templist[i].tracks.findIndex(song => song.id === popoutHoldData.value?.id);
-            if (index === -1) {
+    if (popoutHoldData.value instanceof Array) {
+        // 删除多首歌曲
+        let holdData = popoutHoldData.value as MusicInfo[];
+
+        for (let i = 0; i < templist.length; i++) {
+            if (templist[i].id === curPlaylistId) {
+                // 通过 filter 找出剩余的歌曲
+                let lastSong = templist[i].tracks.filter(song => {
+                    let sameSong = holdData.find(data => {
+                        if (data.type === AudioInfoType.bili) {
+                            return data.cid === song.cid;
+                        }
+                        return data.id === song.id && data.type === song.type;
+                    })
+                    return !sameSong
+                })
+                templist[i].tracks = lastSong;
+                templist[i].trackCount = lastSong.length;
+                templist[i].cover = lastSong[0].cover || defaultMusicImg;
                 break;
             }
-            templist[i].tracks.splice(index, 1);
-            templist[i].trackCount -= 1;
-            templist[i].cover = templist[i].tracks[0].cover || defaultMusicImg;
-            break;
+        }
+    }
+    else {
+        // 一次删除一首歌曲
+        let holdData = popoutHoldData.value as MusicInfo;
+            
+        for (let i = 0; i < templist.length; i++) {
+            if (templist[i].id === curPlaylistId) {
+                let index = templist[i].tracks.findIndex(song => {
+                    if (holdData.type === AudioInfoType.bili) {
+                        return holdData.cid === song.cid;
+                    }
+                    return holdData.id === song.id && holdData.type === song.type;
+                });
+                if (index === -1) {
+                    break;
+                }
+                templist[i].tracks.splice(index, 1);
+                templist[i].trackCount -= 1;
+                templist[i].cover = templist[i].tracks[0].cover || defaultMusicImg;
+                break;
+            }
         }
     }
     updateCustomPlaylist(templist);

@@ -42,29 +42,61 @@ function createPlaylist() {
  * @param playlistid 收藏至的歌单id
  */
 function collectMusic(playlistid: number) {
-    for (let i = 0; i < customPlaylist.value.length; i++) {
-        if (customPlaylist.value[i].id === playlistid) {
-            // 是否存在重复歌曲
-            let result = customPlaylist.value[i].tracks.find(music => {
-                if (popoutHoldData.value?.type === AudioInfoType.bili) {
-                    return popoutHoldData.value.cid === music.cid;
-                }
-                return popoutHoldData.value?.id === music.id && popoutHoldData.value.type === music.type;
-            });
-            if (result) {
-                ElMessage({
-                    type: 'error',
-                    message: '歌单内歌曲重复'
-                });
-                return;
+    if (!(popoutHoldData.value instanceof Array) && popoutHoldData.value?.id === 0) {
+        ElMessage({
+            type: 'error',
+            message: '歌曲信息错误'
+        })
+        return;
+    }
+    let templist = [...customPlaylist.value];
+
+    if (popoutHoldData.value instanceof Array) {
+        // 一次添加多首歌曲
+        let holdData = popoutHoldData.value as MusicInfo[];
+        for (let i = 0; i < templist.length; i++) {
+            if (templist[i].id === playlistid) {
+
+                holdData.map(data => {
+                    let sameSong = templist[i].tracks.find(song => song.id === data.id && song.cid === data.cid)
+                    if (!sameSong) {
+                        templist[i].tracks.unshift(data);
+                        templist[i].trackCount += 1;
+                    }
+                })
+                templist[i].cover = templist[i].tracks[0].cover || defaultMusicImg;
+                break;
             }
-            customPlaylist.value[i].tracks.unshift(popoutHoldData.value as MusicInfo);
-            customPlaylist.value[i].trackCount += 1;
-            customPlaylist.value[i].cover = customPlaylist.value[i].tracks[0].cover || defaultMusicImg;
-            break;
         }
     }
-    updateCustomPlaylist(customPlaylist.value);
+    else {
+        // 添加一首歌曲
+        let holdData = popoutHoldData.value as MusicInfo;
+
+        for (let i = 0; i < templist.length; i++) {
+            if (templist[i].id === playlistid) {
+                // 是否存在重复歌曲
+                let result = templist[i].tracks.find(music => {
+                    if (holdData.type === AudioInfoType.bili) {
+                        return holdData.cid === music.cid;
+                    }
+                    return holdData.id === music.id && holdData.type === music.type;
+                });
+                if (result) {
+                    ElMessage({
+                        type: 'error',
+                        message: '歌单内歌曲重复'
+                    });
+                    return;
+                }
+                templist[i].tracks.unshift(holdData);
+                templist[i].trackCount += 1;
+                templist[i].cover = templist[i].tracks[0].cover || defaultMusicImg;
+                break;
+            }
+        }
+    }
+    updateCustomPlaylist(templist);
     ElMessage({
         type: 'success',
         message: '已收藏到歌单'

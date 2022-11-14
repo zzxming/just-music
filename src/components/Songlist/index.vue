@@ -61,7 +61,6 @@
 
 <!-- 滚动加载对 search 页有问题, 当第一次加载失败后, 滚动加载会失效, 需要手动点一次加载更多才能生效 -->
 
-
 <style lang="less" scoped>
 .songlist {
     display: flex;
@@ -84,6 +83,7 @@
         grid-gap: 10px;
         width: 100%;
         height: 36px;
+        user-select: none;
     }
     &_body {
         width: 100%;
@@ -202,8 +202,10 @@
         grid-area: duration;
     }
     &_option {
+        display: flex;
         grid-area: option;
         font-size: 24px;
+        cursor: pointer;
     }
     &_empty {
         display: flex;

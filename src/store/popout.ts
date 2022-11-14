@@ -19,14 +19,14 @@ export const usePopoutStore = defineStore('popout', () => {
         left: 0,
         top: 0
     });
-    const popoutHoldData = ref<MusicInfo | PlaylistInfoPartial>();
+    const popoutHoldData = ref<MusicInfo | MusicInfo[] | PlaylistInfoPartial>();
     const popoutCanDelete = ref(false);
     const popoutIsMusic = ref(false);
     /** 设置 MusicAndPlaylistPopout 组件的状态 */
     function setPopoutState(state: {
         popoutVisible: boolean
         popoutPosition: PopoutPosition
-        popoutHoldData: MusicInfo | PlaylistInfoPartial
+        popoutHoldData: MusicInfo | MusicInfo[] | PlaylistInfoPartial
         popoutCanDelete: boolean
         popoutIsMusic: boolean
     }) {

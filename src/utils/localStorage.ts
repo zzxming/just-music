@@ -1,5 +1,5 @@
 import { defaultMusicImg } from "@/assets/api";
-import { PlaylistType, MusicInfo, CustomPlaylist } from "@/interface";
+import { PlaylistType, MusicInfo, CustomPlaylist, PlaylistInfo } from "@/interface";
 
 const localStoragePlaylist = 'customPlaylist';
 export const localStoragePlaylistEvent = 'customPlaylistEvent';
@@ -42,6 +42,18 @@ export function deleteCustomPlaylistWithId(id: number) {
         window.dispatchEvent(new Event(localStoragePlaylistEvent));
     }
     return true;
+}
+/** 用户收藏某歌单 */
+export function savePlaylist(playlistInfo: PlaylistInfo, songs: MusicInfo[]) {
+    let playlist = getAllCustomPlaylist();
+    let newPlaylist: CustomPlaylist = {
+        ...playlistInfo,
+        type: PlaylistType.localStorage,
+        tracks: songs
+    }
+    playlist.unshift(newPlaylist);
+    localStorage.setItem(localStoragePlaylist, JSON.stringify(playlist));
+    window.dispatchEvent(new Event(localStoragePlaylistEvent));
 }
 /** 保存用户创建歌单至 localStorage */
 export function setCustomPlaylist(title: string, songs: MusicInfo[] = []) {

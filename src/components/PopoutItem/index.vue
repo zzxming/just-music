@@ -32,7 +32,6 @@
         width: 100%;
         line-height: 34px;
         padding: 0 10px;
-        background-color: var(--el-color-white);
         font-size: 14px;
         cursor: default;
         &:hover {
@@ -59,6 +58,19 @@
         }
     }
 }
+@media screen and (max-width: 550px) {
+    .pop {
+        &_item {
+            color: #fff;
+            font-size: 20px;
+            line-height: 48px;
+            &:hover {
+                background-color: var(--el-overlay-color-light);
+            }
+        }
+    }
+} 
+
 </style>
 
 <script lang="ts" setup>

@@ -1,6 +1,6 @@
 
-
-
+/** 组件 FullScreenMask 被点击关闭触发的事件名称 */
+export const fullScreenMaskEvent = 'fullScreenMaskClick';
 
 
 export const useComponentStateStore = defineStore('componentState', () => {
@@ -61,6 +61,14 @@ export const useComponentStateStore = defineStore('componentState', () => {
         router.replace(routeHistory[routeHistory.length - 1].fullPath);
     }
  
+    const fullScreenMaskState = ref(false);
+    /** 改变全局播放列表显示状态 */
+    function changFullScreenMaskState(visible: boolean) {
+        fullScreenMaskState.value = visible;
+        if (!visible) {
+            window.dispatchEvent(new Event(fullScreenMaskEvent));
+        }
+    }
 
 
     return {
@@ -72,6 +80,8 @@ export const useComponentStateStore = defineStore('componentState', () => {
         changePlayinglistState,
         routeHistory,
         goBack,
+        fullScreenMaskState,
+        changFullScreenMaskState,
     }
 
 });

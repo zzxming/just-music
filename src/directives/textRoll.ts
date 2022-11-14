@@ -1,5 +1,6 @@
 import { Directive } from 'vue';
 
+let count = 1;
 /** 计算滚动并设置滚动属性 */
 function computedRoll(el: HTMLElement, cloneNode: Element) {
     // 将原元素宽度自动, 获取文字宽度
@@ -23,6 +24,7 @@ export const textRoll: Directive<HTMLElement> = {
     mounted(el) {
         el.style.display = 'inline-block';
         el.classList.add('roll');
+        el.id = `${el.tagName}${count++}`;
         const cloneNode = el.cloneNode(true) as HTMLElement;
         cloneNode.setAttribute('clone-roll-node', 'true');
         // 当直接进入时, 文字内容是存在的, 初始化一次
@@ -30,7 +32,8 @@ export const textRoll: Directive<HTMLElement> = {
         el.parentElement?.append(cloneNode);
     },
     updated(el) {
-        let existCloneNodes = document.querySelector(`.${el.classList.toString().replaceAll(' ', '.')}[clone-roll-node]`);
+        // 使用id，确保存在
+        let existCloneNodes = document.querySelector(`#${el.id}[clone-roll-node]`);
         // 文字变化跟随
         if (existCloneNodes) {
             if (existCloneNodes.textContent !== el.textContent) {

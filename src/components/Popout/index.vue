@@ -9,10 +9,10 @@
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    justify-content: center;
+    justify-content: flex-start;
     position: absolute;
     width: 240px;
-    max-height: 50vh;
+    max-height: 60vh;
     padding: 10px 0;
     border-radius: 8px;
     box-shadow: var(--el-box-shadow-light);
@@ -37,6 +37,8 @@
 @media screen and (max-width: 550px) {
     .pop {
         width: 100%;
+        background-color: var(--el-text-color-primary);
+        overflow: auto;
     }
 } 
 

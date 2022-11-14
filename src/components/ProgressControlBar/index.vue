@@ -2,7 +2,7 @@
     <div ref="progressBar" :class="`control_bar ${horizental ? `horizental` : `vertical`}`" @click="seekBar">
         <div class="control_bar_bg" v-if="isTime" :style="{[horizental ? 'width' : 'height']: `${backProgress}%`}"></div>
         <div class="control_bar_progress" :style="{[horizental ? 'width' : 'height']: `${progress}%`, backgroundColor: progressColor}">
-            <div class="control_bar_dot" @mousedown="dragDot">
+            <div class="control_bar_dot" ref="dot" @mousedown="dragDot" @touchstart="touchStart" @touchmove="touchMove" @touchend="touchEnd">
                 <el-icon v-if="props.isTime" v-show="audioLoading"><IconEpLoading /></el-icon>
             </div>
         </div>
@@ -105,6 +105,7 @@
 
 <script lang="ts" setup>
 import { usePlayerStore, useAudioContorlStore } from '@/store';
+import { isMobile } from 'is-mobile';
 
 const props = withDefaults(defineProps<{
     isTime?: boolean
@@ -120,7 +121,12 @@ const { audio, audioInfo } = storeToRefs(playerStore);
 const audioControlStroe = useAudioContorlStore();
 const { audioLoading, audioVolume, audioCurrentTimeStr } = storeToRefs(audioControlStroe);
 
+const touchStartPosition = ref<DOMRect>();
+
+const mobile = ref(isMobile());
+
 const progressBar = ref<HTMLDivElement>();
+const dot = ref<HTMLDivElement>();
 
 const backProgress = ref(0);
 const progress = ref(props.isTime ? 0 : 70);
@@ -136,13 +142,25 @@ watch(audioCurrentTimeStr, () => {
         progress.value = Number(((audio.value.currentTime / (audio.value.duration)) * 100).toFixed(2));
     }
 }, { immediate: true })
+watch(progress, val => {
+    // 进度条与音量同时改变
+    if (!props.isTime && audio.value) {
+        audio.value.volume = val / 100;
+    }
+})
+watch(audioInfo, () => {
+    if (props.isTime) {
+        progress.value = 0;
+    }
+})
+
 
 // path 属性是 chrome 独有的, composedPath 是官方标准
 /** 点击音频进度条跳转 */
 function seekBar(e: MouseEvent) {
     // console.log(e.composedPath())
     // 点到加载的dot, 判断offsetX会有问题
-    if (e.composedPath().length > 11) {
+    if (e.composedPath().includes(dot.value as EventTarget)) {
         return;
     }
     if (props.horizental) {
@@ -183,64 +201,92 @@ function seekVertical(e: MouseEvent) {
     }
 }
 /** 拖拽 */
-function dragDot(e: MouseEvent) {
+function dragDot(e: MouseEvent | TouchEvent) {
     // console.log(e)
     if (!progressBar.value) return;
     let positionInfo: DOMRect = progressBar.value.getBoundingClientRect();
-    
+
+    mobile.value = isMobile();
+
     let eventHandle = computedMove.bind(undefined, positionInfo);
     let removeEventHandle = () => {
         document.removeEventListener('mousemove', eventHandle);
         document.removeEventListener('mouseup', removeEventHandle);
         if (audio.value) {
             if (props.isTime) {
-                console.log(progress.value)
                 audio.value.currentTime = audio.value.duration * (progress.value / 100);
             }
         }
     }
     document.addEventListener('mousemove', eventHandle);
     document.addEventListener('mouseup', removeEventHandle);
-
-    
-    function computedMove({ x, width, y, height }: DOMRect, e: MouseEvent) {
-        let { clientX: moveX, clientY: moveY } = e;
-        if (props.horizental) {
-            let maxX = x + width;
-            if (moveX < x) {
-                progress.value = 0;
-                return;
-            }
-            if (moveX > maxX) {
-                progress.value = 100;
-                return;
-            }
-
-            let nowX = moveX - x;
-            progress.value = Math.floor(nowX / width * 10000) / 100;
-        }
-        else {
-            let maxY = y + height;
-            if (moveY < y) {
-                progress.value = 100;
-                audio.value && (audio.value.volume = 1);
-                return;
-            }
-            if (moveY > maxY) {
-                progress.value = 0;
-                audio.value && (audio.value.volume = 0);
-                return;
-            }
-
-            let nowY = moveY - y;
-            if(audio.value) {
-                let pre = Number((1 - nowY / height).toFixed(2));
-                progress.value = pre * 100;
-                audio.value.volume = pre;
-            }
+}
+/** 移动端拖拽开始 */
+function touchStart(e: TouchEvent) {
+    if (!progressBar.value) return;
+    touchStartPosition.value = progressBar.value.getBoundingClientRect();
+    mobile.value = isMobile();
+}
+/** 移动端拖拽中 */
+function touchMove(e: TouchEvent) {
+    if (!touchStartPosition.value) return;
+    computedMove(touchStartPosition.value, e);
+}
+/** 移动端拖拽结束 */
+function touchEnd(e: TouchEvent) {
+    if (audio.value) {
+        if (props.isTime) {
+            audio.value.currentTime = audio.value.duration * (progress.value / 100);
         }
     }
-
 }
+/** 计算移动百分比 */
+function computedMove({ x, width, y, height }: DOMRect, e: MouseEvent | TouchEvent) {
+    let moveX: number, moveY: number;
+
+    if (mobile.value) {
+        moveX = (e as TouchEvent).targetTouches[0].clientX;
+        moveY = (e as TouchEvent).targetTouches[0].clientY;
+    }
+    else {
+        moveX = (e as MouseEvent).clientX;
+        moveY = (e as MouseEvent).clientY;
+    }
+    if (props.horizental) {
+        let maxX = x + width;
+        if (moveX < x) {
+            progress.value = 0;
+            return;
+        }
+        if (moveX > maxX) {
+            progress.value = 100;
+            return;
+        }
+
+        let nowX = moveX - x;
+        progress.value = Math.floor(nowX / width * 10000) / 100;
+    }
+    else {
+        let maxY = y + height;
+        if (moveY < y) {
+            progress.value = 100;
+            audio.value && (audio.value.volume = 1);
+            return;
+        }
+        if (moveY > maxY) {
+            progress.value = 0;
+            audio.value && (audio.value.volume = 0);
+            return;
+        }
+
+        let nowY = moveY - y;
+        if(audio.value) {
+            let pre = Number((1 - nowY / height).toFixed(2));
+            progress.value = pre * 100;
+        }
+    }
+}
+
+
 </script>
 

@@ -30,6 +30,7 @@ export const useAudioContorlStore = defineStore('audioControl', () => {
             // console.log('duration', this.duration)
             if (this.duration) {
                 audioDurationStr.value = formatAudioTime(this.duration);
+                audioCurrentTimeStr.value = formatAudioTime(this.currentTime);
                 audioLoading.value = true;
             }
         })
@@ -76,7 +77,9 @@ export const useAudioContorlStore = defineStore('audioControl', () => {
         
         
         
-        
+        // 播放不了，一直在加载状态
+
+
         // safari 自动播放下一首的时候会暂停加载，不能自动加载并播放下一首
         // 随机播放的时候有可能会暂停
 

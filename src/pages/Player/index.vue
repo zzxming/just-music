@@ -1,30 +1,34 @@
 <template>
     <div class="player">
         <div class="player_header">
-            <BackRoute class="player_header_back" />
-            <div class="player_header_mid">
-                <div class="player_header_title">
-                    <span class="player_header_title-text" v-textRoll>{{ audioInfo.title }}</span>
+            <div class="player_header_top">
+                <BackRoute class="player_header_back" />
+                <div class="player_header_mid">
+                    <div class="player_header_title">
+                        <span class="player_header_title-text" v-textRoll>{{ audioInfo.title }}</span>
+                    </div>
+                    <div class="player_header_singer">
+                        <span class="player_header_singer-text" v-textRoll>
+                            <template v-for="(singer, index) in audioInfo.singers">
+                                <span class="botcontrol_info_singer-name">{{singer.name}}</span>
+                                {{ index === audioInfo.singers.length - 1 ? '' : ' / ' }}
+                            </template>
+                        </span>
+                    </div>
                 </div>
-                <div class="player_header_singer">
-                    <span class="player_header_singer-text" v-textRoll>
-                        <template v-for="(singer, index) in audioInfo.singers">
-                            <span class="botcontrol_info_singer-name">{{singer.name}}</span>
-                            {{ index === audioInfo.singers.length - 1 ? '' : ' / ' }}
-                        </template>
-                    </span>
-                </div>
+                <el-icon class="player_control_btn option" @click.stop="showPopbox"><IconAntDesignMoreOutlined /></el-icon>
             </div>
-            <el-icon class="player_control_btn option" @click.stop="showPopbox"><IconAntDesignMoreOutlined /></el-icon>
+            
+            <!-- ios  点音量进度、图标都没用 -->
+            <div class="player_volume">
+                <div class="player_volume_icon" @click="mutedAudio">
+                    <el-icon class="botcontrol_btn-icon volume" v-show="audioVolume !== 0"><IconCusVolume /></el-icon>
+                    <el-icon class="botcontrol_btn-icon mute" v-show="audioVolume === 0"><IconCusVolumeMute /></el-icon>
+                </div>
+                <ProgressControlBar class="player_volume_bar" :isTime="false" progressColor="var(--el-color-primary-light-5)" />
+            </div>
         </div>
 
-        <div class="player_volume">
-            <div class="player_volume_icon" @click="mutedAudio">
-                <el-icon class="botcontrol_btn-icon volume" v-show="audioVolume !== 0"><IconCusVolume /></el-icon>
-                <el-icon class="botcontrol_btn-icon mute" v-show="audioVolume === 0"><IconCusVolumeMute /></el-icon>
-            </div>
-            <ProgressControlBar class="player_volume_bar" :isTime="false" progressColor="var(--el-color-primary-light-5)" />
-        </div>
 
         <div class="player_content">
             <div class="player_cover">
@@ -69,8 +73,15 @@
         margin-top: 20px;
         width: 100%;
         display: flex;
+        flex-direction: column;
         align-items: center;
-        justify-content: space-around;
+        justify-content: flex-start;
+        &_top {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+        }
         &_back {
             background-color: transparent;
             width: 40px;

@@ -16,6 +16,7 @@
 	<CloudLogin />
 	<MusicAndPlaylistPopout />
     <Playinglist />
+	<FullScreenMask />
 </template>
 
 <script setup lang="ts">

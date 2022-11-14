@@ -27,7 +27,7 @@
             </ul>
         </div>
     </div>
-    <div v-show="activePlayinglist" class="mask" @click="() => changePlayinglistState(false)"></div>
+    <!-- <div v-show="activePlayinglist" class="mask" @click="() => changePlayinglistState(false)"></div> -->
 </template>
 
 <style lang="less" scoped>
@@ -126,12 +126,6 @@
         }
     }
 }
-.mask {
-    position: fixed;
-    inset: 0;
-    z-index: 2001;
-    background-color: var(--el-mask-color-extra-light);
-}
 .break {
     font-size: 12px;
     margin: 0 4px;
@@ -153,9 +147,9 @@
 
 <script lang="ts" setup>
 import { ElMessage } from 'element-plus';
-import { usePlayerStore, usePlaylistStore, useComponentStateStore } from '@/store';
 import { MusicInfo } from '@/interface';
-
+import { usePlayerStore, usePlaylistStore, useComponentStateStore } from '@/store';
+import { fullScreenMaskEvent } from '@/store/componentState';
 
 const playerStore = usePlayerStore();
 const { audioInfo } = storeToRefs(playerStore);
@@ -165,8 +159,18 @@ const { playinglist } = storeToRefs(playlistStore);
 const { playinglistSplice, playinglistReplace } = playlistStore;
 const componentStateStore = useComponentStateStore();
 const { activePlayinglist } = storeToRefs(componentStateStore);
-const { changePlayinglistState} = componentStateStore;
+const { changePlayinglistState, changFullScreenMaskState } = componentStateStore;
 
+
+onMounted(() => {
+    window.addEventListener(fullScreenMaskEvent, () => {
+        changePlayinglistState(false);
+    })
+});
+
+watch(activePlayinglist, val => {
+    val && changFullScreenMaskState(true);
+})
 
 function clickItem(songInfo: MusicInfo) {
     playMusic(songInfo);

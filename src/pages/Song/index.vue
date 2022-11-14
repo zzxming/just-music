@@ -2,8 +2,12 @@
     <div class="player" v-loading="loadingInfo">
         <div class="player_info" v-if="songInfo">
             <div class="player_header">
-                <div class="player_title">{{ songInfo.title }}</div>
-                <div class="player_singer" :title="songInfo.singers.map(item => item.name).join(' / ')">{{ songInfo.singers.map(item => item.name).join(' / ') }}</div>
+                <div class="player_title">
+                    <span v-textRoll>{{ songInfo.title }}</span>
+                </div>
+                <div class="player_singer" :title="songInfo.singers.map(item => item.name).join(' / ')">
+                    <span v-textRoll>{{ songInfo.singers.map(item => item.name).join(' / ') }}</span>
+                </div>
             </div>
             <div class="player_cover">
                 <img v-lazy="mediaSrc(songInfo.cover)" :key="songInfo.cover" alt="歌曲封面" />
@@ -33,15 +37,16 @@
                     <span class="player_info_label">专辑：</span>
                     {{ songInfo.album }}
                 </div>
-                <div class="player_control" v-if="!songList">
+                <div class="player_control">
                     <el-button class="player_control_btn full" color="#f56c6c" @click="playAudio">播放</el-button>
                     <el-button class="player_control_btn" color="#f56c6c" plain @click.stop="collectAudio">收藏</el-button>
                 </div>
             </div>
         </div>
         
-        <div v-if="songList" class="player_list">
+        <div class="player_list" v-if="songList" v-loading="loadingSong">
             <Songlist :songs="songList" />
+            <LoadingErrorTip :isError="loadSongError" :style="{height: '100px'}" :requestFunc="getSongData" />
         </div>
 
         <div class="player_other"></div>
@@ -49,11 +54,11 @@
         <Popout 
             :show="popoutVisible" 
             :position="popoutPosition" 
-            @close="closePopout"
+            @close="popoutVisible = false"
         >
             <CollectToPlaylistPopout />
         </Popout>
-        <LoadingErrorTip :isError="loadError" :style="{height: '100%'}" :requestFunc="requesSongData" />
+        <LoadingErrorTip :isError="loadInfoError" :style="{height: '100%'}" :requestFunc="requesSongData" />
     </div>
 </template>
 
@@ -75,12 +80,14 @@
     min-height: calc(100vh - 64px - 80px - 40px);
     background-color: var(--el-color-white);
     &_info {
+        box-sizing: border-box;
         grid-area: info;
         display: flex;
         align-items: flex-start;
         justify-content: center;
         width: 100%;
         height: 100%;
+        padding: 0 20px;
         &_label {
             color: var(--el-color-info);
         }
@@ -90,10 +97,10 @@
     }
     &_header {
         display: none;
+        width: 100%;
         .player_title,
         .player_singer {
             overflow: hidden;
-            text-overflow: ellipsis;
             white-space: nowrap;
             width: 100%;
         }
@@ -161,6 +168,7 @@
     }
     &_list {
         grid-area: list;
+        min-height: 100px;
         border: 1px solid var(--el-color-info-light-7);
         border-radius: 8px;
         overflow: hidden;
@@ -217,10 +225,10 @@
 <script lang="ts" setup>
 import { ElMessage } from 'element-plus';
 import { mediaSrc } from '@/assets/api';
+import { getCloudMusicInfoWithId } from '@/assets/cloudApi';
+import { getLocalMusicInfoWithId, searchMusicInfoWIthBvid, getBiliAudioForPlaylist } from '@/assets/localApi';
 import { usePlayerStore, usePlaylistStore, usePopoutStore } from '@/store';
 import { AudioInfoType, MusicInfo } from '@/interface';
-import { getCloudMusicInfoWithId } from '@/assets/cloudApi';
-import { getLocalMusicInfoWithId, searchMusicInfoWIthBvid } from '@/assets/localApi';
 import { formatMusicInfo } from '@/utils/format';
 import { PopoutPosition } from '@/components/Popout/index.vue';
 
@@ -239,7 +247,9 @@ const popoutStore = usePopoutStore();
 const songInfo = ref<MusicInfo>();
 const songList = ref<MusicInfo[]>();
 const loadingInfo = ref(false);
-const loadError = ref(false);
+const loadInfoError = ref(false);
+const loadingSong = ref(false);
+const loadSongError = ref(false);
 const popoutVisible = ref(false);
 const popoutPosition = ref<PopoutPosition>({
     left: 0,
@@ -253,31 +263,39 @@ watch([() => props.id, () => props.t], () => {
     requesSongData();
 }, { immediate: true });
 
-/** 音频播放与暂停 */
-function playAudio() {
-    let audioDom = audio.value;
-    if (audioDom && songInfo.value) {
-        // console.log(songInfo.value)
-        setAudioInfo(songInfo.value);
-        playinglistReplace([songInfo.value]);
-    }
-}
 /** 获取音频信息 */
 async function requesSongData() {
-    loadError.value = false;
+    loadInfoError.value = false;
     if (props.t === AudioInfoType.bili) {
         loadingInfo.value = true;
-        let [err, result] = await searchMusicInfoWIthBvid(String(props.id));
+        let [err, result] = await getBiliAudioForPlaylist(String(props.id));
+        getSongData();
         loadingInfo.value = false;
 
         if (!err && result) {
             let data = result.data.data;
-            let musicInfo = formatMusicInfo(data, props.t);
-            songInfo.value = musicInfo[0];
-            songList.value = musicInfo;
+            // 手动修改字段成歌曲类型
+            songInfo.value = {
+                type: AudioInfoType.bili,
+                id: data.id,
+                cid: 0,
+                title: data.title,
+                cover: data.cover,
+                singers: [{ 
+                    id: data.creator.userId, 
+                    name: data.creator.name,
+                }],
+                duration: 0,
+                album: data.title,
+                publishTime: data.updateTime,
+                fee: 0,
+                noCopyrightRcmd:  null,
+                st: 0,
+                full: true
+            }
         }
         else {
-            loadError.value = true;
+            loadInfoError.value = true;
             ElMessage({
                 type: 'error',
                 message: err?.message 
@@ -299,7 +317,25 @@ async function requesSongData() {
         // console.log(songInfo.value)
     }
     else {
-        loadError.value = true;
+        loadInfoError.value = true;
+        ElMessage({
+            type: 'error',
+            message: err?.message 
+        })
+    }
+}
+async function getSongData() {
+    songList.value = [];
+    loadSongError.value = false;
+    loadingSong.value = true;
+    let [err, result] = await searchMusicInfoWIthBvid(String(props.id));
+    loadingSong.value = false;
+
+    if (!err && result) {
+        songList.value = formatMusicInfo(result.data.data, props.t);
+    }
+    else {
+        loadSongError.value = true;
         ElMessage({
             type: 'error',
             message: err?.message 
@@ -310,16 +346,31 @@ async function requesSongData() {
 function collectAudio(e: MouseEvent) {
     if (!songInfo.value) return;
     const { pageX, pageY } = e;
-
     popoutVisible.value = true;
     popoutPosition.value = {
         left: pageX,
         top: pageY,
     }
-    popoutStore.popoutHoldData = songInfo.value;
-}
 
-function closePopout() {
-    popoutVisible.value = false
+    if (props.t === AudioInfoType.bili) {
+        popoutStore.popoutHoldData = songList.value as MusicInfo[];
+    }
+    else {
+        popoutStore.popoutHoldData = songInfo.value;
+    }
+}
+/** 音频播放与暂停 */
+function playAudio() {
+    let audioDom = audio.value;
+    if (audioDom) {
+        if (props.t === AudioInfoType.bili && songList.value) {
+            setAudioInfo(songList.value[0]);
+            playinglistReplace(songList.value);
+        }
+        else if (songInfo.value) {
+            setAudioInfo(songInfo.value);
+            playinglistReplace([songInfo.value]);
+        }
+    }
 }
 </script>

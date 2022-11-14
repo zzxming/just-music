@@ -1,5 +1,5 @@
 <template>
-    <div class="playlist">
+    <div class="playlist" v-loading="collectLoading">
         <LoadingErrorTip :isError="!loading && loadingError" :requestFunc="requestPlaylistData" />
         <!-- 请求失败的时候处理 songlist, 变成重新请求 -->
         <div v-loading="loading && !playlistInfo" class="playlist_wrapper">
@@ -7,6 +7,10 @@
                 <div class="playlist_info_left">
                     <div class="playlist_info_cover">
                         <img v-lazy="mediaSrc(playlistInfo.cover)" alt="歌单封面" :key="playlistInfo.cover" />
+                    </div>
+                            
+                    <div class="playlist_control" v-if="props.t !== PlaylistType.localStorage">
+                        <el-button class="playlist_control_btn" color="#f56c6c" plain @click.stop="collectPlaylist">收藏</el-button>
                     </div>
                 </div>
                 <div class="playlist_info_right">
@@ -39,11 +43,11 @@
                                     <el-icon v-show="!descriptionOpen"><IconEpCaretBottom /></el-icon>
                                 </span>
                             </template>
-
                         </div>
                     </div>
                 </div>
             </div>
+            
             <div class="playlist_song" v-show="playlistInfo">
                 <Songlist 
                     :songs="songsInfo" 
@@ -154,6 +158,30 @@
             }
         }
     }
+    &_control {
+        display: flex;
+        align-items: center;
+        justify-content: space-around;
+        width: 100%;
+        margin: 20px 0;
+        &_btn {
+            padding: 0 30px;
+            color: var(--el-color-danger);
+            &:hover {
+                color: var(--el-color-white);
+            }
+            &:active,
+            &:focus {
+                color: var(--el-button-active-text-color);
+            }
+            &:focus-visible {
+                outline: 2px solid var(--el-button-border-color);
+            }
+        }
+        .full {
+            color: var(--el-color-white)
+        }
+    }
     &_song {
         box-sizing: border-box;
         width: 100%;
@@ -206,8 +234,8 @@ import { getLocalPlaylistDetail, geLocalPlaylistTrack, getBiliAudioForPlaylist, 
 import { mediaSrc } from '@/assets/api';
 import { AudioInfoType, MusicInfo, PlaylistInfo, PlaylistType, CustomPlaylist } from '@/interface';
 import { formatMusicInfo, formatPlaylistInfo } from '@/utils/format';
-import { getAllCustomPlaylist, getCustomPlaylistWithId, localStoragePlaylistEvent, updateCustomPlaylist } from '@/utils/localStorage';
-
+import { getAllCustomPlaylist, getCustomPlaylistWithId, localStoragePlaylistEvent, updateCustomPlaylist, savePlaylist } from '@/utils/localStorage';
+import { ElMessage } from 'element-plus';
 
 
 const props = defineProps<{
@@ -216,6 +244,7 @@ const props = defineProps<{
 }>();
 const router = useRouter();
 
+
 const loading = ref(true);
 const loadingError = ref(false);
 const loadingSongError = ref(false);
@@ -223,6 +252,8 @@ const songsInfo = reactive<MusicInfo[]>([]);
 const playlistInfo = ref<PlaylistInfo>();
 const descriptionOpen = ref(false);
 const limit = ref(1);
+
+const collectLoading = ref(false);
 
 
 watch([() => props.id, () => props.t], () => {
@@ -337,6 +368,10 @@ async function getPlaylistTrackWithId(id: number | string, type: PlaylistType, l
         return data.length;
     }
     else {
+        // 加载 localstorage 歌单的时候不会进行请求，所以 err / result 是 undefined，导致返回0
+        if (props.t === PlaylistType.localStorage) {
+            return 0;
+        }
         loadingSongError.value = true;
         return -1;
     }
@@ -358,5 +393,24 @@ function songOrder(songs: MusicInfo[]) {
     if (index === -1) return;
     allPlaylist.splice(index, 1, tempPlaylistInfo);
     updateCustomPlaylist(allPlaylist);
+}
+/** 收藏歌单到本地 */
+async function collectPlaylist() {
+    if (!playlistInfo.value) return;
+
+    if (props.t !== PlaylistType.bili) {
+        collectLoading.value = true;
+        let state = 0;
+        do {
+            state = await getPlaylistTrackWithId(props.id, props.t, true);
+        } while(state > 0)
+        collectLoading.value = false;
+    }
+
+    savePlaylist(playlistInfo.value, songsInfo);
+    ElMessage({
+        type: 'success',
+        message: '收藏成功'
+    })
 }
 </script>
