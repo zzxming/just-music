@@ -11,11 +11,18 @@ export const useAudioContorlStore = defineStore('audioControl', () => {
     const audioCurrentTimeStr = ref('00:00');
     const audioDurationStr = ref('00:00');
     const audioVolume = ref(0.7);
-
+    const audioBuffered = ref(0);
 
     /** 绑定 audio 事件 */
     function bindAudioEvent(audioDom: HTMLAudioElement) {
         
+        audioDom.addEventListener('progress', function() {
+            if (this.buffered.length < 1) return;
+            for (let i = this.buffered.length - 1; i < this.buffered.length; i++) {
+                console.log('start',this.buffered.start(i),'end',this.buffered.end(i), i, this.buffered.length) 
+                audioBuffered.value = Math.floor(this.buffered.end(i) / this.duration * 10000) / 100;
+            }
+        })
         audioDom.addEventListener('timeupdate', function() {
             audioCurrentTimeStr.value = formatAudioTime(this.currentTime)
         });
@@ -29,6 +36,7 @@ export const useAudioContorlStore = defineStore('audioControl', () => {
         audioDom.addEventListener('durationchange', function() {
             // console.log('duration', this.duration)
             if (this.duration) {
+                audioBuffered.value = 0;
                 audioDurationStr.value = formatAudioTime(this.duration);
                 audioCurrentTimeStr.value = formatAudioTime(this.currentTime);
                 audioLoading.value = true;
@@ -145,6 +153,7 @@ export const useAudioContorlStore = defineStore('audioControl', () => {
         audioCurrentTimeStr,
         audioDurationStr,
         audioVolume,
+        audioBuffered,
         bindAudioEvent,
         playNext,
         playPre,

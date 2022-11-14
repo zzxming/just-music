@@ -10,7 +10,7 @@
                     </div>
                             
                     <div class="playlist_control" v-if="props.t !== PlaylistType.localStorage">
-                        <el-button class="playlist_control_btn" color="#f56c6c" plain @click.stop="collectPlaylist">收藏</el-button>
+                        <el-button class="playlist_control_btn" color="#f56c6c" plain @click.stop="collectPlaylist">收藏歌单</el-button>
                     </div>
                 </div>
                 <div class="playlist_info_right">

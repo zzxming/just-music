@@ -1,6 +1,6 @@
 <template>
     <div ref="progressBar" :class="`control_bar ${horizental ? `horizental` : `vertical`}`" @click="seekBar">
-        <div class="control_bar_bg" v-if="isTime" :style="{[horizental ? 'width' : 'height']: `${backProgress}%`}"></div>
+        <div class="control_bar_bg" v-if="isTime" :style="{[horizental ? 'width' : 'height']: `${audioBuffered}%`}"></div>
         <div class="control_bar_progress" :style="{[horizental ? 'width' : 'height']: `${progress}%`, backgroundColor: progressColor}">
             <div class="control_bar_dot" ref="dot" @mousedown="dragDot" @touchstart="touchStart" @touchmove="touchMove" @touchend="touchEnd">
                 <el-icon v-if="props.isTime" v-show="audioLoading"><IconEpLoading /></el-icon>
@@ -32,7 +32,7 @@
             
         }
         .control_bar_bg {
-            .progressBar(var(--el-color-info-light-3));
+            .progressBar(var(--el-color-info-light-5));
             width: 0%;
             height: 100%;
             z-index: 2;
@@ -119,7 +119,7 @@ const props = withDefaults(defineProps<{
 const playerStore = usePlayerStore();
 const { audio, audioInfo } = storeToRefs(playerStore);
 const audioControlStroe = useAudioContorlStore();
-const { audioLoading, audioVolume, audioCurrentTimeStr } = storeToRefs(audioControlStroe);
+const { audioLoading, audioVolume, audioCurrentTimeStr, audioBuffered } = storeToRefs(audioControlStroe);
 
 const touchStartPosition = ref<DOMRect>();
 
