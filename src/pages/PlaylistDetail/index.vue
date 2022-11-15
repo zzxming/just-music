@@ -10,7 +10,7 @@
                     </div>
                             
                     <div class="playlist_control" v-if="props.t !== PlaylistType.localStorage">
-                        <el-button class="playlist_control_btn" color="#f56c6c" plain @click.stop="collectPlaylist">收藏歌单</el-button>
+                        <el-button class="playlist_control_btn" color="#f56c6c" plain @click.stop="collectPlaylist">{{isCollect ? '已收藏' : '收藏歌单'}}</el-button>
                     </div>
                 </div>
                 <div class="playlist_info_right">
@@ -234,7 +234,7 @@ import { getLocalPlaylistDetail, geLocalPlaylistTrack, getBiliAudioForPlaylist, 
 import { mediaSrc } from '@/assets/api';
 import { AudioInfoType, MusicInfo, PlaylistInfo, PlaylistType, CustomPlaylist } from '@/interface';
 import { formatMusicInfo, formatPlaylistInfo } from '@/utils/format';
-import { getAllCustomPlaylist, getCustomPlaylistWithId, localStoragePlaylistEvent, updateCustomPlaylist, savePlaylist } from '@/utils/localStorage';
+import { getAllCustomPlaylist, getCustomPlaylistWithId, localStoragePlaylistEvent, updateCustomPlaylist, savePlaylist, deleteCustomPlaylistWithId } from '@/utils/localStorage';
 import { ElMessage } from 'element-plus';
 
 
@@ -254,11 +254,14 @@ const descriptionOpen = ref(false);
 const limit = ref(1);
 
 const collectLoading = ref(false);
+const isCollect = ref(false);
 
 
 watch([() => props.id, () => props.t], () => {
     songsInfo.length = 0;
     requestPlaylistData();
+    let getPlaylist = getCustomPlaylistWithId(props.id);
+    isCollect.value = !!getPlaylist;
 }, { immediate: true });
 
 
@@ -276,7 +279,7 @@ onUnmounted(() => {
 async function requestPlaylistData() {
     if (props.t === PlaylistType.localStorage) {
         loading.value = true;
-        let customPlaylist = getCustomPlaylistWithId(Number(props.id));
+        let customPlaylist = getCustomPlaylistWithId(props.id);
         if (customPlaylist) {
             playlistInfo.value = customPlaylist;
             songsInfo.length = 0;
@@ -394,23 +397,36 @@ function songOrder(songs: MusicInfo[]) {
     allPlaylist.splice(index, 1, tempPlaylistInfo);
     updateCustomPlaylist(allPlaylist);
 }
-/** 收藏歌单到本地 */
+/** 收藏歌单或取消收藏 */
 async function collectPlaylist() {
     if (!playlistInfo.value) return;
-
-    if (props.t !== PlaylistType.bili) {
-        collectLoading.value = true;
-        let state = 0;
-        do {
-            state = await getPlaylistTrackWithId(props.id, props.t, true);
-        } while(state > 0)
-        collectLoading.value = false;
+    
+    if (isCollect.value) {
+        // 取消收藏
+        deleteCustomPlaylistWithId(props.id);
+        isCollect.value = false;
+        ElMessage({
+            type: 'success',
+            message: '歌单取消收藏成功'
+        })
     }
+    else {
+        // 收藏
+        if (props.t !== PlaylistType.bili) {
+            collectLoading.value = true;
+            let state = 0;
+            do {
+                state = await getPlaylistTrackWithId(props.id, props.t, true);
+            } while(state > 0)
+            collectLoading.value = false;
+        }
 
-    savePlaylist(playlistInfo.value, songsInfo);
-    ElMessage({
-        type: 'success',
-        message: '收藏成功'
-    })
+        savePlaylist(playlistInfo.value, songsInfo);
+        isCollect.value = true;
+        ElMessage({
+            type: 'success',
+            message: '收藏成功'
+        })
+    }
 }
 </script>

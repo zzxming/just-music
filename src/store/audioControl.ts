@@ -4,6 +4,8 @@ import { PlayMode } from '@/interface';
 import { formatAudioTime } from '@/utils/format';
 
 
+// ios safari 无法播放
+
 export const useAudioContorlStore = defineStore('audioControl', () => {
 
     const audioLoading = ref(false);
@@ -19,7 +21,7 @@ export const useAudioContorlStore = defineStore('audioControl', () => {
         audioDom.addEventListener('progress', function() {
             if (this.buffered.length < 1) return;
             for (let i = this.buffered.length - 1; i < this.buffered.length; i++) {
-                console.log('start',this.buffered.start(i),'end',this.buffered.end(i), i, this.buffered.length) 
+                // console.log('start',this.buffered.start(i),'end',this.buffered.end(i), i, this.buffered.length) 
                 audioBuffered.value = Math.floor(this.buffered.end(i) / this.duration * 10000) / 100;
             }
         })

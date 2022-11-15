@@ -1,5 +1,6 @@
 import { defaultMusicImg } from "@/assets/api";
 import { PlaylistType, MusicInfo, CustomPlaylist, PlaylistInfo } from "@/interface";
+import { ElMessage } from "element-plus";
 
 const localStoragePlaylist = 'customPlaylist';
 export const localStoragePlaylistEvent = 'customPlaylistEvent';
@@ -19,17 +20,18 @@ export function getAllCustomPlaylist(): CustomPlaylist[] {
     return [];
 }
 /** 根据 id 获取自定义歌单 */
-export function getCustomPlaylistWithId(id: number): CustomPlaylist | null {
+export function getCustomPlaylistWithId(id: number | string): CustomPlaylist | null {
     let allPlaylist = getAllCustomPlaylist();
     if (allPlaylist) {
         for (let playlist of allPlaylist) {
-            if (playlist.id === id) return playlist;
+            // 收藏哔哩哔哩的歌单id是字符串，localstorage里的id是字符串
+            if (playlist.id == id) return playlist;
         }
     }
     return null;
 }
 /** 根据 id 删除自定义歌单 */
-export function deleteCustomPlaylistWithId(id: number) {
+export function deleteCustomPlaylistWithId(id: number | string) {
     let allPlaylist = getAllCustomPlaylist();
     if (allPlaylist) {
         for (let i = 0; i < allPlaylist.length; i++) {

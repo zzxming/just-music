@@ -124,10 +124,10 @@
         &-icon {
             cursor: pointer;
             font-size: 30px;
-            fill: var(--el-text-color-regular);
+            color: var(--el-text-color-regular);
             margin: 0 5px;
             &:hover {
-                fill: var(--el-text-color-primary);
+                color: var(--el-text-color-primary);
             }
             &.play,
             &.pause {

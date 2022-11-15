@@ -5,12 +5,16 @@
 <style lang="less" scoped>
 .mask {
     position: fixed;
-    inset: 0;
-    z-index: 2001;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    z-index: 2000;
     background-color: var(--el-mask-color-extra-light);
 }
 </style>
 
+<!-- 安卓模拟器无法显示此mask -->
 
 <script lang="ts" setup>
 import { useComponentStateStore } from '@/store';

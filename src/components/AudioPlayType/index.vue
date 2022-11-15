@@ -14,11 +14,12 @@
     position: relative;
     width: 1em;
     height: 1em;
+    color: inherit;
+    fill: inherit;
     .el-icon {
         position: absolute;
         left: 0;
         top: 0;
-        fill: inherit;
         width: 1em;
         height: 1em;
     }

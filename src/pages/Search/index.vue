@@ -28,8 +28,6 @@
                 :loadMoreFunc="requestSearch"
             />
         </div>
-        <!-- <LoadingErrorTip :isError="fristLoading && loadingError" :requestFunc="() => requestSearch(true)" /> -->
-        <!-- <LoadingMore v-if="currentSearchType !== AudioInfoType.bili" :key="currentSearchType" v-show="!fristLoading" ref="loadMore" :requestFunc="requestSearch" /> -->
     </div>
 </template>
 
@@ -114,7 +112,6 @@ import { formatMusicInfo, isType } from '@/utils/format'
 import { searchCloudMusic, SearchCloudResult } from '@/assets/cloudApi'
 import { searchLocalMusic, searchMusicInfoWIthBvid } from '@/assets/localApi'
 import { jointQuery } from '@/assets/api';
-import { ExposeVar } from '@/components/LoadingMore/index.vue';
 import { TabPaneName } from 'element-plus'
 
 enum SearchTypeTxt {
@@ -129,7 +126,6 @@ const props = defineProps<{
 }>();
 const router = useRouter();
 const route = useRoute();
-const loadMore = ref<ExposeVar>();
 
 const currentSearchType = ref<AudioInfoType>(props.t);
 const type = ref(1);
@@ -142,8 +138,6 @@ const songsData = reactive<MusicInfo[]>([]);
 // 搜索类型变化更改 url
 watch(currentSearchType, (val) => {
     // console.log(val, route.query)
-    // 为 loadingMore 组件设置了 :key, 使每次 searchtype 改变都会重新加载, 所以要重新挂载 observer
-    nextTick(() => observerLoad());
     if (route.query.kw === props.kw && route.query.t === val) return;
     router.push(jointQuery(route.path, {kw: props.kw, t: val}));
 });
@@ -164,27 +158,6 @@ watch(() => props, (val) => {
     deep: true,
     immediate: true
 });
-/** 滚动动态加载 */
-onMounted(() => {
-    nextTick(() => observerLoad());
-})
-/** 监听动态加载歌单 */
-function observerLoad() {
-    if (!loadMore.value) return;
-    let loadIO = new IntersectionObserver(function (entries) {
-        // console.log(entries[0].isIntersecting)
-        // 距离视口还有200px
-        if (entries[0].isIntersecting && loadMore.value) {
-            // console.log('load')
-            // console.log(fristLoading.value)
-            !fristLoading.value && loadMore.value.loadFunc();
-        }
-    }, {
-        rootMargin: '0px 0px 200px 0px' // 监听视口距离向下多200px
-    });
-    loadIO.observe(loadMore.value.loadMore);
-}
-
 
 /** 搜索类型改变 */
 function searchTypeChange(tabName: TabPaneName) {

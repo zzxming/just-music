@@ -175,6 +175,7 @@ watch(activePlayinglist, val => {
 function clickItem(songInfo: MusicInfo) {
     playMusic(songInfo);
     changePlayinglistState(false);
+    changFullScreenMaskState(false);
 }
 /** 播放列表点击切换歌曲 */
 function playMusic(info: MusicInfo) {
