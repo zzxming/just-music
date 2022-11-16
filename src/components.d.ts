@@ -31,6 +31,8 @@ declare module '@vue/runtime-core' {
     FullScreenMask: typeof import('./components/FullScreenMask/index.vue')['default']
     HeaderBar: typeof import('./components/HeaderBar/index.vue')['default']
     IconAntDesignMoreOutlined: typeof import('~icons/ant-design/more-outlined')['default']
+    IconAntDesignToTopOutlined: typeof import('~icons/ant-design/to-top-outlined')['default']
+    IconAntDesignVerticalAlignTopOutlined: typeof import('~icons/ant-design/vertical-align-top-outlined')['default']
     IconCusList: typeof import('~icons/cus/list')['default']
     IconCusLoopPlay: typeof import('~icons/cus/loop-play')['default']
     IconCusPause: typeof import('~icons/cus/pause')['default']
@@ -73,6 +75,7 @@ declare module '@vue/runtime-core' {
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     Songlist: typeof import('./components/Songlist/index.vue')['default']
+    ToTop: typeof import('./components/ToTop/index.vue')['default']
   }
   export interface ComponentCustomProperties {
     vLoading: typeof import('element-plus/es')['ElLoadingDirective']

@@ -2,7 +2,6 @@
 import { usePlayerStore, usePlaylistStore } from '@/store';
 import { PlayMode } from '@/interface';
 import { formatAudioTime } from '@/utils/format';
-import { ElMessage } from 'element-plus';
 
 
 export const useAudioContorlStore = defineStore('audioControl', () => {
@@ -32,7 +31,6 @@ export const useAudioContorlStore = defineStore('audioControl', () => {
         audioDom.addEventListener('ended', function() {
             // console.log('end')
             audioIsPaused.value = true;
-            ElMessage('ended')
             playNext();
         })
         audioDom.addEventListener('seeking', function() {

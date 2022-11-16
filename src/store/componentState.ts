@@ -4,6 +4,7 @@ export const fullScreenMaskEvent = 'fullScreenMaskClick';
 
 
 export const useComponentStateStore = defineStore('componentState', () => {
+
     const showPlayerControl = ref(false);
     /** 改变全局音频显示状态 */
     function changePlayerControlState(visible: boolean) {
@@ -27,6 +28,7 @@ export const useComponentStateStore = defineStore('componentState', () => {
     const routeHistory = reactive<{path: string, fullPath: string}[]>([]);
     const route = useRoute();
     const router = useRouter();
+    console.log(router)
 
     watch(() => route, (val) => {
         let fullPath = val.fullPath;
@@ -52,13 +54,14 @@ export const useComponentStateStore = defineStore('componentState', () => {
     /** 回到上一个不同的路由 */
     function goBack() {
         // 没有的时候定向到根路径
-        if (routeHistory.length <= 1) {
-            router.replace('/');
-            return;
-        }
-        // 删除当前路由, 并跳转至前一个
-        routeHistory.splice(-1, 1);
-        router.replace(routeHistory[routeHistory.length - 1].fullPath);
+        // if (routeHistory.length <= 1) {
+        //     router.replace('/');
+        //     return;
+        // }
+        // // 删除当前路由, 并跳转至前一个
+        // routeHistory.splice(-1, 1);
+        // router.replace(routeHistory[routeHistory.length - 1].fullPath);
+        router.back();
     }
  
     const fullScreenMaskState = ref(false);

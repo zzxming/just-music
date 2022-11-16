@@ -1,5 +1,5 @@
 import { jointQuery } from "@/assets/api";
-import { createRouter, createWebHistory, RouteRecordRaw } from "vue-router"
+import { createRouter, createWebHistory, RouteRecordRaw, RouterScrollBehavior } from "vue-router"
 
 
 const routes: readonly RouteRecordRaw[] = [
@@ -19,6 +19,9 @@ const routes: readonly RouteRecordRaw[] = [
             return {
                 ...route.query
             }
+        },
+        meta: {
+            keepAlive: true
         }
     }, {
         path: '/playlist',
@@ -41,6 +44,9 @@ const routes: readonly RouteRecordRaw[] = [
             return {
                 ...route.query
             }
+        },
+        meta: {
+            keepAlive: true
         }
     }, {
         path: '/search',
@@ -49,6 +55,9 @@ const routes: readonly RouteRecordRaw[] = [
             return {
                 ...route.query
             }
+        },
+        meta: {
+            keepAlive: true
         }
     },{
         path: '/player',
@@ -67,7 +76,14 @@ const routes: readonly RouteRecordRaw[] = [
 
 const router = createRouter({
     history: createWebHistory(),
-    routes
+    routes,
+    scrollBehavior(to, from, savedPosition) {
+        //savedPosition返回{left：0，top：0} 分别代表x轴和y轴的滚动条（scrollTop）
+        if (savedPosition) {
+            return savedPosition
+        }
+    }
 })
 
 export default router;
+// Awaitable<ScrollPosition | false | void>

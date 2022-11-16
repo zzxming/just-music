@@ -52,6 +52,7 @@
         align-items: center;
         justify-content: space-between;
         height: 30px;
+        margin-bottom: 6px;
         &_left {
             display: flex;
             align-items: center;
@@ -75,12 +76,17 @@
         border-radius: 8px;
         background: var(--el-overlay-color-light);
         color: var(--el-bg-color-page);
-        overflow-y: auto;
         &::-webkit-scrollbar {
             display: none;
         }
     }
     &_list {
+        overflow-y: auto;
+        width: 100%;
+        height: calc(100% - 36px);
+        &::-webkit-scrollbar {
+            display: none;
+        }
         &_item:extend(.textOverflowEllipsis) {
             display: grid;
             align-items: center;
@@ -170,7 +176,12 @@ onMounted(() => {
 });
 
 watch(activePlayinglist, val => {
-    val && changFullScreenMaskState(true);
+    if (val) {
+        changFullScreenMaskState(true);
+        let activeSong = document.getElementsByClassName('playinglist_list_item playing')[0] as HTMLElement;
+        console.log(activeSong.offsetTop);
+        (activeSong.parentElement as HTMLElement).scrollTop = activeSong.offsetTop - 100;
+    }
 })
 
 function clickItem(songInfo: MusicInfo) {

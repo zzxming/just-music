@@ -134,6 +134,7 @@
         display: flex;
         flex-direction: column;
         width: 60%;
+        max-width: 1280px;
         overflow: hidden;
     }
     &_cover {

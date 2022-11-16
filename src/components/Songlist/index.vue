@@ -70,6 +70,7 @@
     justify-content: flex-start;
     box-sizing: border-box;
     width: 100%;
+    margin: 0 auto;
     border-radius: 10px;
     overflow: hidden;
     cursor: default;
