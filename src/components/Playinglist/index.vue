@@ -27,7 +27,6 @@
             </ul>
         </div>
     </div>
-    <!-- <div v-show="activePlayinglist" class="mask" @click="() => changePlayinglistState(false)"></div> -->
 </template>
 
 <style lang="less" scoped>
@@ -42,8 +41,10 @@
     right: 30px;
     bottom: -420px;
     z-index: 2002;
+    opacity: 0;
     transition: bottom linear .1s;
     &.active {
+        opacity: 1;
         bottom: 100px;
     }
     &_header {

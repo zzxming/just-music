@@ -1,44 +1,35 @@
 <template>
-        <div class="songlist" v-show="songs.length > 1 || !loading">
-            <div class="songlist_header" v-if="!isSmallScreen">
-                <div class="songlist_index"></div>
-                <div class="songlist_title">标题</div>
-                <div class="songlist_singer" v-if="!isSmallScreen">歌手</div>
-                <div class="songlist_duration" v-if="!isSmallScreen">时间</div>
-                <div class="songlist_option" v-if="isSmallScreen"></div>
-            </div>
-            <div class="songlist_body">
-                <div 
-                    v-for="(song, index) in songs" 
-                    :class="`songlist_item ${index % 2 === 0 ? 'stripe' : ''} ${activeId === song.id && activeCid === song.cid ? 'active' : ''} ${song.st === -200 ? 'disable' : ''}`"
-                    :draggable="canDrag"
-                    @click="(e) => isSmallScreen && playSong(e, song)"
-                    @dblclick="(e) => playSong(e, song)"
-                    @contextmenu="(e) => showPopbox(e, song)"
-                    @dragstart="(e) => dragstart(e, index)"
-                    @dragleave="(e) => dragleave(e)"
-                    @dragover="(e) => dragover(e)"
-                    @drop="(e) => drop(e, index)"
-                >
-                    <div class="songlist_index">
-                        <span class="songlist_index-text">{{ twoDigitStr(index + 1) }}</span>
-                        <span class="el-icon songlist_index-icon playing"><IconCusPlaying /></span>
+    <div class="songlist">
+        <div class="songlist_header" v-if="!isSmallScreen">
+            <div class="songlist_index"></div>
+            <div class="songlist_title">标题</div>
+            <div class="songlist_singer" v-if="!isSmallScreen">歌手</div>
+            <div class="songlist_duration" v-if="!isSmallScreen">时间</div>
+            <div class="songlist_option" v-if="isSmallScreen"></div>
+        </div>
+        <div class="songlist_body">
+            <div 
+                v-for="(song, index) in songs" 
+                :class="`songlist_item ${index % 2 === 0 ? 'stripe' : ''} ${activeId === song.id && activeCid === song.cid ? 'active' : ''} ${song.st === -200 ? 'disable' : ''}`"
+                :draggable="canDrag"
+                @click="(e) => isSmallScreen && playSong(e, song)"
+                @dblclick="(e) => playSong(e, song)"
+                @contextmenu="(e) => showPopbox(e, song)"
+                @dragstart="(e) => dragstart(e, index)"
+                @dragleave="(e) => dragleave(e)"
+                @dragover="(e) => dragover(e)"
+                @drop="(e) => drop(e, index)"
+            >
+                <div class="songlist_index">
+                    <span class="songlist_index-text">{{ twoDigitStr(index + 1) }}</span>
+                    <span class="el-icon songlist_index-icon playing"><IconCusPlaying /></span>
+                </div>
+                <div class="songlist_title">
+                    <div class="songlist_title-title">
+                        <span class="songlist_title-text" :title="song.title">{{song.title}}</span>
+                        <span v-if="song.fee === 1" class="el-icon songlist_title-icon"><IconCusVip /></span>
                     </div>
-                    <div class="songlist_title">
-                        <div class="songlist_title-title">
-                            <span class="songlist_title-text" :title="song.title">{{song.title}}</span>
-                            <span v-if="song.fee === 1" class="el-icon songlist_title-icon"><IconCusVip /></span>
-                        </div>
-                        <div v-if="isSmallScreen" class="songlist_title-singer" :title="song.singers.map((s: Singer) => s.name).join(' / ')">
-                            <span class="songlist_singer">
-                                <template v-for="(singer, index) in song.singers">
-                                    <span class="songlist_singer_item">{{ singer.name }}</span>
-                                    {{ index === song.singers.length - 1 ? '' : '&nbsp;/&nbsp;'}}
-                                </template>
-                            </span>
-                        </div>
-                    </div>
-                    <div class="songlist_singer" v-if="!isSmallScreen" :title="song.singers.map((s: Singer) => s.name).join(' / ')">
+                    <div v-if="isSmallScreen" class="songlist_title-singer" :title="song.singers.map((s: Singer) => s.name).join(' / ')">
                         <span class="songlist_singer">
                             <template v-for="(singer, index) in song.singers">
                                 <span class="songlist_singer_item">{{ singer.name }}</span>
@@ -46,17 +37,27 @@
                             </template>
                         </span>
                     </div>
-                    <div class="songlist_duration" v-if="!isSmallScreen">
-                        <span class="songlist_duration">{{ formatAudioTime(song.duration / 1000) }}</span>
-                    </div>
-                    <div class="songlist_option" v-if="isSmallScreen">
-                        <el-icon class="" @click.stop="(e: MouseEvent) => showPopbox(e, song)"><IconAntDesignMoreOutlined /></el-icon>
-                    </div>
                 </div>
-            <div v-if="songs.length < 1 && !loadError" class="songlist_empty">{{ loading ? '加载中...' : emptyText }}</div>
+                <div class="songlist_singer" v-if="!isSmallScreen" :title="song.singers.map((s: Singer) => s.name).join(' / ')">
+                    <span class="songlist_singer">
+                        <template v-for="(singer, index) in song.singers">
+                            <span class="songlist_singer_item">{{ singer.name }}</span>
+                            {{ index === song.singers.length - 1 ? '' : '&nbsp;/&nbsp;'}}
+                        </template>
+                    </span>
+                </div>
+                <div class="songlist_duration" v-if="!isSmallScreen">
+                    <span class="songlist_duration">{{ formatAudioTime(song.duration / 1000) }}</span>
+                </div>
+                <div class="songlist_option" v-if="isSmallScreen">
+                    <el-icon class="" @click.stop="(e: MouseEvent) => showPopbox(e, song)"><IconAntDesignMoreOutlined /></el-icon>
+                </div>
+            </div>
+            <div v-if="isStatic && songs.length < 1 && !loadError" class="songlist_empty">{{ loading ? '加载中...' : emptyText }}</div>
         </div>
     </div>
     <LoadingMore v-if="!isStatic" key="loadingSong" ref="loadMore" :requestFunc="loadMoreFunc" />
+    <LoadingErrorTip v-if="isStatic" :isError="loadError" :requestFunc="fristLoad" :style="{height: '200px'}" />
 </template>
 
 <!-- 滚动加载对 search 页有问题, 当第一次加载时, 滚动加载会失效, 需要手动点一次加载更多才能生效 -->
@@ -315,16 +316,19 @@ watchEffect(async () => {
         nextTick(() => observerLoad());
     }
     else {
-        loadError.value = false;
-        loading.value = true;
-        let num = await props.loadMoreFunc()
-        loading.value = false;
-        if (num === -1) {
-            loadError.value = true;
-        }
+        fristLoad()
     }
 })
 
+async function fristLoad() {
+    loadError.value = false;
+    loading.value = true;
+    let num = await props.loadMoreFunc()
+    loading.value = false;
+    if (num === -1) {
+        loadError.value = true;
+    }
+}
 /** 双击播放歌曲 */
 async function playSong(event: MouseEvent, song: MusicInfo) {
     if (audioInfo.value.id !== song.id || (audioInfo.value.type === AudioInfoType.bili && audioInfo.value.cid !== song.cid)) {

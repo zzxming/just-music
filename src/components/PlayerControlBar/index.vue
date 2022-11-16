@@ -36,8 +36,8 @@
             <AudioPlayType class="botcontrol_btn-icon type" />
             <div class="botcontrol_btn_play" @click="playAudio">
                 <el-icon v-show="audioLoading" class="botcontrol_btn-icon load"><IconEpLoading /></el-icon>
-                <el-icon class="botcontrol_btn-icon play" v-show="!audioLoading && audio.paused"><IconCusPlay /></el-icon>
-                <el-icon class="botcontrol_btn-icon pause" v-show="!audioLoading && !audio.paused"><IconCusPause /></el-icon> 
+                <el-icon class="botcontrol_btn-icon play" v-show="!audioLoading && audioIsPaused"><IconCusPlay /></el-icon>
+                <el-icon class="botcontrol_btn-icon pause" v-show="!audioLoading && !audioIsPaused"><IconCusPause /></el-icon> 
             </div>
             <div class="botcontrol_btn_volume" @mouseenter="volumeShow = true" @mouseleave="volumeShow = false">
                 <div @click="mutedAudio">

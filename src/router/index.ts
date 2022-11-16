@@ -6,12 +6,12 @@ const routes: readonly RouteRecordRaw[] = [
     {
         path: '/',
         redirect: '/home',
-        meta: {
-            keepAlive: true
-        }
     }, {
         path: '/home',
         component: () => import("@/pages/Home/index.vue"),
+        meta: {
+            keepAlive: true
+        }
     }, {
         path: '/song',
         component: () => import("@/pages/Song/index.vue"),

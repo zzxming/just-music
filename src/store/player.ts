@@ -7,7 +7,7 @@ import { usePlaylistStore, useComponentStateStore, useAudioContorlStore } from "
 
 
 const initAudioInfo = {
-    type: AudioInfoType.local,
+    type: AudioInfoType.cloud,
     id: 0,
     cid: 0,
     cover: '',

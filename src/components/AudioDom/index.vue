@@ -4,6 +4,7 @@
 
 <script lang="ts" setup>
 import { useAudioContorlStore, usePlayerStore } from '@/store'
+import { ElMessage } from 'element-plus';
 
 const audioMedia = ref<HTMLAudioElement>();
 const playerStore = usePlayerStore();
@@ -27,16 +28,21 @@ watch(audioInfo, () => {
     if (audioInfo.value.noCopyrightRcmd || audioInfo.value.st === -200) {
         return;
     } 
-    if (audioSrc.value) {
-        // console.log(audioSrc.value)
-        audio.load();
-    }
+    // if (audioSrc.value) {
+    //     // console.log(audioSrc.value)
+    //     audio.load();
+    // }
 });
+
 
 /** 加载失败重试 */
 function loadError(e: Event) {
     // 当有播放路径时再重试
     if (audioSrc.value === undefined || audioSrc.value === null) return;
+    ElMessage({
+        type: 'error',
+        message: '网络错误'
+    })
     setTimeout(() => {
         // audioMedia.value && audioMedia.value.load();
         setAudioInfo(audioInfo.value);

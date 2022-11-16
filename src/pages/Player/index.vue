@@ -20,7 +20,7 @@
             </div>
             
             <!-- ios  点音量进度、图标都没用 -->
-            <div class="player_volume">
+            <div class="player_volume" v-if="!mobile">
                 <div class="player_volume_icon" @click="mutedAudio">
                     <el-icon class="botcontrol_btn-icon volume" v-show="audioVolume !== 0"><IconCusVolume /></el-icon>
                     <el-icon class="botcontrol_btn-icon mute" v-show="audioVolume === 0"><IconCusVolumeMute /></el-icon>
@@ -29,7 +29,6 @@
             </div>
         </div>
 
-
         <div class="player_content">
             <div class="player_cover">
                 <img v-lazy="mediaSrc(audioInfo.cover)" :key="audioInfo.cover" />
@@ -37,7 +36,7 @@
         </div>
         
         <div class="player_bottom">
-            <div class="player_time">
+            <div class="player_time" v-if="!mobile">
                 <div class="player_time_cur">{{audioCurrentTimeStr}}</div>
                 <div class="player_time_bar">
                     <ProgressControlBar :isTime="true" />
@@ -219,6 +218,10 @@
 <script lang="ts" setup>
 import { usePlayerStore, useAudioContorlStore, useComponentStateStore, usePopoutStore } from '@/store';
 import { mediaSrc } from '@/assets/api';
+import { isMobile } from 'is-mobile';
+
+
+const mobile = ref(isMobile());
 
 const playerStore = usePlayerStore();
 const { audio, audioInfo } = storeToRefs(playerStore);

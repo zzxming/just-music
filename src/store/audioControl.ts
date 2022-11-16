@@ -2,9 +2,8 @@
 import { usePlayerStore, usePlaylistStore } from '@/store';
 import { PlayMode } from '@/interface';
 import { formatAudioTime } from '@/utils/format';
+import { ElMessage } from 'element-plus';
 
-
-// ios safari 无法播放
 
 export const useAudioContorlStore = defineStore('audioControl', () => {
 
@@ -26,12 +25,21 @@ export const useAudioContorlStore = defineStore('audioControl', () => {
             }
         })
         audioDom.addEventListener('timeupdate', function() {
+            // safari 在播放前跳转进度的话, 这个事件之后就不会再触发了
             audioCurrentTimeStr.value = formatAudioTime(this.currentTime)
         });
+        // ios safari 跳转进度会触发ended事件,导致自动播放下一首
+        audioDom.addEventListener('ended', function() {
+            // console.log('end')
+            audioIsPaused.value = true;
+            ElMessage('ended')
+            playNext();
+        })
         audioDom.addEventListener('seeking', function() {
             audioCurrentTimeStr.value = formatAudioTime(this.currentTime)
         });
         audioDom.addEventListener('volumechange', function() {
+            // ios safari 调整音量只能调整浏览器的音量
             audioVolume.value = this.volume;
         });
         // 在手机 ios 的 safari，audio 不会自动加载音频，preload 无效，canplay 不会执行，用这个判断是否加载完成
@@ -41,17 +49,20 @@ export const useAudioContorlStore = defineStore('audioControl', () => {
                 audioBuffered.value = 0;
                 audioDurationStr.value = formatAudioTime(this.duration);
                 audioCurrentTimeStr.value = formatAudioTime(this.currentTime);
-                audioLoading.value = true;
+                audioLoading.value = false;
+                audioIsPaused.value = false;
             }
         })
-        audioDom.addEventListener('loadeddata', function() {
-            // console.log('loadeddata')
-            // 加载完成就播放
-            this.play()
-        })
+        // audioDom.addEventListener('loadeddata', function() {
+        //     // console.log('loadeddata')
+        //     // 加载完成就播放
+        //     this.play()
+        // })
         audioDom.addEventListener('emptied', function() {
             const playerStore = usePlayerStore();
-            // console.log('emptied', !playerStore.audioSrc)
+            // console.log('emptied', playerStore.audioInfo)
+            // 保证 ios safari 可以直接播放，切换时能自动播放
+            playerStore.audio?.play()
             if (!!playerStore.audioSrc) {
                 audioLoading.value = true;
             }
@@ -59,6 +70,7 @@ export const useAudioContorlStore = defineStore('audioControl', () => {
         audioDom.addEventListener('canplay', function() {
             // console.log('canplay')
             audioLoading.value = false;
+            this.play()
         })
         audioDom.addEventListener('waiting', function() {
             // console.log('waiting')
@@ -77,21 +89,12 @@ export const useAudioContorlStore = defineStore('audioControl', () => {
             // console.log('play')
             audioIsPaused.value = this.paused;
         })
-        audioDom.addEventListener('ended', function() {
-            // console.log('end')
-            playNext();
-        })
     }
     /** 根据播放模式播放下一首歌曲 */
     function playNext(isAuto: boolean = true) {
-        
-        
-        
-        // 播放不了，一直在加载状态
 
 
         // safari 自动播放下一首的时候会暂停加载，不能自动加载并播放下一首
-        // 随机播放的时候有可能会暂停
 
 
 
@@ -111,11 +114,10 @@ export const useAudioContorlStore = defineStore('audioControl', () => {
             playerStore.resetAudioInfo();
             return;
         }
-        if (next === playerStore.audioInfo) {
-            playerStore.audio?.load();
-        }
-        console.log(next)
+        // console.log(next)
         playerStore.setAudioInfo(next);
+        playerStore.audio?.load();
+        isAuto && playerStore.audio?.play();
     }
     /** 播放上一首歌曲 */
     function playPre() {

@@ -128,7 +128,6 @@ const mobile = ref(isMobile());
 const progressBar = ref<HTMLDivElement>();
 const dot = ref<HTMLDivElement>();
 
-const backProgress = ref(0);
 const progress = ref(props.isTime ? 0 : 70);
 
 
@@ -170,7 +169,7 @@ function seekBar(e: MouseEvent) {
         seekVertical(e);
     }
 }
-/** 点击进度条调整当前播放进度 */
+/** 点击横向进度条调整 */
 function seekHorizental(e: MouseEvent) {
     if (progressBar.value && audio.value) {
         let clickX = e.offsetX;
@@ -184,7 +183,7 @@ function seekHorizental(e: MouseEvent) {
         }
     }
 }
-/** 点击音量条调整音量 */
+/** 点击竖向音量条调整 */
 function seekVertical(e: MouseEvent) {
     // console.log(e)
     if ((e.target as HTMLElement).children.length < 1) return;
