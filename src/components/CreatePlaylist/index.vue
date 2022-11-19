@@ -4,7 +4,7 @@
         v-model="visible" 
         center 
         :destroy-on-close="true"
-        :before-close="() => emit('close')"
+        :before-close="close"
     >
         <el-form ref="formRef" :model="playlistData" :rules="rules" v-loading="loading">
             <el-form-item prop="title">
@@ -160,6 +160,13 @@ async function createPlaylist(): Promise<{status: boolean, message: string}> {
         status: true,
         message: '创建成功'
     }
+}
+function close() {
+    playlistData.value = {
+        title: '',
+        playlistLink: ''
+    }
+    emit('close')
 }
 
 </script>

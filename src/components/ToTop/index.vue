@@ -24,6 +24,12 @@
     cursor: pointer;
     z-index: 2000;
 }
+@media screen and (max-width: 550px) {
+    .to-top {
+        right: 20px;
+        bottom: 100px;
+    }
+}
 </style>
 
 <script lang="ts" setup>

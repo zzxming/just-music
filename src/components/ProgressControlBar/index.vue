@@ -129,7 +129,7 @@ const progressBar = ref<HTMLDivElement>();
 const dot = ref<HTMLDivElement>();
 
 const progress = ref(props.isTime ? 0 : 70);
-
+const progressLock = ref(false);    // 不自动改变时间进度条
 
 watch(audioVolume, (val) => {
     if (!props.isTime) {
@@ -138,7 +138,8 @@ watch(audioVolume, (val) => {
 }, { immediate: true })
 watch(audioCurrentTimeStr, () => {
     if (props.isTime && audio.value) {
-        progress.value = Number(((audio.value.currentTime / (audio.value.duration)) * 100).toFixed(2));
+        if (progressLock.value) return;
+        progress.value = Number(((audio.value.currentTime / (audioInfo.value.duration / 1000)) * 100).toFixed(2));
     }
 }, { immediate: true })
 watch(progress, val => {
@@ -203,9 +204,10 @@ function seekVertical(e: MouseEvent) {
 function dragDot(e: MouseEvent | TouchEvent) {
     // console.log(e)
     if (!progressBar.value) return;
+    progressLock.value = true;
+
     let positionInfo: DOMRect = progressBar.value.getBoundingClientRect();
 
-    mobile.value = isMobile();
 
     let eventHandle = computedMove.bind(undefined, positionInfo);
     let removeEventHandle = () => {
@@ -213,8 +215,9 @@ function dragDot(e: MouseEvent | TouchEvent) {
         document.removeEventListener('mouseup', removeEventHandle);
         if (audio.value) {
             if (props.isTime) {
-                audio.value.currentTime = audio.value.duration * (progress.value / 100);
+                audio.value.currentTime = audioInfo.value.duration / 1000 * (progress.value / 100);
             }
+            progressLock.value = false;
         }
     }
     document.addEventListener('mousemove', eventHandle);
@@ -224,7 +227,7 @@ function dragDot(e: MouseEvent | TouchEvent) {
 function touchStart(e: TouchEvent) {
     if (!progressBar.value) return;
     touchStartPosition.value = progressBar.value.getBoundingClientRect();
-    mobile.value = isMobile();
+    progressLock.value = true;
 }
 /** 移动端拖拽中 */
 function touchMove(e: TouchEvent) {
@@ -235,8 +238,9 @@ function touchMove(e: TouchEvent) {
 function touchEnd(e: TouchEvent) {
     if (audio.value) {
         if (props.isTime) {
-            audio.value.currentTime = audio.value.duration * (progress.value / 100);
+            audio.value.currentTime = audioInfo.value.duration / 1000 * (progress.value / 100);
         }
+        progressLock.value = false;
     }
 }
 /** 计算移动百分比 */

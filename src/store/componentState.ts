@@ -28,7 +28,6 @@ export const useComponentStateStore = defineStore('componentState', () => {
     const routeHistory = reactive<{path: string, fullPath: string}[]>([]);
     const route = useRoute();
     const router = useRouter();
-    console.log(router)
 
     watch(() => route, (val) => {
         let fullPath = val.fullPath;

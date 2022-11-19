@@ -61,6 +61,9 @@
 
 <style lang="less" scoped>
 .player {
+    position: absolute;
+    top: 0;
+    left: 0;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -168,6 +171,7 @@
         display: flex;
         flex-direction: column;
         align-items: center;
+        user-select: none;
     }
     &_control {
         width: 100%;

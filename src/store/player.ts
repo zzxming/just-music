@@ -50,10 +50,6 @@ export const usePlayerStore = defineStore('player', () => {
 
         audioSrc.value = src;
         if (src === null) {
-            ElMessage({
-                type: 'error',
-                message: '当前歌曲网易云音乐已下架'
-            });
             if (timer.value) {
                 clearTimeout(timer.value)
             }
@@ -102,6 +98,7 @@ export const usePlayerStore = defineStore('player', () => {
                 // 部分 vip 歌曲不让试听, 则获取的 src 为 null
                 if (audioInfoCur.fee === 1) {
                     let [err, result] = await getMusicSrcWithCloudId(audioInfoCur.id as number);
+
                     if (!err && result) {
                         src = result.data.data.src;
                     }
@@ -135,10 +132,10 @@ export const usePlayerStore = defineStore('player', () => {
             src = mediaSrc(`/music/local/${audioInfoCur.id}`)
         }
         // console.log(src)
-        setAudioSrc(src);
         if (messageAlert.value) ElMessageBox.close();
         // 网易云音乐没有其他版本, 下架了
         if (audioInfo.value.st === -200) {
+            setAudioSrc(null);
             ElMessage({
                 type: 'error',
                 message: '当前歌曲网易云音乐已下架'
@@ -152,12 +149,14 @@ export const usePlayerStore = defineStore('player', () => {
         }
         // 网易云音乐有其他版本
         else if (audioInfo.value.noCopyrightRcmd) {
+            setAudioSrc(null);
             ElMessage({
                 type: 'error',
                 message: '此歌曲无法在网易云音乐播放'
             })
         } 
         else if (audioInfo.value.fee === 1) {
+            setAudioSrc(src);
             // 防止 messagebox 的弹窗过多, 若上一个没有关闭手动关闭再开启新的
             let t = {};
             Promise.race([messageAlert.value, t]).then(v => (v === t)? "pending" : "fulfilled", () => "rejected")
@@ -169,6 +168,9 @@ export const usePlayerStore = defineStore('player', () => {
                     center: true
                 });
             })
+        }
+        else {
+            setAudioSrc(src);
         }
     }
     /** 切换播放模式 */

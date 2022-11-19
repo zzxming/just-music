@@ -13,14 +13,17 @@ export const useAudioContorlStore = defineStore('audioControl', () => {
     const audioVolume = ref(0.7);
     const audioBuffered = ref(0);
 
+
     /** 绑定 audio 事件 */
     function bindAudioEvent(audioDom: HTMLAudioElement) {
+        const playerStore = usePlayerStore();
         
         audioDom.addEventListener('progress', function() {
-            if (this.buffered.length < 1) return;
+            // if (this.buffered.length < 1) return;
             for (let i = this.buffered.length - 1; i < this.buffered.length; i++) {
                 // console.log('start',this.buffered.start(i),'end',this.buffered.end(i), i, this.buffered.length) 
-                audioBuffered.value = Math.floor(this.buffered.end(i) / this.duration * 10000) / 100;
+                audioBuffered.value = Math.floor(this.buffered.end(i) / (playerStore.audioInfo.duration / 1000) * 10000) / 100;
+                if (audioBuffered.value > 100) audioBuffered.value = 100;
             }
         })
         audioDom.addEventListener('timeupdate', function() {
@@ -42,14 +45,12 @@ export const useAudioContorlStore = defineStore('audioControl', () => {
         });
         // 在手机 ios 的 safari，audio 不会自动加载音频，preload 无效，canplay 不会执行，用这个判断是否加载完成
         audioDom.addEventListener('durationchange', function() {
-            // console.log('duration', this.duration)
-            if (this.duration) {
-                audioBuffered.value = 0;
-                audioDurationStr.value = formatAudioTime(this.duration);
-                audioCurrentTimeStr.value = formatAudioTime(this.currentTime);
-                audioLoading.value = false;
-                audioIsPaused.value = false;
-            }
+            // console.log('duration', playerStore.audioInfo.duration / 1000)
+            audioBuffered.value = 0;
+            audioDurationStr.value = formatAudioTime(playerStore.audioInfo.duration / 1000);
+            audioCurrentTimeStr.value = formatAudioTime(this.currentTime);
+            audioLoading.value = false;
+            audioIsPaused.value = false;
         })
         // audioDom.addEventListener('loadeddata', function() {
         //     // console.log('loadeddata')
@@ -60,7 +61,8 @@ export const useAudioContorlStore = defineStore('audioControl', () => {
             const playerStore = usePlayerStore();
             // console.log('emptied', playerStore.audioInfo)
             // 保证 ios safari 可以直接播放，切换时能自动播放
-            playerStore.audio?.play()
+            this.currentTime = 0;
+            this.play()
             if (!!playerStore.audioSrc) {
                 audioLoading.value = true;
             }
