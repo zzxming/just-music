@@ -168,7 +168,7 @@
     }
     &_list {
         grid-area: list;
-        min-height: 100px;
+        min-height: 36px;
         border: 1px solid var(--el-color-info-light-7);
         border-radius: 8px;
         overflow: hidden;

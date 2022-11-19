@@ -19,7 +19,6 @@ export const useAudioContorlStore = defineStore('audioControl', () => {
         const playerStore = usePlayerStore();
         
         audioDom.addEventListener('progress', function() {
-            // if (this.buffered.length < 1) return;
             for (let i = this.buffered.length - 1; i < this.buffered.length; i++) {
                 // console.log('start',this.buffered.start(i),'end',this.buffered.end(i), i, this.buffered.length) 
                 audioBuffered.value = Math.floor(this.buffered.end(i) / (playerStore.audioInfo.duration / 1000) * 10000) / 100;
@@ -92,12 +91,6 @@ export const useAudioContorlStore = defineStore('audioControl', () => {
     }
     /** 根据播放模式播放下一首歌曲 */
     function playNext(isAuto: boolean = true) {
-
-
-        // safari 自动播放下一首的时候会暂停加载，不能自动加载并播放下一首
-
-
-
         const playerStore = usePlayerStore();
 
         let mode = playerStore.curPlayMode;

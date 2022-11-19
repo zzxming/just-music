@@ -1,5 +1,5 @@
 import { jointQuery } from "@/assets/api";
-import { createRouter, createWebHistory, RouteRecordRaw, RouterScrollBehavior } from "vue-router"
+import { createRouter, createWebHistory, RouteRecordRaw } from "vue-router"
 
 
 const routes: readonly RouteRecordRaw[] = [
@@ -86,4 +86,3 @@ const router = createRouter({
 })
 
 export default router;
-// Awaitable<ScrollPosition | false | void>

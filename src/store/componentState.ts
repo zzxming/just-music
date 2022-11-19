@@ -53,14 +53,15 @@ export const useComponentStateStore = defineStore('componentState', () => {
     /** 回到上一个不同的路由 */
     function goBack() {
         // 没有的时候定向到根路径
-        // if (routeHistory.length <= 1) {
-        //     router.replace('/');
-        //     return;
-        // }
-        // // 删除当前路由, 并跳转至前一个
-        // routeHistory.splice(-1, 1);
-        // router.replace(routeHistory[routeHistory.length - 1].fullPath);
-        router.back();
+        if (routeHistory.length <= 1) {
+            router.replace('/');
+            return;
+        }
+        // 删除当前路由, 并跳转至前一个
+        routeHistory.splice(-1, 1);
+        router.replace(routeHistory[routeHistory.length - 1].fullPath);
+        // 使用 goback 可以保留用户的页面滚动位置
+        // router.back();
     }
  
     const fullScreenMaskState = ref(false);

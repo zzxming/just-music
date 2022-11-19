@@ -179,7 +179,6 @@ watch(activePlayinglist, val => {
     if (val) {
         changFullScreenMaskState(true);
         let activeSong = document.getElementsByClassName('playinglist_list_item playing')[0] as HTMLElement;
-        console.log(activeSong.offsetTop);
         (activeSong.parentElement as HTMLElement).scrollTop = activeSong.offsetTop - 100;
     }
 })
