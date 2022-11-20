@@ -7,6 +7,7 @@
             <IconInput v-if="!!inputTxt || inputTxt === ''" class="header_input_input" :inputTxt="inputTxt" @submit="commitSearch" />
         </div>
         <div class="header_right">
+            <BaseSetting />
             <div class="header_login" v-if="!cloudIsLogin" @click="cloudLoginVisible = true">登录</div>
             <el-button class="header_drawer" plain @click="drawer = true">
                 <el-icon><IconCusList /></el-icon>

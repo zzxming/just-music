@@ -36,7 +36,7 @@
         </div>
         
         <div class="player_bottom">
-            <div class="player_time" v-if="!mobile">
+            <div class="player_time">
                 <div class="player_time_cur">{{audioCurrentTimeStr}}</div>
                 <div class="player_time_bar">
                     <ProgressControlBar :isTime="true" />

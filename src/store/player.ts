@@ -23,11 +23,12 @@ const initAudioInfo = {
 };
 export const usePlayerStore = defineStore('player', () => {
     const audio = ref<HTMLAudioElement>();
-    const audioSrc = ref<string | null>(``);    // 部分网易云 vip 歌曲不让试听, 给的路径就是 null
+    const audioSrc = ref<string | null>(null);    // 部分网易云 vip 歌曲不让试听, 给的路径就是 null
     const audioInfo = ref<MusicInfo>(initAudioInfo);
     const playMode = reactive<PlayMode[]>([PlayMode.loop, PlayMode.single, PlayMode.random, PlayMode.sequential]);
     const playModeIndex = ref(0);
     const curPlayMode = computed(() => playMode[playModeIndex.value]);
+    const partialrange = ref(1);    // 是否使用 range 请求音频
 
     const timer = ref<NodeJS.Timeout>();
     const retryCount = ref(0);
@@ -57,7 +58,13 @@ export const usePlayerStore = defineStore('player', () => {
                 setAudioInfo(findNextMusic(curPlayMode.value) ?? initAudioInfo);
                 timer.value = undefined;
             }, 2000);
-        }        
+        }
+        // else if (audioInfo.value.type === AudioInfoType.bili) {
+        //     ElMessage({
+        //         type: 'info',
+        //         message: '哔哩哔哩音频加载慢，请稍后'
+        //     })
+        // } 
     }
     /** 设置当前没有播放歌曲 */
     function resetAudioInfo() {
@@ -178,17 +185,23 @@ export const usePlayerStore = defineStore('player', () => {
         let targetVal = playModeIndex.value + 1;
         targetVal >= playMode.length ? playModeIndex.value = 0 : playModeIndex.value = targetVal;
     }
+    /** 切换音频加载方式 */
+    function changePartialRangeState(status: boolean) {
+        partialrange.value = status ? 1 : 0
+    }
 
     return {
         audio,
         audioSrc,
         audioInfo,
         curPlayMode,
+        partialrange,
         setAudio,
         setAudioSrc,
         resetAudioInfo,
         setAudioInfo,
         changePlayMode,
+        changePartialRangeState,
     }
 });
 

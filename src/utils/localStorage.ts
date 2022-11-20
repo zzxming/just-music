@@ -1,9 +1,8 @@
 import { defaultMusicImg } from "@/assets/api";
 import { PlaylistType, MusicInfo, CustomPlaylist, PlaylistInfo } from "@/interface";
-import { ElMessage } from "element-plus";
 
-const localStoragePlaylist = 'customPlaylist';
-export const localStoragePlaylistEvent = 'customPlaylistEvent';
+const localStoragePlaylist = 'customPlaylist';  // localstorage 中歌单 key 名
+export const localStoragePlaylistEvent = 'customPlaylistEvent'; // 改变 localstorage 中歌单数据时触发的事件名
 
 /** 获取 localStorage 里的自定义歌单 */
 export function getAllCustomPlaylist(): CustomPlaylist[] {
@@ -85,4 +84,20 @@ export function setCustomPlaylist(title: string, songs: MusicInfo[] = []) {
 export function updateCustomPlaylist(playlist: CustomPlaylist[]) {
     localStorage.setItem(localStoragePlaylist, JSON.stringify(playlist));
     window.dispatchEvent(new Event(localStoragePlaylistEvent));
+}
+
+const localStorageAudioLoadMode = 'audioLoadMode';  // localstorage 中音频加载模式 key 名
+export const localStorageAudioLoadModeEvent = 'audioLoadModeEvent';
+
+export function getAduioLoadMode(): '1' | '0' {
+    let result = localStorage.getItem(localStorageAudioLoadMode) as '1' | '0';
+    if (result !== '1' && result !== '0') {
+        result = '1';
+        setAudioLoadMode(true);
+    }
+    return result;
+}
+export function setAudioLoadMode(status: boolean) {
+    localStorage.setItem(localStorageAudioLoadMode, status ? '1' : '0');
+    window.dispatchEvent(new Event(localStorageAudioLoadModeEvent));
 }

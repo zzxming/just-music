@@ -61,6 +61,7 @@
         display: flex;
         align-items: center;
         width: 100%;
+        line-height: 40px;
         padding: 20px 20px 0;
         margin-bottom: 30px;
         color: #72767b;
@@ -73,6 +74,7 @@
             }
         }
         &_close {
+            display: flex;
             margin-left: auto;
             padding: 0 6px;
             font-size: 28px;
@@ -85,8 +87,13 @@
     &_body {
         box-sizing: border-box;
         width: 100%;
+        height: calc(100% - 50px - 40px);
         padding: 20px;
         padding-top: 0;
+        overflow-y: auto;
+        &::-webkit-scrollbar {
+            display: none;
+        }
     }
     &_btn {
         display: inline-flex;

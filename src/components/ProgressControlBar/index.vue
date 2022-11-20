@@ -1,8 +1,13 @@
 <template>
-    <div ref="progressBar" :class="`control_bar ${horizental ? `horizental` : `vertical`}`" @click="seekBar">
+    <div ref="progressBar" :class="`control_bar ${horizental ? `horizental` : `vertical`} ${props.isTime && !canSeek ? 'disable' : ''}`" @click="seekBar">
         <div class="control_bar_bg" v-if="isTime" :style="{[horizental ? 'width' : 'height']: `${audioBuffered}%`}"></div>
         <div class="control_bar_progress" :style="{[horizental ? 'width' : 'height']: `${progress}%`, backgroundColor: progressColor}">
-            <div class="control_bar_dot" ref="dot" @mousedown="dragDot" @touchstart="touchStart" @touchmove="touchMove" @touchend="touchEnd">
+            <div class="control_bar_dot" ref="dot" 
+                @mousedown="dragDot" 
+                @touchstart="touchStart" 
+                @touchmove="touchMove" 
+                @touchend="touchEnd"
+            >
                 <el-icon v-if="props.isTime" v-show="audioLoading"><IconEpLoading /></el-icon>
             </div>
         </div>
@@ -49,7 +54,6 @@
             border: 2px solid var(--el-color-info);
             background-color: var(--el-color-info-light-9);
             z-index: 4;
-            cursor: pointer;
             i {
                 animation: rotate360 linear 2s infinite;
             }
@@ -57,7 +61,6 @@
                 border: 2px solid var(--el-color-info-dark-2);
             }
         }
-        
     }
     &.vertical {
         position: relative;    
@@ -89,6 +92,9 @@
             }
         }
     }
+    &.disable {
+        cursor: not-allowed;
+    }
 }
 @keyframes rotate360 {
     0% {
@@ -105,7 +111,10 @@
 
 <script lang="ts" setup>
 import { usePlayerStore, useAudioContorlStore } from '@/store';
+import { AudioInfoType } from '@/interface';
+import { getAduioLoadMode, localStorageAudioLoadModeEvent } from '@/utils/localStorage';
 import { isMobile } from 'is-mobile';
+import { ElMessage } from 'element-plus';
 
 const props = withDefaults(defineProps<{
     isTime?: boolean
@@ -124,13 +133,23 @@ const { audioLoading, audioVolume, audioCurrentTimeStr, audioBuffered } = storeT
 const touchStartPosition = ref<DOMRect>();
 
 const mobile = ref(isMobile());
+const userAgent = navigator.userAgent.toLocaleLowerCase();
+const isIPhone = userAgent.includes('iphone') && userAgent.includes('safari');
 
 const progressBar = ref<HTMLDivElement>();
 const dot = ref<HTMLDivElement>();
 
 const progress = ref(props.isTime ? 0 : 70);
 const progressLock = ref(false);    // 不自动改变时间进度条
+const audioLoadMode = ref(getAduioLoadMode());
 
+onMounted(() => {
+    if (props.isTime) {
+        window.addEventListener(localStorageAudioLoadModeEvent, () => {
+            audioLoadMode.value = getAduioLoadMode();
+        })
+    }
+})
 watch(audioVolume, (val) => {
     if (!props.isTime) {
         progress.value = Number(val * 100);
@@ -153,13 +172,23 @@ watch(audioInfo, () => {
         progress.value = 0;
     }
 })
-
+const canSeek = computed(() => {
+    if (audioInfo.value.type !== AudioInfoType.bili) return true;
+    return (audioLoadMode.value === '0' && isIPhone)
+})
 
 // path 属性是 chrome 独有的, composedPath 是官方标准
 /** 点击音频进度条跳转 */
 function seekBar(e: MouseEvent) {
     // console.log(e.composedPath())
     // 点到加载的dot, 判断offsetX会有问题
+    if (props.isTime && !canSeek.value) {
+        ElMessage({
+            type: 'warning',
+            message: '快速加载模式下iPhone用户无法手动调整哔哩哔哩歌曲播放进度'
+        })
+        return;
+    }
     if (e.composedPath().includes(dot.value as EventTarget)) {
         return;
     }
@@ -201,13 +230,13 @@ function seekVertical(e: MouseEvent) {
     }
 }
 /** 拖拽 */
-function dragDot(e: MouseEvent | TouchEvent) {
+function dragDot() {
     // console.log(e)
+    if (props.isTime && !canSeek.value) return;
     if (!progressBar.value) return;
     progressLock.value = true;
 
     let positionInfo: DOMRect = progressBar.value.getBoundingClientRect();
-
 
     let eventHandle = computedMove.bind(undefined, positionInfo);
     let removeEventHandle = () => {
@@ -224,18 +253,21 @@ function dragDot(e: MouseEvent | TouchEvent) {
     document.addEventListener('mouseup', removeEventHandle);
 }
 /** 移动端拖拽开始 */
-function touchStart(e: TouchEvent) {
+function touchStart() {
+    if (props.isTime && !canSeek.value) return;
     if (!progressBar.value) return;
     touchStartPosition.value = progressBar.value.getBoundingClientRect();
     progressLock.value = true;
 }
 /** 移动端拖拽中 */
 function touchMove(e: TouchEvent) {
+    if (props.isTime && !canSeek.value) return;
     if (!touchStartPosition.value) return;
     computedMove(touchStartPosition.value, e);
 }
 /** 移动端拖拽结束 */
-function touchEnd(e: TouchEvent) {
+function touchEnd() {
+    if (props.isTime && !canSeek.value) return;
     if (audio.value) {
         if (props.isTime) {
             audio.value.currentTime = audioInfo.value.duration / 1000 * (progress.value / 100);

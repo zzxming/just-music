@@ -2,6 +2,7 @@
 import { usePlayerStore, usePlaylistStore } from '@/store';
 import { PlayMode } from '@/interface';
 import { formatAudioTime } from '@/utils/format';
+import { ElMessage } from 'element-plus';
 
 
 export const useAudioContorlStore = defineStore('audioControl', () => {
@@ -20,7 +21,8 @@ export const useAudioContorlStore = defineStore('audioControl', () => {
         
         audioDom.addEventListener('progress', function() {
             for (let i = this.buffered.length - 1; i < this.buffered.length; i++) {
-                // console.log('start',this.buffered.start(i),'end',this.buffered.end(i), i, this.buffered.length) 
+                // console.log(this.duration,'start',this.buffered.start(i),'end',this.buffered.end(i), i, this.buffered.length) 
+                // ElMessage(`${this.duration} 'start':${this.buffered.start(i)},'end':${this.buffered.end(i)} ${this.buffered.length}`) 
                 audioBuffered.value = Math.floor(this.buffered.end(i) / (playerStore.audioInfo.duration / 1000) * 10000) / 100;
                 if (audioBuffered.value > 100) audioBuffered.value = 100;
             }
@@ -59,9 +61,13 @@ export const useAudioContorlStore = defineStore('audioControl', () => {
         audioDom.addEventListener('emptied', function() {
             const playerStore = usePlayerStore();
             // console.log('emptied', playerStore.audioInfo)
-            // 保证 ios safari 可以直接播放，切换时能自动播放
+            // 清除上一次的播放进度
             this.currentTime = 0;
-            this.play()
+            audioBuffered.value = 0;
+            audioDurationStr.value = formatAudioTime(0);
+            audioCurrentTimeStr.value = formatAudioTime(0);
+            // 保证 ios safari 可以直接播放，切换时能自动播放
+            this.play();
             if (!!playerStore.audioSrc) {
                 audioLoading.value = true;
             }

@@ -74,7 +74,7 @@
     background-color: var(--el-fill-color-blank);
     box-shadow: var(--el-box-shadow-dark);
     transition: bottom .3s linear;
-    z-index: 9;
+    z-index: 8;
     &_left {
         display: flex;
         align-items: center;

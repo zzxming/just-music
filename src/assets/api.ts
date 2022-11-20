@@ -32,11 +32,11 @@ axios.interceptors.response.use((response) => {
  */
 export const jointQuery = (url: string, query: {[key: string]: string | number}): string => {
     let result = url;
-    if (Object.keys(query).length > 0) {
+    if (!url.includes('?') && Object.keys(query).length > 0) {
         result += '?'
-        for (let key in query) {
-            result += `${key}=${query[key]}&`
-        }
+    }
+    for (let key in query) {
+        result += `&${key}=${query[key]}`
     }
     return result;
 }
