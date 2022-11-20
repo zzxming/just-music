@@ -51,12 +51,9 @@ export const usePlayerStore = defineStore('player', () => {
 
         audioSrc.value = src;
         if (src === null) {
-            if (timer.value) {
-                clearTimeout(timer.value)
-            }
+            clearTimeout(timer.value)
             timer.value = setTimeout(() => {
                 setAudioInfo(findNextMusic(curPlayMode.value) ?? initAudioInfo);
-                timer.value = undefined;
             }, 2000);
         }
         // else if (audioInfo.value.type === AudioInfoType.bili) {
@@ -75,6 +72,7 @@ export const usePlayerStore = defineStore('player', () => {
     /** 设置当前音频显示信息 */
     async function setAudioInfo(info: LocalAudioInfo | CloudAudioInfo | MusicInfo) {
         if (info !== audioInfo.value) retryCount.value = 0;
+        console.log(timer.value)
         if (timer.value) clearTimeout(timer.value);
         // 之后是否自动显示contronlbar
         let show = false;
@@ -121,7 +119,6 @@ export const usePlayerStore = defineStore('player', () => {
                         timer.value = setTimeout(() => {
                             // console.log('retry', retryCount.value)
                             setAudioInfo(info);
-                            timer.value = undefined;
                         }, 3000);
                         src = '';
                         return;
@@ -147,12 +144,6 @@ export const usePlayerStore = defineStore('player', () => {
                 type: 'error',
                 message: '当前歌曲网易云音乐已下架'
             });
-            timer.value = setTimeout(() => {
-                const playinglistStore = usePlaylistStore();
-                const { findNextMusic } = playinglistStore;
-                setAudioInfo(findNextMusic(curPlayMode.value) ?? initAudioInfo);
-                timer.value = undefined;
-            }, 3000);
         }
         // 网易云音乐有其他版本
         else if (audioInfo.value.noCopyrightRcmd) {

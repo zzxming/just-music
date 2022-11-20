@@ -6,20 +6,38 @@
         :destroy-on-close="true"
         :before-close="close"
     >
-        <el-form ref="formRef" :model="playlistData" :rules="rules" v-loading="loading">
-            <el-form-item prop="title">
-                <el-input class="creator_input" v-model="playlistData.title" placeholder="请输入新建歌单标题" />
-            </el-form-item>
-            <el-form-item prop="playlistLink">
-                <el-input class="creator_input" v-model="playlistData.playlistLink" placeholder="请输入要导入的网易云音乐歌单分享链接" />
-            </el-form-item>
-        </el-form>
+        <div v-loading="loading">
+            <el-form ref="formRef" :model="playlistData" :rules="rules" >
+                <el-form-item prop="title">
+                    <el-input class="creator_input" v-model="playlistData.title" placeholder="请输入新建歌单标题" />
+                </el-form-item>
+                <el-form-item prop="playlistLink">
+                    <el-input class="creator_input" v-model="playlistData.playlistLink" placeholder="请输入要导入的网易云音乐歌单分享链接" />
+                </el-form-item>
+            </el-form>
+            <span class="filter">
+                <span class="filter_item">
+                    <span>去除VIP歌曲</span>
+                    <el-switch
+                        v-model="filterVip"
+                        style="--el-switch-on-color: #f89898;"
+                    />
+                </span>
+                <span class="filter_item">
+                    <span>去除已下架歌曲</span>
+                    <el-switch
+                        v-model="filterNoSource"
+                        style="--el-switch-on-color: #f89898;"
+                    />
+                </span>
+            </span>
+        </div>
 
         <template #header>
             <span class="creator_title">新建歌单</span>
         </template>
         <template #footer>
-            <span class="dialog-footer">
+            <span class="dialog-footer" style="display: inline-block">
                 <el-button type="danger" round @click="submitForm">创建</el-button>
             </span>
         </template>
@@ -35,6 +53,16 @@
     }
     &_title {
         font-weight: 700;
+    }
+}
+.filter {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+    &_item {
+        display: flex;
+        align-items: center;
+        margin-left: 20px;
     }
 }
 </style>
@@ -85,13 +113,15 @@ const rules = reactive({
     ]
 });
 const loading = ref(false);
+const filterVip = ref(true);
+const filterNoSource = ref(true);
 
 /** 验证字段正确性 */
 function submitForm() {
     if (!formRef.value) return;
+    if (loading.value) return;
     formRef.value.validate(async (valid) => {
         if (valid) {
-            if (loading.value) return;
             loading.value = true;
             let result = await createPlaylist();
             loading.value = false
@@ -105,6 +135,10 @@ function submitForm() {
                 return true;
             }
             else {
+                ElMessage({
+                    type: 'error',
+                    message: result.message
+                });
                 return false;
             }
         }
@@ -147,6 +181,12 @@ async function createPlaylist(): Promise<{status: boolean, message: string}> {
                         if (data[i].name === null || data[i].ar[0].id === 0 || data[i].al.id === 0) {
                             continue;
                         }
+                        if (filterVip.value && data[i].fee === 1) {
+                            continue;
+                        }
+                        if (filterNoSource.value && data[i].st === -200) {
+                            continue;
+                        }
                         songs.push(formatMusicInfo(data[i], AudioInfoType.cloud));
                     }
                     if (data.length < 500) break;
@@ -154,6 +194,13 @@ async function createPlaylist(): Promise<{status: boolean, message: string}> {
             }
         }
     }
+    else {
+        return {
+            status: false,
+            message: '无效链接'
+        }
+    }
+    // console.log(songs)
     
     setCustomPlaylist(playlistData.value.title, songs);
     return {

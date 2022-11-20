@@ -54,7 +54,6 @@ function loadError() {
     if (audioSrc.value === undefined || audioSrc.value === null) return;
     if (audioMedia.value) {
 
-        console.log(audioMedia.value.error)
         switch(audioMedia.value.error?.code) {
             case 1: {
                 ElMessage({

@@ -88,7 +88,7 @@ export function updateCustomPlaylist(playlist: CustomPlaylist[]) {
 
 const localStorageAudioLoadMode = 'audioLoadMode';  // localstorage 中音频加载模式 key 名
 export const localStorageAudioLoadModeEvent = 'audioLoadModeEvent';
-
+/** 获取音频加载模式 */
 export function getAduioLoadMode(): '1' | '0' {
     let result = localStorage.getItem(localStorageAudioLoadMode) as '1' | '0';
     if (result !== '1' && result !== '0') {
@@ -97,6 +97,7 @@ export function getAduioLoadMode(): '1' | '0' {
     }
     return result;
 }
+/** 设置音频加载模式 */
 export function setAudioLoadMode(status: boolean) {
     localStorage.setItem(localStorageAudioLoadMode, status ? '1' : '0');
     window.dispatchEvent(new Event(localStorageAudioLoadModeEvent));
