@@ -153,7 +153,7 @@ watch(() => props, (val) => {
     fristLoading.value = true;
     loadingError.value = false;
     songsData.length = 0;
-    // requestSearch();
+    requestSearch();
 }, {
     deep: true,
     immediate: true

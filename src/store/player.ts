@@ -72,7 +72,6 @@ export const usePlayerStore = defineStore('player', () => {
     /** 设置当前音频显示信息 */
     async function setAudioInfo(info: LocalAudioInfo | CloudAudioInfo | MusicInfo) {
         if (info !== audioInfo.value) retryCount.value = 0;
-        console.log(timer.value)
         if (timer.value) clearTimeout(timer.value);
         // 之后是否自动显示contronlbar
         let show = false;
