@@ -21,7 +21,7 @@ const routes: readonly RouteRecordRaw[] = [
             }
         },
         meta: {
-            keepAlive: true
+            // keepAlive: true
         }
     }, {
         path: '/playlist',
@@ -46,7 +46,7 @@ const routes: readonly RouteRecordRaw[] = [
             }
         },
         meta: {
-            keepAlive: true
+            // keepAlive: true
         }
     }, {
         path: '/search',
@@ -57,7 +57,7 @@ const routes: readonly RouteRecordRaw[] = [
             }
         },
         meta: {
-            keepAlive: true
+            // keepAlive: true
         }
     },{
         path: '/player',

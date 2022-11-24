@@ -193,14 +193,14 @@ async function collectPlaylist() {
 }
 /** 从歌单中删除选中的歌曲 */
 function deletefromPlaylist() {
-    let curPlaylistId = Number(route.query.id);
+    let curPlaylistId =  route.query.id;
     let templist = [...customPlaylist.value];
     if (popoutHoldData.value instanceof Array) {
         // 删除多首歌曲
         let holdData = popoutHoldData.value as MusicInfo[];
 
         for (let i = 0; i < templist.length; i++) {
-            if (templist[i].id === curPlaylistId) {
+            if (templist[i].id.toString() === curPlaylistId) {
                 // 通过 filter 找出剩余的歌曲
                 let lastSong = templist[i].tracks.filter(song => {
                     let sameSong = holdData.find(data => {
@@ -223,7 +223,7 @@ function deletefromPlaylist() {
         let holdData = popoutHoldData.value as MusicInfo;
             
         for (let i = 0; i < templist.length; i++) {
-            if (templist[i].id === curPlaylistId) {
+            if (templist[i].id.toString()  === curPlaylistId) {
                 let index = templist[i].tracks.findIndex(song => {
                     if (holdData.type === AudioInfoType.bili) {
                         return holdData.cid === song.cid;

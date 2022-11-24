@@ -310,7 +310,7 @@ function observerLoad() {
     });
     loadIO.observe(loadMore.value.loadMore);
 }
-watchEffect(async () => {
+onMounted(() => {
     // isStatic 表示不会动态加载
     if (!props.isStatic) {
         // 滚动动态加载

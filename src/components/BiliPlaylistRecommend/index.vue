@@ -28,7 +28,7 @@ onMounted(() => {
 });
 
 function addData() {
-    const bvArr = ['BV1Wt411H7qN', 'BV1Dh41167W4', 'BV1tb411g7wo', 'BV1jJ41137nD'];
+    const bvArr = ['BV1mt411q7GU', 'BV1Wt411H7qN', 'BV1Dh41167W4', 'BV1tb411g7wo', 'BV1jJ41137nD'];
     Promise.all(bvArr.map(async (bv) => await getPlaylistData(bv)))
     .then(res => {
         fristLoading.value = false;

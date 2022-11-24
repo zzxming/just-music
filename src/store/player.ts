@@ -34,6 +34,16 @@ export const usePlayerStore = defineStore('player', () => {
     const retryCount = ref(0);
     const messageAlert = ref<Promise<MessageBoxData>>();
 
+    watch(audioInfo, val => {
+        if (val.title) {
+            document.title = `正在播放：${val.title}`;
+        }
+        else {
+            document.title = 'Just Music'
+        }
+    })
+
+
     /** 设置 audio 元素 */
     function setAudio(media: HTMLAudioElement) {
         audio.value = media;

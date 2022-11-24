@@ -48,7 +48,7 @@
                 </div>
             </div>
             
-            <div class="playlist_song" v-show="playlistInfo">
+            <div class="playlist_song" v-if="playlistInfo">
                 <Songlist 
                     :songs="songsInfo" 
                     :canDeleteSong="playlistInfo?.type === PlaylistType.localStorage" 
@@ -264,7 +264,9 @@ watch([() => props.id, () => props.t], () => {
     isCollect.value = !!getPlaylist;
 }, { immediate: true });
 
-
+// 右键删除歌单内歌曲后歌曲列表不会更新
+// 每次进入bili歌单会重新请求数据，但原数据不会消失
+// 第一次正常，之后进入cloud歌单，请求到了数据，但页面不显示
 onMounted(() => {
     if (props.t === PlaylistType.localStorage) {
         window.addEventListener(localStoragePlaylistEvent, requestPlaylistData);
@@ -339,7 +341,6 @@ async function getPlaylistDetailWithId(id: number | string, type: PlaylistType) 
  */
 async function getPlaylistTrackWithId(id: number | string, type: PlaylistType, loadMore: boolean = false) {
     loadingSongError.value = false;
-
     // let [err, result] = type === PlaylistType.local ? await geLocalPlaylistTrack({id, limit: limit.value}) : await getCloudPlaylistTrack({id, limit: limit.value});
     let err, result;
     switch(type) {
