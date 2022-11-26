@@ -53,11 +53,11 @@
                     <el-icon class="" @click.stop="(e: MouseEvent) => showPopbox(e, song)"><IconAntDesignMoreOutlined /></el-icon>
                 </div>
             </div>
-            <div v-if="isStatic && songs.length < 1 && !loadError" class="songlist_empty">{{ loading ? '加载中...' : emptyText }}</div>
+            <!-- <div v-if="isStatic && songs.length < 1 && !loadError" class="songlist_empty">{{ loading ? '加载中...' : emptyText }}</div> -->
+            <LoadingMore key="loadingSong" ref="loadMore" :requestFunc="isStaticLoadMoreFunc" />
+            <LoadingErrorTip :isError="loadError" :requestFunc="loadData" :style="{height: '200px'}" />
         </div>
     </div>
-    <LoadingMore v-if="!isStatic" key="loadingSong" ref="loadMore" :requestFunc="loadMoreFunc" />
-    <LoadingErrorTip v-if="isStatic" :isError="loadError" :requestFunc="fristLoad" :style="{height: '200px'}" />
 </template>
 
 <!-- 滚动加载对 search 页有问题, 当第一次加载时, 滚动加载会失效, 需要手动点一次加载更多才能生效 -->
@@ -213,7 +213,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        height: 200px;
+        margin: 60px 0;
         color: var(--el-color-info-light-3);
     }
 }
@@ -274,6 +274,18 @@ const props = withDefaults(
     }
 );
 
+const isStaticLoadMoreFunc = computed(() => {
+    if (props.isStatic) {
+        return async () => {
+            await props.loadMoreFunc();
+            return 0;
+        }
+    }
+    else {
+        return props.loadMoreFunc
+    }
+})
+
 const emit = defineEmits<{
     (e: 'songOrder', song: MusicInfo[]): void
 }>()
@@ -295,15 +307,9 @@ function observerLoad() {
     if (!loadMore.value?.loadMore) return;
     let loadIO = new IntersectionObserver(async (entries) => {
         // 距离视口还有200px
-        // console.log(entries[0].isIntersecting, !!loadMore.value)
+        // console.log(entries[0].isIntersecting, loadMore.value)
         if (entries[0].isIntersecting && loadMore.value) {
-            loadError.value = false;
-            loading.value = true;
-            let num = await loadMore.value.loadFunc();
-            loading.value = false;
-            if (num === -1) {
-                loadError.value = true;
-            }
+            loadData();
         }
     }, {
         rootMargin: '0px 0px 400px 0px' // 监听视口距离向下多200px
@@ -312,19 +318,21 @@ function observerLoad() {
 }
 onMounted(() => {
     // isStatic 表示不会动态加载
+    console.log(props.isStatic)
     if (!props.isStatic) {
         // 滚动动态加载
         nextTick(() => observerLoad());
     }
     else {
-        fristLoad()
+        loadData()
     }
 })
 
-async function fristLoad() {
+async function loadData() {
+    if (!loadMore.value) return;
     loadError.value = false;
     loading.value = true;
-    let num = await props.loadMoreFunc()
+    let num = await loadMore.value.loadFunc();
     loading.value = false;
     if (num === -1) {
         loadError.value = true;

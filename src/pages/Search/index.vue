@@ -22,6 +22,7 @@
         </div>
         <div class="search_result">
             <Songlist 
+                :key="currentSearchType"
                 :songs="songsData" 
                 :emptyText="currentSearchType === AudioInfoType.bili ? '请输入正确的bv号' : '没有搜索到相关歌曲'" 
                 :isStatic="currentSearchType === AudioInfoType.bili"
@@ -153,7 +154,7 @@ watch(() => props, (val) => {
     fristLoading.value = true;
     loadingError.value = false;
     songsData.length = 0;
-    requestSearch();
+    // requestSearch();
 }, {
     deep: true,
     immediate: true

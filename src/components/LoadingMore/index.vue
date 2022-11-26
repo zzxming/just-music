@@ -17,7 +17,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        margin: 20px 0 200px;
+        margin: 60px 0;
     }
     &-nomore {
         color: var(--el-color-info);
