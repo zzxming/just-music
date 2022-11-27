@@ -1,5 +1,5 @@
 <template>
-    <div ref="progressBar" :class="`control_bar ${horizental ? `horizental` : `vertical`} ${props.isTime && cantSeek ? 'disable' : ''}`" @click="seekBar">
+    <div ref="progressBar" :class="`control_bar ${horizental ? `horizental` : `vertical`} ${cantSeek ? 'disable' : ''}`" @click="seekBar">
         <div class="control_bar_bg" v-if="isTime" :style="{[horizental ? 'width' : 'height']: `${audioBuffered}%`}"></div>
         <div class="control_bar_progress" :style="{[horizental ? 'width' : 'height']: `${progress}%`, backgroundColor: progressColor}">
             <div class="control_bar_dot" ref="dot" 
@@ -172,8 +172,10 @@ watch(audioInfo, () => {
         progress.value = 0;
     }
 })
+/** true 不可跳转 */
 const cantSeek = computed(() => {
-    if (audioInfo.value.type !== AudioInfoType.bili) return true;
+    if (!props.isTime) return false;
+    if (audioInfo.value.type !== AudioInfoType.bili) return false;
     return (audioLoadMode.value === '1' && isIPhone)
 })
 
@@ -182,7 +184,7 @@ const cantSeek = computed(() => {
 function seekBar(e: MouseEvent) {
     // console.log(e.composedPath())
     // 点到加载的dot, 判断offsetX会有问题
-    if (props.isTime && cantSeek.value) {
+    if (cantSeek.value) {
         ElMessage({
             type: 'warning',
             message: '快速加载模式下iPhone用户无法手动调整哔哩哔哩歌曲播放进度'
@@ -232,7 +234,7 @@ function seekVertical(e: MouseEvent) {
 /** 拖拽 */
 function dragDot() {
     // console.log(e)
-    if (props.isTime && cantSeek.value) return;
+    if (cantSeek.value) return;
     if (!progressBar.value) return;
     progressLock.value = true;
 
@@ -254,20 +256,20 @@ function dragDot() {
 }
 /** 移动端拖拽开始 */
 function touchStart() {
-    if (props.isTime && cantSeek.value) return;
+    if (cantSeek.value) return;
     if (!progressBar.value) return;
     touchStartPosition.value = progressBar.value.getBoundingClientRect();
     progressLock.value = true;
 }
 /** 移动端拖拽中 */
 function touchMove(e: TouchEvent) {
-    if (props.isTime && cantSeek.value) return;
+    if (cantSeek.value) return;
     if (!touchStartPosition.value) return;
     computedMove(touchStartPosition.value, e);
 }
 /** 移动端拖拽结束 */
 function touchEnd() {
-    if (props.isTime && cantSeek.value) return;
+    if (cantSeek.value) return;
     if (audio.value) {
         if (props.isTime) {
             audio.value.currentTime = audioInfo.value.duration / 1000 * (progress.value / 100);

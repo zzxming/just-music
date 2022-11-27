@@ -61,6 +61,7 @@
 .setting {
     &_dialog {
         width: 400px;
+        z-index: 2001;
     }
 }
 @media screen and (max-width: 550px) {

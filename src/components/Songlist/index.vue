@@ -318,7 +318,6 @@ function observerLoad() {
 }
 onMounted(() => {
     // isStatic 表示不会动态加载
-    console.log(props.isStatic)
     if (!props.isStatic) {
         // 滚动动态加载
         nextTick(() => observerLoad());
