@@ -1,8 +1,8 @@
 <template>
-    <div class="playlist" v-loading="collectLoading">
+    <div class="playlist" v-loading="collectLoading || loading">
         <LoadingErrorTip :isError="!loading && loadingError" :requestFunc="requestPlaylistData" />
         <!-- 请求失败的时候处理 songlist, 变成重新请求 -->
-        <div v-loading="loading && !playlistInfo" class="playlist_wrapper">
+        <div class="playlist_wrapper">
             <div v-if="playlistInfo" class="playlist_info">
                 <div class="playlist_info_left">
                     <div class="playlist_info_cover">
@@ -47,17 +47,19 @@
                     </div>
                 </div>
             </div>
-            
-            <div class="playlist_song" v-if="playlistInfo">
+        </div>
+        <div class="playlist_song" v-if="playlistInfo">
+            <LoadingMore 
+                :isStatic="(playlistInfo?.type === PlaylistType.localStorage) || (playlistInfo?.type === PlaylistType.bili)"
+                :requestFunc="getPlaylistTrackWithId.bind(undefined, props.id, props.t, true)"
+            >
                 <Songlist 
                     :songs="songsInfo" 
                     :canDeleteSong="playlistInfo?.type === PlaylistType.localStorage" 
                     :canDrag="playlistInfo?.type === PlaylistType.localStorage"
-                    :isStatic="(playlistInfo?.type === PlaylistType.localStorage) || (playlistInfo?.type === PlaylistType.bili)"
-                    :loadMoreFunc="getPlaylistTrackWithId.bind(undefined, props.id, props.t, true)"
                     @songOrder="songOrder"
                 />
-            </div>
+            </LoadingMore>
         </div>
     </div>
 </template>
@@ -76,7 +78,6 @@
     &_wrapper {
         align-self: center;
         width: 100%;
-        min-height: calc(100vh - 64px - 104px);
     }
     &_info {
         box-sizing: border-box;
@@ -293,7 +294,7 @@ async function requestPlaylistData() {
         loading.value = false;
         return;
     }
-
+    // 获取歌单内歌曲
     getPlaylistDetailWithId(props.id, props.t);
     // getPlaylistTrackWithId(props.id, props.t);
 }

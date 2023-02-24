@@ -1,7 +1,8 @@
 <template>
     <div class="playlist">
-        <PlaylistList v-loading="fristLoading && !loadingError" :isTopList="false" :playlist="playlist" />
-        <LoadingErrorTip :isError="fristLoading && loadingError" :requestFunc="getPlaylistData" />
+        <LoadingMore :requestFunc="addData" :isStatic="true">
+            <PlaylistList :isTopList="false" :playlist="playlist" />
+        </LoadingMore>
     </div>
 </template>
 
@@ -19,36 +20,28 @@
 import { PlaylistInfoPartial } from '@/interface'
 import { getBiliAudioForPlaylist } from '@/assets/localApi';
 
-const loadingError = ref(false);
-const fristLoading = ref(true);
 const playlist = reactive<PlaylistInfoPartial[]>([]);
 
-onMounted(() => {
-    addData()
-});
-
-function addData() {
+async function addData() {
     const bvArr = ['BV1mt411q7GU', 'BV1Wt411H7qN', 'BV1Dh41167W4', 'BV1tb411g7wo', 'BV1jJ41137nD'];
-    Promise.all(bvArr.map(async (bv) => await getPlaylistData(bv)))
+    return await Promise.all(bvArr.map(async (bv) => await getPlaylistData(bv)))
     .then(res => {
-        fristLoading.value = false;
         playlist.push(...res)
+        return 0;
     })
     .catch(err => {
         // console.log(err)
-        loadingError.value = true;
+        return -1
     })
 }
 
 async function getPlaylistData(bv: string) {
-    loadingError.value = false;
     let [err, result] = await getBiliAudioForPlaylist(bv);
     if (!err && result) {
-        return result.data.data
-        // playlist.push(result.data.data)
+        return result.data.data;
     }
     else {
-        return Promise.reject('some error')
+        return Promise.reject('some error');
     }
 }
 

@@ -53,13 +53,9 @@
                     <el-icon class="" @click.stop="(e: MouseEvent) => showPopbox(e, song)"><IconAntDesignMoreOutlined /></el-icon>
                 </div>
             </div>
-            <LoadingMore key="loadingSong" ref="loadMore" :requestFunc="isStaticLoadMoreFunc" />
-            <LoadingErrorTip :isError="loadError" :requestFunc="loadData" :style="{height: '200px'}" />
         </div>
     </div>
 </template>
-
-<!-- 滚动加载对 search 页有问题, 当第一次加载时, 滚动加载会失效, 需要手动点一次加载更多才能生效 -->
 
 <style lang="less" scoped>
 .songlist {
@@ -243,7 +239,6 @@ import { AudioInfoType, MusicInfo, Singer } from '@/interface';
 import { usePlayerStore, usePlaylistStore, usePopoutStore } from '@/store';
 import { formatAudioTime, twoDigitStr } from '@/utils/format';
 import { useIsSmallScreen } from '@/hooks';
-import { ExposeVar } from '@/components/LoadingMore/index.vue';
 
 
 const router = useRouter();
@@ -262,28 +257,12 @@ const props = withDefaults(
         emptyText?: string
         canDeleteSong?: boolean
         canDrag?: boolean
-        isStatic?: boolean
-        loadMoreFunc?: (...arg: any[]) => number | Promise<number>
     }>(), {
         emptyText: '这里什么都没有',
         canDeleteSong: false,
         canDrag: false,
-        isStatic: true,
-        loadMoreFunc: () => 0
     }
 );
-
-const isStaticLoadMoreFunc = computed(() => {
-    if (props.isStatic) {
-        return async () => {
-            await props.loadMoreFunc();
-            return 0;
-        }
-    }
-    else {
-        return props.loadMoreFunc
-    }
-})
 
 const emit = defineEmits<{
     (e: 'songOrder', song: MusicInfo[]): void
@@ -298,44 +277,6 @@ watch(audioInfo, (val) => {
     activeCid.value = val.cid
 });
 
-const loading = ref(true);
-const loadError = ref(false);
-const loadMore = ref<ExposeVar>();
-/** 监听动态加载歌单 */
-function observerLoad() {
-    if (!loadMore.value?.loadMore) return;
-    let loadIO = new IntersectionObserver(async (entries) => {
-        // 距离视口还有200px
-        // console.log(entries[0].isIntersecting, loadMore.value)
-        if (entries[0].isIntersecting && loadMore.value) {
-            loadData();
-        }
-    }, {
-        rootMargin: '0px 0px 400px 0px' // 监听视口距离向下多200px
-    });
-    loadIO.observe(loadMore.value.loadMore);
-}
-onMounted(() => {
-    // isStatic 表示不会动态加载
-    if (!props.isStatic) {
-        // 滚动动态加载
-        nextTick(() => observerLoad());
-    }
-    else {
-        loadData()
-    }
-})
-
-async function loadData() {
-    if (!loadMore.value) return;
-    loadError.value = false;
-    loading.value = true;
-    let num = await loadMore.value.loadFunc();
-    loading.value = false;
-    if (num === -1) {
-        loadError.value = true;
-    }
-}
 /** 双击播放歌曲 */
 async function playSong(event: MouseEvent, song: MusicInfo) {
     if (audioInfo.value.id !== song.id || (audioInfo.value.type === AudioInfoType.bili && audioInfo.value.cid !== song.cid)) {

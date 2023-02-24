@@ -1,6 +1,6 @@
 <template>
     <DataContent title="网易云推荐歌单" href="/playlist">
-        <CloudPlaylistRecommend />
+        <CloudPlaylistRecommend :isStatic="true" />
     </DataContent>
     <!-- <DataContent title="just推荐歌单">
         <LocalPlaylistRandom />

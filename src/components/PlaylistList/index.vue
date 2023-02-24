@@ -1,9 +1,9 @@
 <template>
-    <ul class="playlist_list" :style="{height: playlist.length < 1 ? '200px' : 'auto'}">
+    <ul class="playlist_list">
         <el-row :gutter="20" :class="`playlist_list_row ${isTopList ? 'toplist' : ''}`">
             <el-col 
-                v-for="item in playlist" 
                 class="playlist_list_wrap"
+                v-for="item in playlist" 
             >
                 <div 
                     class="playlist_list_item"
@@ -16,7 +16,11 @@
                             <el-icon class="playlist_list_item-icon allow-right"><IconEpCaretRight /></el-icon>
                             {{formatPlayCount(item.playCount)}}
                         </span>
-                        <img class="playlist_list_item-img" :src="item.type === PlaylistType.local ? mediaSrc(item.cover) : item.cover"  @error="throttle(onErrorImg, 3000)" />
+                        <img 
+                            class="playlist_list_item-img" 
+                            :src="item.type === PlaylistType.local ? mediaSrc(item.cover) : item.cover"  
+                            @error="throttle(onErrorImg, 3000)" 
+                        />
                     </div>
                     <div class="playlist_list_item-title">
                         {{item.title}}
@@ -209,7 +213,8 @@ import { mediaSrc } from '@/assets/api';
 
 const musicImg = ref('/api/imgs/music.jpg');
 
-const { isTopList, playlist } = withDefaults(
+// 不能解构出 playlist, 否则 playlist 增加时会报错
+const props = withDefaults(
     defineProps<{
         isTopList: boolean
         playlist: PlaylistInfoPartial[],

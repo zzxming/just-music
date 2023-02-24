@@ -22,13 +22,16 @@
         </div>
         <div class="search_result">
             <!-- key 刷新组件，使每次改变时重新加载组件里的 loadMore 组件，达到每次改变自动显示加载中 -->
-            <Songlist 
+            <LoadingMore 
                 :key="`${kw}-${currentSearchType}`"
-                :songs="songsData" 
-                :emptyText="currentSearchType === AudioInfoType.bili ? '请输入正确的bv号' : '没有搜索到相关歌曲'" 
+                :requestFunc="requestSearch" 
                 :isStatic="currentSearchType === AudioInfoType.bili"
-                :loadMoreFunc="requestSearch"
-            />
+            >
+                <Songlist 
+                    :songs="songsData" 
+                    :emptyText="currentSearchType === AudioInfoType.bili ? '请输入正确的bv号' : '没有搜索到相关歌曲'" 
+                />
+            </LoadingMore>
         </div>
     </div>
 </template>
@@ -152,9 +155,8 @@ function searchTypeChange() {
 }
 /**
  * 发起搜索请求
- * @param loadMore 是否是第一次发起请
  */
-async function requestSearch(loadMore: boolean = false) {
+async function requestSearch() {
     loadingError.value = false;
     let err, result;
     // console.log(currentSearchType.value)
@@ -187,7 +189,6 @@ async function requestSearch(loadMore: boolean = false) {
     }
     // 添加时不清空已有数据
     if (!err && result) {
-        loadMore && (songsData.length = 0);
         fristLoading.value = false;
         // console.log(result)
         let data = result.data;

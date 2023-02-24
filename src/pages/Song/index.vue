@@ -44,9 +44,10 @@
             </div>
         </div>
         
-        <div class="player_list" v-if="songList" v-loading="loadingSong">
-            <Songlist :songs="songList" />
-            <LoadingErrorTip :isError="loadSongError" :style="{height: '100px'}" :requestFunc="getSongData" />
+        <div class="player_list">
+            <LoadingMore :requestFunc="getSongData" :isStatic="true">
+                <Songlist :songs="songList" />
+            </LoadingMore>
         </div>
 
         <div class="player_other"></div>
@@ -245,7 +246,7 @@ const { playinglistReplace } = playinglist;
 const popoutStore = usePopoutStore();
 
 const songInfo = ref<MusicInfo>();
-const songList = ref<MusicInfo[]>();
+const songList = ref<MusicInfo[]>([]);
 const loadingInfo = ref(false);
 const loadInfoError = ref(false);
 const loadingSong = ref(false);
@@ -258,7 +259,7 @@ const popoutPosition = ref<PopoutPosition>({
 
     
 watch([() => props.id, () => props.t], () => {
-    songList.value = undefined;
+    songList.value = [];
     songInfo.value = undefined;
     requesSongData();
 }, { immediate: true });
@@ -269,7 +270,7 @@ async function requesSongData() {
     if (props.t === AudioInfoType.bili) {
         loadingInfo.value = true;
         let [err, result] = await getBiliAudioForPlaylist(String(props.id));
-        getSongData();
+        // getSongData();
         loadingInfo.value = false;
 
         if (!err && result) {
@@ -341,6 +342,7 @@ async function getSongData() {
             message: err?.message 
         })
     }
+    return 0;
 }
 /** 收藏按钮 */
 function collectAudio(e: MouseEvent) {
