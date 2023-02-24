@@ -5,7 +5,7 @@
                 class="search_header"
                 v-model="currentSearchType"
                 :stretch="true"
-                @tab-change="(name: TabPaneName) => searchTypeChange(name)"
+                @tab-change="searchTypeChange"
             >
                 <template v-for="sType in AudioInfoType">
                     <el-tab-pane 
@@ -21,8 +21,9 @@
             </el-tabs>
         </div>
         <div class="search_result">
+            <!-- key 刷新组件，使每次改变时重新加载组件里的 loadMore 组件，达到每次改变自动显示加载中 -->
             <Songlist 
-                :key="currentSearchType"
+                :key="`${kw}-${currentSearchType}`"
                 :songs="songsData" 
                 :emptyText="currentSearchType === AudioInfoType.bili ? '请输入正确的bv号' : '没有搜索到相关歌曲'" 
                 :isStatic="currentSearchType === AudioInfoType.bili"
@@ -113,7 +114,6 @@ import { formatMusicInfo, isType } from '@/utils/format'
 import { searchCloudMusic, SearchCloudResult } from '@/assets/cloudApi'
 import { searchLocalMusic, searchMusicInfoWIthBvid } from '@/assets/localApi'
 import { jointQuery } from '@/assets/api';
-import { TabPaneName } from 'element-plus'
 
 enum SearchTypeTxt {
     bili = '哔哩哔哩',
@@ -136,36 +136,19 @@ const loadingError = ref(false);
 const songsData = reactive<MusicInfo[]>([]);
 
 
-// 搜索类型变化更改 url
-watch(currentSearchType, (val) => {
-    // console.log(val, route.query)
-    if (route.query.kw === props.kw && route.query.t === val) return;
-    router.push(jointQuery(route.path, {kw: props.kw, t: val}));
-});
-// url 变化重新搜索
-watch(() => props, (val) => {
-    // console.log(val)
-    // 因为 Search 组件的 props 来自路由
-    // 所以改变 url 时先执行的是 props 发生改变
-    // 但当在 search 页面改变 url 时 currentSearchType 已经赋值
-    // 所以不会发生改变, 需要手动赋值一次
-    currentSearchType.value = AudioInfoType[val.t];
+// url 变化重置状态
+watch(() => props, () => {
     limit.value = 1;
-    fristLoading.value = true;
     loadingError.value = false;
+    fristLoading.value = true;
     songsData.length = 0;
-    // requestSearch();
 }, {
-    deep: true,
-    immediate: true
+    deep: true
 });
 
 /** 搜索类型改变 */
-function searchTypeChange(tabName: TabPaneName) {
-    currentSearchType.value = tabName as AudioInfoType;
-    limit.value = 1;
-    fristLoading.value = true;
-    loadingError.value = false;
+function searchTypeChange() {
+    router.replace(jointQuery(route.path, {kw: props.kw, t: currentSearchType.value}));
 }
 /**
  * 发起搜索请求

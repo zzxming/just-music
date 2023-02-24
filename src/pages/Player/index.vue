@@ -199,6 +199,9 @@
                 font-size: 60px;
                 animation: rotate360 linear 2s infinite;
             }
+            &.option {
+                margin: 0;
+            }
         }
     }
 }

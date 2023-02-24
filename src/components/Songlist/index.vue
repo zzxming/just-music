@@ -53,7 +53,6 @@
                     <el-icon class="" @click.stop="(e: MouseEvent) => showPopbox(e, song)"><IconAntDesignMoreOutlined /></el-icon>
                 </div>
             </div>
-            <!-- <div v-if="isStatic && songs.length < 1 && !loadError" class="songlist_empty">{{ loading ? '加载中...' : emptyText }}</div> -->
             <LoadingMore key="loadingSong" ref="loadMore" :requestFunc="isStaticLoadMoreFunc" />
             <LoadingErrorTip :isError="loadError" :requestFunc="loadData" :style="{height: '200px'}" />
         </div>
