@@ -52,11 +52,14 @@
             <LoadingMore 
                 :isStatic="(playlistInfo?.type === PlaylistType.localStorage) || (playlistInfo?.type === PlaylistType.bili)"
                 :requestFunc="getPlaylistTrackWithId.bind(undefined, props.id, props.t, true)"
+                v-slot="{loading, loadingError}"
             >
                 <Songlist 
                     :songs="songsInfo" 
                     :canDeleteSong="playlistInfo?.type === PlaylistType.localStorage" 
                     :canDrag="playlistInfo?.type === PlaylistType.localStorage"
+                    :loading="loading"
+                    :loadingError="loadingError"
                     @songOrder="songOrder"
                 />
             </LoadingMore>
