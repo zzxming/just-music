@@ -90,9 +90,7 @@
 	let fristLoad = ref(true);
 
 	defineExpose({ loadMore, loadFunc });
-	watch(loading, () => {
-		console.log(loading.value);
-	});
+
 	onMounted(() => {
 		if (!props.isStatic) {
 			observerLoad();
